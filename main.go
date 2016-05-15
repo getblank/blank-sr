@@ -13,6 +13,7 @@ func main() {
 	config.Init("./config.json")
 
 	wamp := wango.New()
+	wamp.SetSessionOpenCallback(onSessionOpen)
 	wamp.SetSessionCloseCallback(onSessionClose)
 
 	s := new(websocket.Server)
@@ -20,20 +21,25 @@ func main() {
 		return nil
 	}
 	s.Handler = func(ws *websocket.Conn) {
-		println("Connect")
 		wamp.WampHandler(ws, nil)
 	}
 	http.Handle("/", s)
-
-	go func() {
-		wango.Connect("ws://localhost:1234", "http://localhost:1234")
-	}()
 
 	wamp.RegisterSubHandler("registry", registryHandler, nil)
 	wamp.RegisterSubHandler("config", configHandler, nil)
 	wamp.RegisterRPCHandler("register", registry.RegisterHandler)
 
+	registry.OnCreate(func() {
+		services := registry.GetAll()
+		wamp.Publish("registry", services)
+	})
+
 	registry.OnUpdate(func() {
+		services := registry.GetAll()
+		wamp.Publish("registry", services)
+	})
+
+	registry.OnDelete(func() {
 		services := registry.GetAll()
 		wamp.Publish("registry", services)
 	})
@@ -45,7 +51,12 @@ func main() {
 }
 
 func onSessionClose(c *wango.Conn) {
+	println("Disconnected", c.ID())
 	registry.Unregister(c.ID())
+}
+
+func onSessionOpen(c *wango.Conn) {
+	println("New client", c.ID())
 }
 
 func registryHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {

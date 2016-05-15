@@ -79,13 +79,12 @@ func (s Services) unregister(id string) {
 				ss = append(ss[:i], ss[i+1:]...)
 				s.services[typ] = ss
 				for _, h := range deleteHandlers {
-					h()
+					go h()
 				}
 				return
 			}
 		}
 	}
-
 }
 
 func RegisterHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
