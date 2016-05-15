@@ -15,9 +15,12 @@ import (
 	"github.com/ivahaev/go-logger"
 )
 
-var BoltDB *bolt.DB
-var opened bool
-var mutex = &sync.Mutex{}
+var (
+	BoltDB *bolt.DB
+	opened bool
+	mutex  = &sync.Mutex{}
+	dbpath = "./blank.db"
+)
 
 type M map[string]interface{}
 
@@ -29,8 +32,7 @@ func Opened() bool {
 	return opened
 }
 
-func Init() {
-	dbpath := "./pd.db"
+func init() {
 	var err error
 	BoltDB, err = bolt.Open(dbpath, 0600, nil)
 	if err != nil {
