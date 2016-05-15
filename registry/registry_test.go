@@ -26,4 +26,9 @@ func TestRegister(t *testing.T) {
 	if services.services["type1"][0].connID != "id2" {
 		t.Fatal("Invalid service was unregistered")
 	}
+
+	Unregister("id2")
+	if len(services.services["type1"]) != 0 {
+		t.Fatal("Service was not unregistered", len(services.services["type1"]))
+	}
 }

@@ -70,6 +70,24 @@ func (s Services) register(service Service) {
 	s.services[service.Type] = append(s.services[service.Type], service)
 }
 
+func (s Services) unregister(id string) {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+	for typ, ss := range s.services {
+		for i, _ss := range ss {
+			if _ss.connID == id {
+				ss = append(ss[:i], ss[i+1:]...)
+				s.services[typ] = ss
+				for _, h := range deleteHandlers {
+					h()
+				}
+				return
+			}
+		}
+	}
+
+}
+
 func RegisterHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
 	if len(args) == 0 {
 		return nil, errors.New("No register message")
@@ -104,18 +122,5 @@ func RegisterHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 }
 
 func Unregister(id string) {
-	services.locker.Lock()
-	defer services.locker.Unlock()
-	for typ, ss := range services.services {
-		for i, s := range ss {
-			if s.connID == id {
-				ss = append(ss[:i], ss[i+1:]...)
-				services.services[typ] = ss
-				for _, h := range createHandlers {
-					h()
-				}
-				return
-			}
-		}
-	}
+	services.unregister(id)
 }
