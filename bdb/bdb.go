@@ -11,7 +11,6 @@ import (
 	"github.com/getblank/blank-sr/berror"
 
 	"github.com/boltdb/bolt"
-	"github.com/ivahaev/bolt-view"
 	"github.com/ivahaev/go-logger"
 )
 
@@ -41,7 +40,7 @@ func init() {
 	mutex.Lock()
 	defer mutex.Unlock()
 	opened = true
-	go boltview.Init(BoltDB)
+	// go boltview.Init(BoltDB)
 }
 
 func (DB) Connected() bool {

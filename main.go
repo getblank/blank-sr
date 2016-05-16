@@ -5,12 +5,14 @@ import (
 
 	"github.com/getblank/blank-sr/config"
 	"github.com/getblank/blank-sr/registry"
+	"github.com/getblank/blank-sr/sessionstore"
 	"github.com/getblank/wango"
 	"golang.org/x/net/websocket"
 )
 
 func main() {
 	config.Init("./config.json")
+	sessionstore.Init()
 
 	wamp := wango.New()
 	wamp.SetSessionOpenCallback(onSessionOpen)
