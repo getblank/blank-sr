@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	services       = Services{services: map[string][]Service{}}
+	services       = map[string][]Service{}
+	locker         sync.RWMutex
 	createHandlers = []func(){}
 	updateHandlers = []func(){}
 	deleteHandlers = []func(){}
@@ -19,11 +20,6 @@ const (
 	TypePBX    = "PBX"
 	Type       = "TaskQueue"
 )
-
-type Services struct {
-	services map[string][]Service
-	locker   sync.RWMutex
-}
 
 type Service struct {
 	Type    string `json:"type"`
@@ -36,10 +32,10 @@ type RegisterMessage struct {
 }
 
 func GetAll() map[string][]Service {
-	services.locker.RLock()
-	defer services.locker.RUnlock()
+	locker.RLock()
+	defer locker.RUnlock()
 	all := map[string][]Service{}
-	for typ, _services := range services.services {
+	for typ, _services := range services {
 		all[typ] = []Service{}
 		for _, srv := range _services {
 			all[typ] = append(all[typ], srv)
@@ -58,32 +54,6 @@ func OnUpdate(fn func()) {
 
 func OnDelete(fn func()) {
 	deleteHandlers = append(deleteHandlers, fn)
-}
-
-func (s Services) register(service Service) {
-	s.locker.Lock()
-	defer s.locker.Unlock()
-
-	if s.services[service.Type] == nil {
-		s.services[service.Type] = []Service{}
-	}
-	s.services[service.Type] = append(s.services[service.Type], service)
-}
-
-func (s Services) unregister(id string) {
-	s.locker.Lock()
-	defer s.locker.Unlock()
-	for typ, ss := range s.services {
-		for i, _ss := range ss {
-			if _ss.connID == id {
-				s.services[typ] = append(ss[:i], ss[i+1:]...)
-				for _, h := range deleteHandlers {
-					go h()
-				}
-				return
-			}
-		}
-	}
 }
 
 func RegisterHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
@@ -110,7 +80,7 @@ func RegisterHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 		Address: remoteAddr,
 		connID:  c.ID(),
 	}
-	services.register(s)
+	register(s)
 
 	for _, h := range createHandlers {
 		h()
@@ -120,5 +90,31 @@ func RegisterHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 }
 
 func Unregister(id string) {
-	services.unregister(id)
+	unregister(id)
+}
+
+func register(service Service) {
+	locker.Lock()
+	defer locker.Unlock()
+
+	if services[service.Type] == nil {
+		services[service.Type] = []Service{}
+	}
+	services[service.Type] = append(services[service.Type], service)
+}
+
+func unregister(id string) {
+	locker.Lock()
+	defer locker.Unlock()
+	for typ, ss := range services {
+		for i, _ss := range ss {
+			if _ss.connID == id {
+				services[typ] = append(ss[:i], ss[i+1:]...)
+				for _, h := range deleteHandlers {
+					go h()
+				}
+				return
+			}
+		}
+	}
 }
