@@ -1,11 +1,6 @@
 package registry
 
-import (
-	"errors"
-	"sync"
-
-	"github.com/getblank/wango"
-)
+import "sync"
 
 var (
 	services       = map[string][]Service{}
@@ -56,29 +51,11 @@ func OnDelete(fn func()) {
 	deleteHandlers = append(deleteHandlers, fn)
 }
 
-func RegisterHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	if len(args) == 0 {
-		return nil, errors.New("No register message")
-	}
-
-	mes, ok := args[0].(map[string]interface{})
-	if !ok {
-		return nil, errors.New("Invalid register message")
-	}
-
-	_type, ok := mes["type"]
-	if !ok {
-		return nil, errors.New("Invalid register message. No type")
-	}
-	typ, ok := _type.(string)
-	if !ok || typ == "" {
-		return nil, errors.New("Invalid register message. No type")
-	}
-	remoteAddr := c.RemoteAddr()
+func Register(typ, remoteAddr, connID string) (interface{}, error) {
 	s := Service{
 		Type:    typ,
 		Address: remoteAddr,
-		connID:  c.ID(),
+		connID:  connID,
 	}
 	register(s)
 

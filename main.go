@@ -3,11 +3,13 @@ package main
 import (
 	"net/http"
 
+	"github.com/pkg/errors"
+	"golang.org/x/net/websocket"
+
 	"github.com/getblank/blank-sr/config"
 	"github.com/getblank/blank-sr/registry"
 	"github.com/getblank/blank-sr/sessionstore"
 	"github.com/getblank/wango"
-	"golang.org/x/net/websocket"
 )
 
 func main() {
@@ -29,7 +31,8 @@ func main() {
 
 	wamp.RegisterSubHandler("registry", registryHandler, nil)
 	wamp.RegisterSubHandler("config", configHandler, nil)
-	wamp.RegisterRPCHandler("register", registry.RegisterHandler)
+
+	wamp.RegisterRPCHandler("register", registerHandler)
 
 	registry.OnCreate(func() {
 		services := registry.GetAll()
@@ -69,4 +72,27 @@ func registryHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 func configHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
 	conf := config.GetAllStoreObjectsFromDb()
 	return conf, nil
+}
+
+func registerHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, errors.New("No register message")
+	}
+
+	mes, ok := args[0].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("Invalid register message")
+	}
+
+	_type, ok := mes["type"]
+	if !ok {
+		return nil, errors.New("Invalid register message. No type")
+	}
+	typ, ok := _type.(string)
+	if !ok || typ == "" {
+		return nil, errors.New("Invalid register message. No type")
+	}
+	registry.Register(typ, c.RemoteAddr(), c.ID())
+
+	return nil, nil
 }
