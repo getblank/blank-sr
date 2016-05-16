@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
@@ -100,7 +101,8 @@ func registerHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 	if !ok || typ == "" {
 		return nil, errors.New("Invalid register message. No type")
 	}
-	registry.Register(typ, c.RemoteAddr(), c.ID())
+	remoteAddr := "ws://" + strings.Split(c.RemoteAddr(), ":")[0]
+	registry.Register(typ, remoteAddr, c.ID())
 
 	return nil, nil
 }

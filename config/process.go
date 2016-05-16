@@ -332,36 +332,38 @@ ConfLoop:
 }
 
 func (m *Model) preparePropHtmlTemplates() (err error) {
-	for i := range m.Props {
-		prop := m.Props[i]
-		if m.Props[i].HtmlFile != "" {
-			bytes, err := ioutil.ReadFile("local/lib/" + prop.HtmlFile)
-			if err != nil {
-				bytes, err = ioutil.ReadFile(prop.HtmlFile)
-			}
-			if err != nil {
-				logger.Error("Can't read HtmlFile " + prop.HtmlFile + " for prop " + i)
-				return err
-			}
-			prop.Html = string(bytes)
-		}
-		for j := range prop.Props {
-			subProp := prop.Props[j]
-			if subProp.HtmlFile != "" {
-				bytes, err := ioutil.ReadFile("local/lib/" + subProp.HtmlFile)
-				if err != nil {
-					bytes, err = ioutil.ReadFile(subProp.HtmlFile)
-				}
-				if err != nil {
-					logger.Error("Can't read HtmlFile " + subProp.HtmlFile + " for prop " + i + "." + j)
-					return err
-				}
-				subProp.Html = string(bytes)
-				prop.Props[j] = subProp
-			}
-		}
-		m.Props[i] = prop
-	}
+	// Temporarly disabling loading html files
+
+	// for i := range m.Props {
+	// 	prop := m.Props[i]
+	// 	if m.Props[i].HtmlFile != "" {
+	// 		bytes, err := ioutil.ReadFile("local/lib/" + prop.HtmlFile)
+	// 		if err != nil {
+	// 			bytes, err = ioutil.ReadFile(prop.HtmlFile)
+	// 		}
+	// 		if err != nil {
+	// 			logger.Error("Can't read HtmlFile " + prop.HtmlFile + " for prop " + i)
+	// 			return err
+	// 		}
+	// 		prop.Html = string(bytes)
+	// 	}
+	// 	for j := range prop.Props {
+	// 		subProp := prop.Props[j]
+	// 		if subProp.HtmlFile != "" {
+	// 			bytes, err := ioutil.ReadFile("local/lib/" + subProp.HtmlFile)
+	// 			if err != nil {
+	// 				bytes, err = ioutil.ReadFile(subProp.HtmlFile)
+	// 			}
+	// 			if err != nil {
+	// 				logger.Error("Can't read HtmlFile " + subProp.HtmlFile + " for prop " + i + "." + j)
+	// 				return err
+	// 			}
+	// 			subProp.Html = string(bytes)
+	// 			prop.Props[j] = subProp
+	// 		}
+	// 	}
+	// 	m.Props[i] = prop
+	// }
 	return nil
 }
 
