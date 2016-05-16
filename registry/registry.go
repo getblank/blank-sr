@@ -11,9 +11,9 @@ var (
 )
 
 const (
-	TypeWorker = "worker"
-	TypePBX    = "PBX"
-	Type       = "TaskQueue"
+	TypeWorker    = "worker"
+	TypePBX       = "PBX"
+	TypeTaskQueue = "TaskQueue"
 )
 
 type Service struct {
