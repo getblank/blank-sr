@@ -139,7 +139,6 @@ func getSessionByUserIDHandler(c *wango.Conn, uri string, args ...interface{}) (
 	}
 
 	return sessionstore.GetByUserID(userID)
-	return nil, nil
 }
 
 func deleteSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
