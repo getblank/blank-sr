@@ -155,6 +155,7 @@ func deleteSessionHandler(c *wango.Conn, uri string, args ...interface{}) (inter
 	if err != nil {
 		return nil, err
 	}
+	s.Delete()
 
-	return s.Delete(), nil
+	return nil, nil
 }
