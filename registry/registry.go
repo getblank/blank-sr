@@ -76,8 +76,7 @@ func (s Services) unregister(id string) {
 	for typ, ss := range s.services {
 		for i, _ss := range ss {
 			if _ss.connID == id {
-				ss = append(ss[:i], ss[i+1:]...)
-				s.services[typ] = ss
+				s.services[typ] = append(ss[:i], ss[i+1:]...)
 				for _, h := range deleteHandlers {
 					go h()
 				}
