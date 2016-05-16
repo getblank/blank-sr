@@ -22,7 +22,7 @@ var (
 
 type Session struct {
 	APIKey      string    `json:"apiKey"`
-	UserId      string    `json:"userId"`
+	UserID      string    `json:"userId"`
 	LastRequest time.Time `json:"lastRequest"`
 	ttl         time.Duration
 }
@@ -33,10 +33,10 @@ func Init() {
 }
 
 // Optional bool param for creating session with 1 minute ttl
-func New(userId string, tmp ...bool) *Session {
+func New(userID string, tmp ...bool) *Session {
 	s := &Session{
 		uuid.NewV4(),
-		userId,
+		userID,
 		time.Now(),
 		0,
 	}
@@ -54,7 +54,7 @@ func GetByApiKey(APIKey string) (s *Session, err error) {
 	return getByApiKey(APIKey)
 }
 
-func GetByUserId(id string) (s *Session, err error) {
+func GetByUserID(id string) (s *Session, err error) {
 	return getByUserId(id)
 }
 
@@ -88,8 +88,8 @@ func (s *Session) Save() {
 	}
 }
 
-func (s *Session) GetUserId() string {
-	return s.UserId
+func (s *Session) GetUserID() string {
+	return s.UserID
 }
 
 func (s *Session) GetAPIKey() string {
@@ -117,7 +117,7 @@ func getByUserId(id string) (s *Session, err error) {
 	locker.RLock()
 	defer locker.RUnlock()
 	for _, v := range sessions {
-		if v.UserId == id {
+		if v.UserID == id {
 			return v, nil
 		}
 	}

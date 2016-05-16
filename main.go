@@ -12,6 +12,10 @@ import (
 	"github.com/getblank/wango"
 )
 
+var (
+	ErrInvalidArguments = errors.New("Invalid arguments")
+)
+
 func main() {
 	config.Init("./config.json")
 	sessionstore.Init()
@@ -33,6 +37,10 @@ func main() {
 	wamp.RegisterSubHandler("config", configHandler, nil)
 
 	wamp.RegisterRPCHandler("register", registerHandler)
+
+	wamp.RegisterRPCHandler("session.new", newSessionHandler)
+	wamp.RegisterRPCHandler("session.get", getSessionByApiKeyHandler)
+	wamp.RegisterRPCHandler("session.delete", deleteSessionHandler)
 
 	registry.OnCreate(func() {
 		services := registry.GetAll()
@@ -75,8 +83,8 @@ func configHandler(c *wango.Conn, uri string, args ...interface{}) (interface{},
 }
 
 func registerHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	if len(args) == 0 {
-		return nil, errors.New("No register message")
+	if args == nil {
+		return nil, ErrInvalidArguments
 	}
 
 	mes, ok := args[0].(map[string]interface{})
@@ -95,4 +103,58 @@ func registerHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 	registry.Register(typ, c.RemoteAddr(), c.ID())
 
 	return nil, nil
+}
+
+func newSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if args == nil {
+		return nil, ErrInvalidArguments
+	}
+	userId, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+
+	return sessionstore.New(userId), nil
+}
+
+func getSessionByApiKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if args == nil {
+		return nil, ErrInvalidArguments
+	}
+	apiKey, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+
+	return sessionstore.GetByApiKey(apiKey)
+}
+
+func getSessionByUserIDHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if args == nil {
+		return nil, ErrInvalidArguments
+	}
+	userID, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+
+	return sessionstore.GetByUserID(userID)
+	return nil, nil
+}
+
+func deleteSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if args == nil {
+		return nil, ErrInvalidArguments
+	}
+	apiKey, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+
+	s, err := sessionstore.GetByApiKey(apiKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.Delete(), nil
 }
