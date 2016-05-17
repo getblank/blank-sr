@@ -5,9 +5,15 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
+)
+
+var (
+	defaultConnectionTimeout = time.Second * 15
+	heartBeatFrequency       = time.Second * 3
 )
 
 // Wango represents a WAMP server that handles RPC and pub/sub.
@@ -21,6 +27,7 @@ type Wango struct {
 	subscribersLocker sync.RWMutex
 	openCB            func(*Conn)
 	closeCB           func(*Conn)
+	aliveTimeout      time.Duration
 }
 
 // RPCHandler describes func for handling RPC requests
@@ -45,7 +52,7 @@ type subRequestsListeners struct {
 }
 
 // Connect connects to server with provided URI and origin
-func Connect(url, origin string) (*Wango, error) {
+func Connect(url, origin string, timeout ...time.Duration) (*Wango, error) {
 	if !strings.HasPrefix(url, "ws://") && !strings.HasPrefix(url, "wss://") {
 		url = "ws://" + url
 	}
@@ -55,6 +62,12 @@ func Connect(url, origin string) (*Wango, error) {
 	}
 	w := New()
 	c := w.addConnection(ws, nil)
+	c.clientConnection = true
+	if timeout != nil {
+		w.aliveTimeout = timeout[0]
+	} else {
+		w.aliveTimeout = defaultConnectionTimeout
+	}
 
 	err = c.receiveWelcome()
 	if err != nil {
@@ -62,18 +75,25 @@ func Connect(url, origin string) (*Wango, error) {
 	}
 	go c.sender()
 	go w.receive(c)
+	go c.heartbeating()
 
 	return w, nil
 }
 
 // New creates new Wango and returns pointer to it
-func New() *Wango {
+func New(timeout ...time.Duration) *Wango {
 	w := new(Wango)
 	w.connections = map[string]*Conn{}
 	w.rpcHandlers = map[string]RPCHandler{}
 	w.rpcRgxHandlers = map[*regexp.Regexp]RPCHandler{}
 	w.subHandlers = map[string]subHandler{}
 	w.subscribers = map[string]subscribersMap{}
+	if timeout != nil {
+		w.aliveTimeout = timeout[0]
+	} else {
+		w.aliveTimeout = defaultConnectionTimeout
+	}
+
 	return w
 }
 
@@ -109,14 +129,28 @@ func (w *Wango) Call(uri string, data ...interface{}) (interface{}, error) {
 	return res.result, res.err
 }
 
+// Disconnect used to disconnect all clients in server mode, or to disconnect from server in client mode
+func (w *Wango) Disconnect() {
+	w.connectionsLocker.RLock()
+	for _, c := range w.connections {
+		c.breakChan <- struct{}{}
+	}
+	w.connectionsLocker.RUnlock()
+}
+
+// GetConnection returns connection for connID provided.
 func (w *Wango) GetConnection(id string) (*Conn, error) {
 	return w.getConnection(id)
 }
 
+// SetSessionOpenCallback sets callback that will called when new connection will established.
+// Callback passes connection struct as only argument.
 func (w *Wango) SetSessionOpenCallback(cb func(*Conn)) {
 	w.openCB = cb
 }
 
+// SetSessionCloseCallback sets callback that will called when connection will closed
+// Callback passes connection struct as only argument.
 func (w *Wango) SetSessionCloseCallback(cb func(*Conn)) {
 	w.closeCB = cb
 }
@@ -215,7 +249,7 @@ func (w *Wango) SendEvent(uri string, event interface{}, connIDs []string) {
 	}
 }
 
-// Subscribe sends subscribe request for uri provided
+// Subscribe sends subscribe request for uri provided.
 func (w *Wango) Subscribe(uri string, fn EventHandler, id ...string) error {
 	if uri == "" {
 		return errors.New("Empty uri")
@@ -300,7 +334,6 @@ func (w *Wango) Unsubscribe(uri string, id ...string) error {
 // If extra data provided, it will kept in connection and will pass to rpc/pub/sub handlers
 func (w *Wango) WampHandler(ws *websocket.Conn, extra interface{}) {
 	c := w.addConnection(ws, extra)
-	defer w.deleteConnection(c)
 	if w.openCB != nil {
 		w.openCB(c)
 	}
@@ -313,59 +346,77 @@ func (w *Wango) WampHandler(ws *websocket.Conn, extra interface{}) {
 }
 
 func (w *Wango) receive(c *Conn) {
-	defer c.connection.Close()
-	var data string
-	for {
-		err := websocket.Message.Receive(c.connection, &data)
-		if err != nil {
-			if err != io.EOF {
-				// Error receiving message
+	defer func() {
+		c.connection.Close()
+		w.deleteConnection(c)
+	}()
+	dataChan := make(chan string)
+	go func() {
+		var data string
+		for {
+			err := websocket.Message.Receive(c.connection, &data)
+			if err != nil {
+				if err != io.EOF {
+					// Error receiving message
+				}
+				c.breakChan <- struct{}{}
+				break
 			}
-			break
+			dataChan <- data
 		}
-		msgType, msg, err := parseMessage(data)
-		if err != nil {
-			// error parsing!!!
-			println("Error:", err.Error())
-		}
-		switch msgType {
-		case msgPrefix:
-		// not implemented
-		case msgCall:
-			w.handleRPCCall(c, msg)
+	}()
+MessageLoop:
+	for {
+		select {
+		case <-c.breakChan:
+			break MessageLoop
+		case data := <-dataChan:
+			msgType, msg, err := parseMessage(data)
+			if err != nil {
+				// error parsing!!!
+				println("Error:", err.Error())
+			}
+			c.resetTimeoutTimer()
 
-		case msgCallResult:
-			w.handleCallResult(c, msg)
+			switch msgType {
+			case msgPrefix:
+			// not implemented
+			case msgCall:
+				w.handleRPCCall(c, msg)
 
-		case msgCallError:
-			w.handleCallError(c, msg)
+			case msgCallResult:
+				w.handleCallResult(c, msg)
 
-		case msgSubscribe:
-			w.handleSubscribe(c, msg)
+			case msgCallError:
+				w.handleCallError(c, msg)
 
-		case msgUnsubscribe:
-			w.handleUnSubscribe(c, msg)
+			case msgSubscribe:
+				w.handleSubscribe(c, msg)
 
-		case msgPublish:
-			w.handlePublish(c, msg)
+			case msgUnsubscribe:
+				w.handleUnSubscribe(c, msg)
 
-		case msgEvent:
-			w.handleEvent(c, msg)
+			case msgPublish:
+				w.handlePublish(c, msg)
 
-		case msgSubscribed:
-			w.handleSubscribed(c, msg)
+			case msgEvent:
+				w.handleEvent(c, msg)
 
-		case msgSubscribeError:
-			w.handleSubscribeError(c, msg)
+			case msgSubscribed:
+				w.handleSubscribed(c, msg)
 
-		case msgUnsubscribed:
-			w.handleUnsubscribed(c, msg)
+			case msgSubscribeError:
+				w.handleSubscribeError(c, msg)
 
-		case msgUnsubscribeError:
-			w.handleUnsubscribeError(c, msg)
+			case msgUnsubscribed:
+				w.handleUnsubscribed(c, msg)
 
-		case msgHeartbeat:
-			w.handleHeartbeat(c, msg, data)
+			case msgUnsubscribeError:
+				w.handleUnsubscribeError(c, msg)
+
+			case msgHeartbeat:
+				w.handleHeartbeat(c, msg, data)
+			}
 		}
 	}
 }
@@ -589,7 +640,9 @@ func (w *Wango) handleUnSubscribe(c *Conn, msg []interface{}) {
 }
 
 func (w *Wango) handleHeartbeat(c *Conn, msg []interface{}, data string) {
-	c.send(data)
+	if !c.clientConnection {
+		c.send(data)
+	}
 }
 
 func (w *Wango) handlePublish(c *Conn, msg []interface{}) {
@@ -615,6 +668,12 @@ func (w *Wango) addConnection(ws *websocket.Conn, extra interface{}) *Conn {
 	cn.callResults = map[string]chan *callResult{}
 	cn.subRequests = subRequestsListeners{listeners: map[string][]subRequestsListener{}}
 	cn.unsubRequests = subRequestsListeners{listeners: map[string][]subRequestsListener{}}
+	cn.breakChan = make(chan struct{})
+	cn.connected = true
+	cn.aliveTimeout = w.aliveTimeout
+	cn.aliveTimer = time.AfterFunc(cn.aliveTimeout, func() {
+		cn.Close()
+	})
 	w.connectionsLocker.Lock()
 	defer w.connectionsLocker.Unlock()
 	w.connections[cn.id] = cn
@@ -634,14 +693,21 @@ func (w *Wango) getConnection(id string) (*Conn, error) {
 }
 
 func (w *Wango) deleteConnection(c *Conn) {
+	c.aliveTimer.Stop()
+	c.extraLocker.Lock()
+	c.connected = false
+	c.extraLocker.Unlock()
+
 	w.connectionsLocker.Lock()
-	defer w.connectionsLocker.Unlock()
-	w.subscribersLocker.Lock()
-	defer w.subscribersLocker.Unlock()
 	delete(w.connections, c.id)
+	w.connectionsLocker.Unlock()
+
+	w.subscribersLocker.Lock()
 	for _, subscribers := range w.subscribers {
 		delete(subscribers, c.id)
 	}
+	w.subscribersLocker.Unlock()
+
 	if w.closeCB != nil {
 		w.closeCB(c)
 	}

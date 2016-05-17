@@ -2,6 +2,7 @@ package wango
 
 import (
 	"sync"
+	"time"
 
 	"golang.org/x/net/websocket"
 )
@@ -13,17 +14,33 @@ type Conn struct {
 	extra               interface{}
 	extraLocker         sync.RWMutex
 	sendChan            chan interface{}
+	breakChan           chan struct{}
 	subRequests         subRequestsListeners
 	unsubRequests       subRequestsListeners
 	callResults         map[string]chan *callResult
 	callResultsLocker   sync.Mutex
 	eventHandlers       map[string]EventHandler
 	eventHandlersLocker sync.RWMutex
+	connected           bool
+	clientConnection    bool
+	aliveTimer          *time.Timer
+	aliveTimeout        time.Duration
 }
 
 // EventHandler is an interface for handlers to published events. The uri
 // is the URI of the event and event is the event centents.
 type EventHandler func(uri string, event interface{})
+
+func (c *Conn) Close() {
+	c.breakChan <- struct{}{}
+}
+
+func (c *Conn) Connected() bool {
+	c.extraLocker.RLock()
+	defer c.extraLocker.RUnlock()
+	connected := c.connected
+	return connected
+}
 
 func (c *Conn) GetExtra() interface{} {
 	c.extraLocker.RLock()
@@ -48,6 +65,21 @@ func (c *Conn) SetExtra(extra interface{}) {
 	c.extraLocker.Unlock()
 }
 
+func (c *Conn) heartbeating() {
+	var hbSequence int
+	ticker := time.NewTicker(heartBeatFrequency)
+	for c.Connected() {
+		msg, _ := createMessage(msgHeartbeat, hbSequence)
+		c.send(msg)
+		<-ticker.C
+	}
+	ticker.Stop()
+}
+
+func (c *Conn) resetTimeoutTimer() {
+	c.aliveTimer.Reset(c.aliveTimeout)
+}
+
 func (c *Conn) send(msg interface{}) {
 	c.sendChan <- msg
 }
@@ -56,7 +88,7 @@ func (c *Conn) sender() {
 	for msg := range c.sendChan {
 		err := websocket.Message.Send(c.connection, msg)
 		if err != nil {
-			println("Error when send message", err)
+			println("Error when send message", err.Error())
 		}
 	}
 }

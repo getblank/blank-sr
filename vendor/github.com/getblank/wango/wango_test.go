@@ -286,6 +286,87 @@ func TestClientConnectingAndPubSub(t *testing.T) {
 	}
 }
 
+func TestSessionOpenSessionCloseHandlers(t *testing.T) {
+	path := "/wamp-client-handlers"
+	server := createWampServer(path)
+	var totalClients int
+	sessionOpenCallback := func(c *Conn) {
+		totalClients++
+	}
+	sessionCloseCallback := func(c *Conn) {
+		totalClients--
+	}
+	server.SetSessionOpenCallback(sessionOpenCallback)
+	server.SetSessionCloseCallback(sessionCloseCallback)
+
+	url := "localhost:1234"
+	maxConnects := 20
+	clients := make([]*Wango, maxConnects)
+	for i := 0; i < maxConnects; i++ {
+		client, err := Connect(url+path, origin)
+		if err != nil {
+			t.Fatal("Can't connect to server", err.Error())
+		}
+
+		if totalClients != i+1 {
+			t.Fatal("Open handler is not working")
+		}
+		clients[i] = client
+	}
+	for i := 0; i < maxConnects; i++ {
+		client := clients[i]
+		client.Disconnect()
+		time.Sleep(time.Millisecond)
+		if totalClients != maxConnects-i-1 {
+			t.Fatal("Close handler is not working", totalClients)
+		}
+	}
+}
+
+func TestConnectionStatus(t *testing.T) {
+	path := "/wamp-client-status"
+	server := createWampServer(path)
+	client, err := Connect(url+path, origin)
+	if err != nil {
+		t.Fatal("Can't connect to server", err.Error())
+	}
+	server.RegisterRPCHandler("test", func(c *Conn, uri string, args ...interface{}) (interface{}, error) {
+		if !c.Connected() {
+			t.Fatal("Should be connected")
+		}
+		time.Sleep(time.Millisecond * 100)
+		if c.Connected() {
+			t.Fatal("Should not be connected")
+		}
+		return nil, nil
+	})
+	go client.Call("test")
+	time.Sleep(time.Millisecond * 50)
+	client.Disconnect()
+}
+
+func TestClientOpenCloseCallbacks(t *testing.T) {
+	path := "/wamp-client-callbacks"
+	createWampServer(path)
+	client, err := Connect(url+path, origin)
+	if err != nil {
+		t.Fatal("Can't connect to server", err.Error())
+	}
+	var closeCallbackCalled bool
+	client.SetSessionCloseCallback(func(c *Conn) {
+		closeCallbackCalled = true
+	})
+	if client.closeCB == nil {
+		t.Fatal("Close callback was not set")
+	}
+	client.Disconnect()
+	time.Sleep(time.Millisecond * 50)
+	if !closeCallbackCalled {
+		t.Fatal("Close callback was not called")
+	}
+
+}
+
 func testRPCHandlerForClient(c *Conn, uri string, args ...interface{}) (interface{}, error) {
 	res := "test-"
 	if len(args) > 0 {
