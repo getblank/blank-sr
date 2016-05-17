@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
@@ -21,7 +22,7 @@ func main() {
 	config.Init("./config.json")
 	sessionstore.Init()
 
-	wamp := wango.New()
+	wamp := wango.New(time.Second * 7)
 	wamp.SetSessionOpenCallback(onSessionOpen)
 	wamp.SetSessionCloseCallback(onSessionClose)
 
@@ -102,7 +103,14 @@ func registerHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 		return nil, errors.New("Invalid register message. No type")
 	}
 	remoteAddr := "ws://" + strings.Split(c.RemoteAddr(), ":")[0]
-	registry.Register(typ, remoteAddr, c.ID())
+	if remoteAddr == "ws://[" {
+		remoteAddr = "ws://127.0.0.1"
+	}
+	var port string
+	if _port, ok := mes["port"]; ok {
+		port, ok = _port.(string)
+	}
+	registry.Register(typ, remoteAddr, port, c.ID())
 
 	return nil, nil
 }

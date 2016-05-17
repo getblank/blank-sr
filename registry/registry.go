@@ -14,11 +14,16 @@ const (
 	TypeWorker    = "worker"
 	TypePBX       = "PBX"
 	TypeTaskQueue = "TaskQueue"
+
+	PortWorker    = "1234"
+	PortPBX       = "1234"
+	PortTaskQueue = "1234"
 )
 
 type Service struct {
 	Type    string `json:"type"`
 	Address string `json:"address"`
+	Port    string `json:"port"`
 	connID  string
 }
 
@@ -51,10 +56,21 @@ func OnDelete(fn func()) {
 	deleteHandlers = append(deleteHandlers, fn)
 }
 
-func Register(typ, remoteAddr, connID string) (interface{}, error) {
+func Register(typ, remoteAddr, port, connID string) (interface{}, error) {
+	if port == "" {
+		switch typ {
+		case TypeWorker:
+			port = PortWorker
+		case TypePBX:
+			port = PortPBX
+		case TypeTaskQueue:
+			port = PortTaskQueue
+		}
+	}
 	s := Service{
 		Type:    typ,
 		Address: remoteAddr,
+		Port:    port,
 		connID:  connID,
 	}
 	register(s)
