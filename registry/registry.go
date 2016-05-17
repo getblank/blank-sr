@@ -13,7 +13,7 @@ var (
 const (
 	TypeWorker    = "worker"
 	TypePBX       = "PBX"
-	TypeTaskQueue = "TaskQueue"
+	TypeTaskQueue = "taskQueue"
 
 	PortWorker    = "1234"
 	PortPBX       = "1234"
