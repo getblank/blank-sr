@@ -2,18 +2,14 @@ language: go
 go:
 - 1.6.2
 env:
-- GOOS=linux GOARCH=amd64
-- GOOS=darwin GOARCH=amd64
+  matrix:
+  - GOOS=linux GOARCH=amd64
+  - GOOS=darwin GOARCH=amd64
+  global:
+  - secure: SltOvsVGWeiK3b5NRUdh1vqmiwAELvEKlnNHyAA2iWO5TJBFU7noSwb5Q8bB0yTtVGZCcapX4hqTwn9qxBIWBp8RpNGH884wyv1YTfm1LXSX7hLFjHMPYRKtWWTXMvUBMUSHqUx5bgvlZh6JZz1fOXPSi0alROMCZb9iE5Ewxr4M16u3vnh1sbgiHG76M0s69q+v49k/LADN9l02n5OjHRJSsSVKWJRTlKDS6CdpPJWq6T2P7lKxWlPUd4Jq1UhFY6g88YbDGUyjrUeTtx6ynUgspkTsGKPOv+TBeS710tW4eoJ6YnGdJX/yuzilMnSfWllU/5dDvYgFGx7BVxPKvgQCfsof706KJkl/Iq4ksewX8SXz6wKSyZhED2B6fIA4m7m+cs8neZdYH6KXZS2gJp96/7Us3j5JnCaKAbZWuT4OD0PGDqS81BpHRH5JcryZrCUeQqEK6uc/7XU+0tPc3BiNpCm4xffhCysygPrJ9aMzfhiXDW1s0C5/Eec9g7Pdw2n7GlTlQyD/fzI4B/af+FH7RHTr0aMK5DRKpZ8A2qMa53Ps+cPU4mRYNVRnuuM+Bue5P2GJTHdsGAg55A50b93B+r0jy5Rl/uuBfmjqz2WGcw4n7J6IkGVlZKCrrlaznqa3jHDtPGW3c+krW+mnTy8K/hdbaZ0xLBVCwJgttfQ=
+  - secure: NIy7DxZyPIIWQYhf1DvMElQD3x+uxMU5Jlyh/vXXIbW4HJrpUe8M1pyVEpHRVj0tzk9DGt0voSF75LMrpVPcvgKwQ5ohmAunqWak3ARGi9kva+nQ4m77r3Yp9gg90rs2OWnCr2VuwYEdoVEFhp02HW1+2KsbntPhjG8zTKUKpqfq9d6PNMnqWc1fw42CiQPKnSHEYSa6r5QssPs56nYTqevGRzZMKrCNnhmp2kIrWsuyZS7M4aWNaYeXcwtjQJsLo7vR+xlDh3Iz7oFRXhYcGmPdj+x1m9YRipGCaTzG7jNY1lmoF+y6HT9NNgyryvl5GPY80v/fZJEtuk0qQbk9nfjrR5VOcLVCWVJIwWZOr0d9z4oWbn8JSEEtV18tdxZ4uvVuYekYWv5+OTSpKfGRSGLsCIgwGqe3PF915/vwC3+ShOeTrS/UIcEl9+WeQQC0ohrZhpOFB3Q82Ub9Pm8o2hGI0nmT0BmWw0JEItV9Zrjfnch37ILeuQ4gVX2bU1dfEl068QGsuGlL9hiI8veqqMzWVES3DoxVn6TkhNJoHFw2V1t1ujw0IOUmrQbKcmn9TtqBkdiKpsglS48/MVJeNN8wVF/nQDx75M9QnCbZ0UitgO7JBsrMlC/nYFv3m5Jw5AD9GmeFy96Qfpw9fhgZx+gkI3La4VhiEUMPpe/khG8=
 script:
 - go test -v github.com/getblank/blank-sr/sessionstore
 - go test -v github.com/getblank/blank-sr/registry
-deploy:
-  provider: releases
-  api-key:
-    secure: PYrFuJNn9kiXW2rcuS1koYBuFGfA/v6LeVS4mBoHCow7QW13+MnpgmhBhITuiotXc080bRSEwMPUZhf/o1odJ4odLMlzY2dQU6kfBauUSBUOfgKqDZ6xDcWqhdsdPMdjF+ZVG5u82EMc9Bg9m6tLxJvhbluvBmSr4P8eLyounjbztbu3fMjYjv+bG/0utePk8ZBu0CirHOstpCUK46bOsKJQwdfDiIE8cz34K6+EQeSR7uoNlyyPjZPM33E/CulLoQS266rGfGMh7ZbZYl9/SBTdWBIOb523aOGxT7k93fJnMqau6qBkTJTDfKhso8mI8jQ/vI8xhpifgic/zkEp1nNlMyGBMR31ewWujq5rQpXrFvjZfaF0fJY/bE/qg3X/iuVamjA3AOA3ft7pzDfxNJ99rBxiZp46jSuWUuYnvQRbE18TZYZUZZQwC6/XPtn1yVrn/vnAs57aVlyjmtHtSy8YWJQZiw1hNaxjxm7StQsPXQuLkrCOxlvD6m3Wb+n/2hQS8WRCODsQ3UKlUaoTx79HNFMtqczW9i0Pc3BdBfmKeHkkMxwHeReE39l8fDIOhoWNTy2S0g6jqJ0vQZ84O7sd6+7tVtQKCU03SGiysMPnmQGJDrmPaGj24hURMrD3HeeKiA+KvbMyyec5OgK26XsrODFGvelP/MA5vmlYeUM=
-  file: blank-sr
-  skip_cleanup: true
-  on:
-    repo: getblank/blank
-    tags: true
-    all_branches: true
+after_success: curl --ftp-create-dirs -T uploadfilename -u $FTP_USER:$FTP_PASSWORD
+  ftp://sitename.com/directory/myfile
