@@ -1,8 +1,6 @@
 language: go
-
 go:
 - 1.6.2
-
 env:
 - GOOS=linux GOARCH=amd64
 - GOOS=darwin GOARCH=amd64
@@ -12,9 +10,8 @@ script:
 deploy:
   provider: releases
   api-key:
-    secure: bFYbTxG2bkAV/Ivqmiy5VK+WR3I+78tpQSAelC0DcvkYwRvdaisdOddDdLo+YRSZFHwPdvdOfUUUHaTIM0uE+axxT9mpFxsjyg0OJhYliFcp3vx2fAcdXTFbnl4ZKfj8AiTSBhhLFfrVpQAFXsubaG4HtZSQynOwqdRNXiBaQmgCLTFsOAibAIBv6GZg3mGSZUnsOkA9vQv4s/YMgVANj3xqXWTIZin4ybyMiQ+WyJrulFrfi/L4XQeD+9E+mch4Di4TFwvNiw4yJqmqYkWxVGojSY1kYOy9JBoI2EB+IbGhB8iDO20ZOtPOqw2s0ta1DMthmSg00tPWs4sLKL/wRCTP16aWk3qAKTDhOwccJKjIfOOMsyFP1Lzrb4WeT5g2fzLgk67VbDb2KHpJg2+WmO9OBcMRb4QwdT20YTwkcKGTMaNNjdl3Bv3gJEuDslO6gYyJ6ZNwqBo4m1cMAVu+ZlBs2tr9fqsMjCp9cmS8DAuHCbKjWkV/77oytMUelmKN6EMVro3Ku+qJdiXM9QlpY/afCIY9TL83hqAAP6TLaujLefOafAyJWBttTKinuCc9eExl/j9ZWjq+rEUivFWfX1y0QSx1m3/5ggDZCTZRUnspBHvAyTZDM2rVQMNrGsNIgUCNZv8o175VgOWsyPeprwMKjgSJNvoVwtqvFCyOfyY=
-
-  file: "blank-sr"
+    secure: PYrFuJNn9kiXW2rcuS1koYBuFGfA/v6LeVS4mBoHCow7QW13+MnpgmhBhITuiotXc080bRSEwMPUZhf/o1odJ4odLMlzY2dQU6kfBauUSBUOfgKqDZ6xDcWqhdsdPMdjF+ZVG5u82EMc9Bg9m6tLxJvhbluvBmSr4P8eLyounjbztbu3fMjYjv+bG/0utePk8ZBu0CirHOstpCUK46bOsKJQwdfDiIE8cz34K6+EQeSR7uoNlyyPjZPM33E/CulLoQS266rGfGMh7ZbZYl9/SBTdWBIOb523aOGxT7k93fJnMqau6qBkTJTDfKhso8mI8jQ/vI8xhpifgic/zkEp1nNlMyGBMR31ewWujq5rQpXrFvjZfaF0fJY/bE/qg3X/iuVamjA3AOA3ft7pzDfxNJ99rBxiZp46jSuWUuYnvQRbE18TZYZUZZQwC6/XPtn1yVrn/vnAs57aVlyjmtHtSy8YWJQZiw1hNaxjxm7StQsPXQuLkrCOxlvD6m3Wb+n/2hQS8WRCODsQ3UKlUaoTx79HNFMtqczW9i0Pc3BdBfmKeHkkMxwHeReE39l8fDIOhoWNTy2S0g6jqJ0vQZ84O7sd6+7tVtQKCU03SGiysMPnmQGJDrmPaGj24hURMrD3HeeKiA+KvbMyyec5OgK26XsrODFGvelP/MA5vmlYeUM=
+  file: blank-sr
   skip_cleanup: true
   on:
     repo: getblank/Blank
