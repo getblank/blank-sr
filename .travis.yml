@@ -17,6 +17,6 @@ deploy:
   file: "blank-sr"
   skip_cleanup: true
   on:
-    repo: <getblank/Blank>
+    repo: getblank/Blank
     tags: true
     all_branches: true
