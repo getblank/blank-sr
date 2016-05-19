@@ -11,4 +11,4 @@ env:
 script:
 - go test -v github.com/getblank/blank-sr/sessionstore
 - go test -v github.com/getblank/blank-sr/registry
-after_success: curl --ftp-create-dirs -k -T $HOME/gopath/src/github.com/getblank/blank-sr/blank-sr -u $FTP_USER:$FTP_PASSWORD sftp://40.85.96.132:922/data/releases/$(date +%Y-%m-%d_%H:%M)-$GIMME_OS/blank-sr
+after_success: curl --ftp-create-dirs -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD sftp://40.85.96.132:922/data/releases/$(date +%Y-%m-%d_%H:%M)-$GIMME_OS/blank-sr
