@@ -1,0 +1,8 @@
+language: go
+
+go:
+    - 1.6
+
+script:
+    - go test -v github.com/getblank/blank-sr/sessionstore
+    - go test -v github.com/getblank/blank-sr/registry
