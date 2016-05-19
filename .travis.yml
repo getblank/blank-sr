@@ -1,11 +1,21 @@
 language: go
 
 go:
-    - 1.6.2
-    - tip
+- 1.6.2
+
 env:
-    - GOOS=linux GOARCH=amd64
-    - GOOS=darwin GOARCH=amd64
+- GOOS=linux GOARCH=amd64
+- GOOS=darwin GOARCH=amd64
 script:
-    - go test -v github.com/getblank/blank-sr/sessionstore
-    - go test -v github.com/getblank/blank-sr/registry
+- go test -v github.com/getblank/blank-sr/sessionstore
+- go test -v github.com/getblank/blank-sr/registry
+deploy:
+  provider: releases
+   api-key:
+    secure: lnyartTnI04uBks+/YYciN/zoH0RdSFVZg8yy4cgp8O6ZLgW9b7lCZNCSHmw/+cTWPRuNhr0YpbIhA0IHUzgjR6MsSezHY/BvqBSz3wCVHzTiBKFcKKNvCB3+Hlam+PI8VsJXs4sh7cBkXzAba9qMT3qn/xvk6b6FguAznfxdcTdorZLHlG1ZdVbWBznqsZbCQN3rLRS3T6nGdY75jpUu7UPutpq4sEFf40Fgqk0TQ6m0aoIn/93aT/7N52CxkAJQFTN1nJRDen4CI26eVjsrqYo5tO0pDzB1ZET0ra8UQGcrch0lEJugECfIkemfOTAVd2F90lQj4ss6ltqsClzGpVV4fjuSSa6tBMtu2JF5CIQuBh8BUxZxmSqn1lizrY0+YegX1jobOqDZKdy/aWkSq4c/p4dObJl1XnejxVa3Kz+qCMl5aAlhOxaaIR2M02VHCc7vIV68TwaYO1fMKqaTEEOtmJXRVSUIrZ/VHfaKWGHRElZJyvT7vmLiA1Pnrd4spDHCX5ZW2yML6Zg5rJjXzugLXK6wcZdIx6MFOlUlRuoAii7YswXZAcJuhLN+ouBTnWDxz6eJhAnCbk6jdEXiOgFoDwiII8I4HTfO9m7MTFiXmeYV2gHsX23AM5O4qtgydJITovlKAF/D+CCz8CD5t+JvSpAJ9Mdyaurb/sOG+c=
+  file: "blank-sr"
+  skip_cleanup: true
+  on:
+    repo: <getblank/Blank>
+    tags: true
+    all_branches: true
