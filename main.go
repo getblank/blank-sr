@@ -41,7 +41,7 @@ func main() {
 	wamp.RegisterRPCHandler("register", registerHandler)
 
 	wamp.RegisterRPCHandler("session.new", newSessionHandler)
-	wamp.RegisterRPCHandler("session.get", getSessionByApiKeyHandler)
+	wamp.RegisterRPCHandler("session.check", checkSessionByApiKeyHandler)
 	wamp.RegisterRPCHandler("session.delete", deleteSessionHandler)
 
 	registry.OnCreate(func() {
@@ -127,7 +127,7 @@ func newSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interfac
 	return sessionstore.New(userId).APIKey, nil
 }
 
-func getSessionByApiKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+func checkSessionByApiKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
 	if args == nil {
 		return nil, ErrInvalidArguments
 	}
@@ -136,7 +136,11 @@ func getSessionByApiKeyHandler(c *wango.Conn, uri string, args ...interface{}) (
 		return nil, ErrInvalidArguments
 	}
 
-	return sessionstore.GetByApiKey(apiKey)
+	s, err := sessionstore.GetByApiKey(apiKey)
+	if err != nil {
+		return nil, err
+	}
+	return s.GetUserID(), nil
 }
 
 func getSessionByUserIDHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {

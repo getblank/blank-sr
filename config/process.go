@@ -225,10 +225,6 @@ ConfLoop:
 			}
 		}
 
-		err := DB.Save(bucket, storeName, store)
-		if err != nil {
-			logger.Error("Error when saving object in conf", err.Error())
-		}
 		switch storeName {
 		case DefaultDirectory, DefaultSingle, DefaultCampaign, DefaultNotification, DefaultProcess:
 			//			logger.Info("This is", store, "store")
@@ -263,6 +259,18 @@ ConfLoop:
 						store.LoadDefaultIntoProp(_pName, _prop)
 					}
 				}
+			}
+			// if len(store.Access) == 0 {
+			// 	store.Access = []Access{
+			// 		{
+			// 			Role:        "all",
+			// 			Permissions: "crud",
+			// 		},
+			// 	}
+			// }
+			err := DB.Save(bucket, storeName, store)
+			if err != nil {
+				logger.Error("Error when saving store in conf", err.Error())
 			}
 		}
 
