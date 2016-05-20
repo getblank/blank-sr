@@ -1,6 +1,6 @@
 language: go
 go:
-- 1.6.2
+- 1.6
 env:
   matrix:
     - GIMME_OS=linux GIMME_ARCH=amd64 GIMME_DEBUG=true
