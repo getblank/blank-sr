@@ -2,8 +2,6 @@ package main
 
 import (
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
@@ -16,13 +14,13 @@ import (
 
 var (
 	ErrInvalidArguments = errors.New("Invalid arguments")
+	wamp                = wango.New()
 )
 
 func main() {
 	config.Init("./config.json")
 	sessionstore.Init()
 
-	wamp := wango.New(time.Second * 7)
 	wamp.SetSessionOpenCallback(onSessionOpen)
 	wamp.SetSessionCloseCallback(onSessionClose)
 
@@ -37,12 +35,18 @@ func main() {
 
 	wamp.RegisterSubHandler("registry", registryHandler, nil)
 	wamp.RegisterSubHandler("config", configHandler, nil)
+	wamp.RegisterSubHandler("sessions", nil, nil)
+	wamp.RegisterSubHandler("events", nil, nil)
 
 	wamp.RegisterRPCHandler("register", registerHandler)
+	wamp.RegisterRPCHandler("publish", publishHandler)
 
 	wamp.RegisterRPCHandler("session.new", newSessionHandler)
 	wamp.RegisterRPCHandler("session.check", checkSessionByApiKeyHandler)
 	wamp.RegisterRPCHandler("session.delete", deleteSessionHandler)
+	wamp.RegisterRPCHandler("session.subscribed", sessionSubscribedHandler)
+	wamp.RegisterRPCHandler("session.unsubscribed", sessionUnsubscribedHandler)
+	wamp.RegisterRPCHandler("session.delete-connection", sessionDeleteConnectionHandler)
 
 	registry.OnCreate(func() {
 		services := registry.GetAll()
@@ -74,101 +78,10 @@ func onSessionOpen(c *wango.Conn) {
 	println("New client", c.ID())
 }
 
-func registryHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	services := registry.GetAll()
-	return services, nil
+func publishSession(s *sessionstore.Session) {
+	wamp.Publish("sessions", s)
 }
 
-func configHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	conf := config.GetAllStoreObjectsFromDb()
-	return conf, nil
-}
-
-func registerHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	if args == nil {
-		return nil, ErrInvalidArguments
-	}
-
-	mes, ok := args[0].(map[string]interface{})
-	if !ok {
-		return nil, errors.New("Invalid register message")
-	}
-
-	_type, ok := mes["type"]
-	if !ok {
-		return nil, errors.New("Invalid register message. No type")
-	}
-	typ, ok := _type.(string)
-	if !ok || typ == "" {
-		return nil, errors.New("Invalid register message. No type")
-	}
-	remoteAddr := "ws://" + strings.Split(c.RemoteAddr(), ":")[0]
-	if remoteAddr == "ws://[" {
-		remoteAddr = "ws://127.0.0.1"
-	}
-	var port string
-	if _port, ok := mes["port"]; ok {
-		port, ok = _port.(string)
-	}
-	registry.Register(typ, remoteAddr, port, c.ID())
-
-	return nil, nil
-}
-
-func newSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	if args == nil {
-		return nil, ErrInvalidArguments
-	}
-	userId, ok := args[0].(string)
-	if !ok {
-		return nil, ErrInvalidArguments
-	}
-
-	return sessionstore.New(userId).APIKey, nil
-}
-
-func checkSessionByApiKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	if args == nil {
-		return nil, ErrInvalidArguments
-	}
-	apiKey, ok := args[0].(string)
-	if !ok {
-		return nil, ErrInvalidArguments
-	}
-
-	s, err := sessionstore.GetByApiKey(apiKey)
-	if err != nil {
-		return nil, err
-	}
-	return s.GetUserID(), nil
-}
-
-func getSessionByUserIDHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	if args == nil {
-		return nil, ErrInvalidArguments
-	}
-	userID, ok := args[0].(string)
-	if !ok {
-		return nil, ErrInvalidArguments
-	}
-
-	return sessionstore.GetByUserID(userID)
-}
-
-func deleteSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	if args == nil {
-		return nil, ErrInvalidArguments
-	}
-	apiKey, ok := args[0].(string)
-	if !ok {
-		return nil, ErrInvalidArguments
-	}
-
-	s, err := sessionstore.GetByApiKey(apiKey)
-	if err != nil {
-		return nil, err
-	}
-	s.Delete()
-
-	return nil, nil
+func publishDeleteSession(s *sessionstore.Session) {
+	wamp.Publish("sessions", map[string]interface{}{"apiKey": s.APIKey, "deleted": true})
 }
