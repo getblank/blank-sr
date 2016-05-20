@@ -21,10 +21,17 @@ var (
 )
 
 type Session struct {
-	APIKey      string    `json:"apiKey"`
-	UserID      string    `json:"userId"`
-	LastRequest time.Time `json:"lastRequest"`
-	ttl         time.Duration
+	APIKey            string    `json:"apiKey"`
+	UserID            string    `json:"userId"`
+	Connections       []*Conn   `json:"connections"`
+	LastRequest       time.Time `json:"lastRequest"`
+	connectionsLocker sync.RWMutex
+	ttl               time.Duration
+}
+
+type Conn struct {
+	ConnID        string                 `json:"connId"`
+	Subscriptions map[string]interface{} `json:"subscriptions"`
 }
 
 func Init() {
@@ -37,7 +44,9 @@ func New(userID string, tmp ...bool) *Session {
 	s := &Session{
 		uuid.NewV4(),
 		userID,
+		[]*Conn{},
 		time.Now(),
+		sync.RWMutex{},
 		0,
 	}
 	if len(tmp) > 0 && tmp[0] {
@@ -66,6 +75,52 @@ func Delete(APIKey string) {
 	locker.Lock()
 	defer locker.Unlock()
 	delete(sessions, APIKey)
+}
+
+func (s *Session) AddSubscription(connID, uri string, extra interface{}) {
+	s.connectionsLocker.Lock()
+	defer s.connectionsLocker.Unlock()
+	var c *Conn
+	for _, _c := range s.Connections {
+		if _c.ConnID == connID {
+			c = _c
+			break
+		}
+	}
+	if c == nil {
+		c = new(Conn)
+		c.ConnID = connID
+		c.Subscriptions = map[string]interface{}{}
+		s.Connections = append(s.Connections, c)
+	}
+	c.Subscriptions[uri] = extra
+}
+
+func (s *Session) DeleteConnection(connID string) {
+	s.connectionsLocker.Lock()
+	defer s.connectionsLocker.Unlock()
+	for i, _c := range s.Connections {
+		if _c.ConnID == connID {
+			s.Connections = append(s.Connections[:i], s.Connections[i+1:]...)
+			break
+		}
+	}
+}
+
+func (s *Session) DeleteSubscription(connID, uri string) {
+	s.connectionsLocker.Lock()
+	defer s.connectionsLocker.Unlock()
+	var c *Conn
+	for _, _c := range s.Connections {
+		if _c.ConnID == connID {
+			c = _c
+			break
+		}
+	}
+	if c == nil {
+		return
+	}
+	delete(c.Subscriptions, uri)
 }
 
 func (s *Session) Delete() {

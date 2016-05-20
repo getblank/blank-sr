@@ -62,5 +62,46 @@ func TestSession(t *testing.T) {
 				g.Assert(len(sessions)).Equal(totalSessions - 1)
 			})
 		})
+
+		g.Describe("#AddSubscription", func() {
+			var userID = "678"
+			g.It("Should add subscription uri with connID to session", func() {
+				newS := New(userID)
+				g.Assert(len(newS.Connections)).Equal(0)
+				var connID = "!!!"
+				var uri = "com.sub"
+				newS.AddSubscription(connID, uri, nil)
+				g.Assert(len(newS.Connections)).Equal(1)
+				g.Assert(len(newS.Connections[0].Subscriptions)).Equal(1)
+			})
+		})
+
+		g.Describe("#DeleteSubscription", func() {
+			var userID = "789"
+			g.It("Should delete subscription uri from session", func() {
+				newS := New(userID)
+				g.Assert(len(newS.Connections)).Equal(0)
+				var connID = "!!!"
+				var uri = "com.sub"
+				newS.AddSubscription(connID, uri, nil)
+				g.Assert(len(newS.Connections)).Equal(1)
+				newS.DeleteSubscription(connID, uri)
+				g.Assert(len(newS.Connections[0].Subscriptions)).Equal(0)
+			})
+		})
+
+		g.Describe("#DeleteConnection", func() {
+			var userID = "890"
+			g.It("Should delete connection with connId from session", func() {
+				newS := New(userID)
+				g.Assert(len(newS.Connections)).Equal(0)
+				var connID = "!!!"
+				var uri = "com.sub"
+				newS.AddSubscription(connID, uri, nil)
+				g.Assert(len(newS.Connections)).Equal(1)
+				newS.DeleteConnection(connID)
+				g.Assert(len(newS.Connections)).Equal(0)
+			})
+		})
 	})
 }
