@@ -20,6 +20,7 @@ var (
 	db                    = bdb.DB{}
 )
 
+// Session represents user session in Blank
 type Session struct {
 	APIKey            string    `json:"apiKey"`
 	UserID            string    `json:"userId"`
@@ -29,17 +30,19 @@ type Session struct {
 	ttl               time.Duration
 }
 
+// Conn represents WAMP connection in session
 type Conn struct {
 	ConnID        string                 `json:"connId"`
 	Subscriptions map[string]interface{} `json:"subscriptions"`
 }
 
+// Init is the entrypoint of sessionstore
 func Init() {
 	loadSessions()
 	go ttlWatcher()
 }
 
-// Optional bool param for creating session with 1 minute ttl
+// New created new user session. Optional bool param for creating session with 1 minute ttl
 func New(userID string, tmp ...bool) *Session {
 	s := &Session{
 		uuid.NewV4(),
@@ -59,14 +62,17 @@ func New(userID string, tmp ...bool) *Session {
 	return s
 }
 
+// GetByApiKey returns point to Session or error if it is not exists.
 func GetByApiKey(APIKey string) (s *Session, err error) {
 	return getByApiKey(APIKey)
 }
 
+// GetByApiKey returns point to Session or error if it is not exists.
 func GetByUserID(id string) (s *Session, err error) {
 	return getByUserId(id)
 }
 
+// Delete removes
 func Delete(APIKey string) {
 	err := db.Delete(bucket, APIKey)
 	if err != nil {
@@ -77,6 +83,7 @@ func Delete(APIKey string) {
 	delete(sessions, APIKey)
 }
 
+// AddSubscription adds subscription URI with provided params to user session
 func (s *Session) AddSubscription(connID, uri string, extra interface{}) {
 	s.connectionsLocker.Lock()
 	defer s.connectionsLocker.Unlock()
@@ -96,6 +103,7 @@ func (s *Session) AddSubscription(connID, uri string, extra interface{}) {
 	c.Subscriptions[uri] = extra
 }
 
+// DeleteConnection deletes WAMP connection from user session
 func (s *Session) DeleteConnection(connID string) {
 	s.connectionsLocker.Lock()
 	defer s.connectionsLocker.Unlock()
@@ -107,6 +115,7 @@ func (s *Session) DeleteConnection(connID string) {
 	}
 }
 
+// DeleteSubscription deletes subscription from connection of user session
 func (s *Session) DeleteSubscription(connID, uri string) {
 	s.connectionsLocker.Lock()
 	defer s.connectionsLocker.Unlock()
@@ -123,6 +132,7 @@ func (s *Session) DeleteSubscription(connID, uri string) {
 	delete(c.Subscriptions, uri)
 }
 
+// Delete removes Session from store
 func (s *Session) Delete() {
 	err := db.Delete(bucket, s.APIKey)
 	if err != nil {
@@ -133,6 +143,7 @@ func (s *Session) Delete() {
 	delete(sessions, s.APIKey)
 }
 
+// Save saves session in store and update LastRequest prop in it.
 func (s *Session) Save() {
 	locker.Lock()
 	defer locker.Unlock()
@@ -143,10 +154,12 @@ func (s *Session) Save() {
 	}
 }
 
+// GetUserID returns userID stored in session
 func (s *Session) GetUserID() string {
 	return s.UserID
 }
 
+// GetUserID returns apiKey of session
 func (s *Session) GetAPIKey() string {
 	return s.APIKey
 }
