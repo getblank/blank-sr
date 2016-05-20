@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/getblank/blank-sr/bdb"
-	"github.com/getblank/blank-sr/bjson"
 	"github.com/getblank/blank-sr/berror"
+	"github.com/getblank/blank-sr/bjson"
 	"github.com/getblank/blank-sr/utils/array"
 
 	"github.com/ivahaev/go-logger"
@@ -22,7 +22,7 @@ var (
 	svgElems = []string{"circle", "defs", "desc", "ellipse", "font-face", "font-face-name", "font-face-src", "g", "glyph", "hkern", "image", "linearGradient", "line", "marker", "metadata", "missing-glyph", "mpath", "path", "polygon", "polyline", "radialGradient", "rect", "stop", "svg", "switch", "text", "title", "tspan", "use"}
 )
 
-func (m *Model) BeforeExecAction(id string) {
+func (m *Store) BeforeExecAction(id string) {
 	id = m.Store + "actions" + id
 	ch, ok := concurrentChannels[id]
 	if !ok {
@@ -31,7 +31,7 @@ func (m *Model) BeforeExecAction(id string) {
 	ch <- struct{}{}
 }
 
-func (m *Model) AfterExecAction(id string) {
+func (m *Store) AfterExecAction(id string) {
 	id = m.Store + "actions" + id
 	ch, ok := concurrentChannels[id]
 	if !ok {
@@ -40,7 +40,7 @@ func (m *Model) AfterExecAction(id string) {
 	<-ch
 }
 
-func (m *Model) BeforeExecHttpHook(id string) {
+func (m *Store) BeforeExecHttpHook(id string) {
 	id = m.Store + "httpHook" + id
 	ch, ok := concurrentChannels[id]
 	if !ok {
@@ -49,7 +49,7 @@ func (m *Model) BeforeExecHttpHook(id string) {
 	ch <- struct{}{}
 }
 
-func (m *Model) AfterExecHttpHook(id string) {
+func (m *Store) AfterExecHttpHook(id string) {
 	id = m.Store + "httpHook" + id
 	ch, ok := concurrentChannels[id]
 	if !ok {
@@ -58,23 +58,23 @@ func (m *Model) AfterExecHttpHook(id string) {
 	<-ch
 }
 
-func (m *Model) HasReadAccessJson(data []byte, u User) bool {
+func (m *Store) HasReadAccessJson(data []byte, u User) bool {
 	return m.hasAccessJson(data, u, ReadAccess)
 }
 
-func (m *Model) HasCreateAccess(data bdb.M, u User) bool {
+func (m *Store) HasCreateAccess(data bdb.M, u User) bool {
 	return m.hasAccess(data, u, CreateAccess)
 }
 
-func (m *Model) HasReadAccess(data bdb.M, u User) bool {
+func (m *Store) HasReadAccess(data bdb.M, u User) bool {
 	return m.hasAccess(data, u, ReadAccess)
 }
 
-func (m *Model) HasUpdateAccess(data bdb.M, u User) bool {
+func (m *Store) HasUpdateAccess(data bdb.M, u User) bool {
 	return m.hasAccess(data, u, UpdateAccess)
 }
 
-func (m *Model) HasDeleteAccess(data bdb.M, u User) bool {
+func (m *Store) HasDeleteAccess(data bdb.M, u User) bool {
 	return m.hasAccess(data, u, DeleteAccess)
 }
 
@@ -94,7 +94,7 @@ func (m *Prop) HasDeleteAccess(data bdb.M, u User) bool {
 	return m.hasAccess(data, u, DeleteAccess)
 }
 
-func (m *Model) hasAccessJson(data []byte, u User, mode string) bool {
+func (m *Store) hasAccessJson(data []byte, u User, mode string) bool {
 	if (u.GetId() == RootGuid || array.InArrayString(u.GetRoles(), RootGuid) != -1) && m.Type != ObjNotification {
 		return true
 	}
@@ -117,7 +117,7 @@ func (m *Model) hasAccessJson(data []byte, u User, mode string) bool {
 	return strings.Contains(m.GroupAccess, mode)
 }
 
-func (m *Model) hasAccess(data bdb.M, u User, mode string) bool {
+func (m *Store) hasAccess(data bdb.M, u User, mode string) bool {
 	if (u.GetId() == RootGuid || array.InArrayString(u.GetRoles(), RootGuid) != -1) && m.Type != ObjNotification {
 		return true
 	}
@@ -206,8 +206,8 @@ func createPermissionError(item, prop, mode string) error {
 	return errors.New(fmt.Sprintf("%s %s %s is not allowed", access, item, prop))
 }
 
-func createProfile(u User) Model {
-	profile := Model{}
+func createProfile(u User) Store {
+	profile := Store{}
 	profile.Props = map[string]Prop{}
 	object, ok := GetStoreObjectFromDb("users")
 	if !ok {
@@ -241,7 +241,7 @@ func createProfile(u User) Model {
 	return profile
 }
 
-func (m *Model) calcPermissions(access []Access, u User) (groupAccess, ownerAccess string) {
+func (m *Store) calcPermissions(access []Access, u User) (groupAccess, ownerAccess string) {
 	if m.Type != ObjWorkspace && m.Type != ObjNotification && u.GetId() == RootGuid {
 		groupAccess = "crud"
 		ownerAccess = "crud"
@@ -271,7 +271,7 @@ func (m *Model) calcPermissions(access []Access, u User) (groupAccess, ownerAcce
 	return
 }
 
-func (m *Model) prepareTemplate() {
+func (m *Store) prepareTemplate() {
 	if m.Template != "" {
 		m.Html = m.Template
 		m.Template = ""
@@ -291,7 +291,7 @@ func (m *Model) prepareTemplate() {
 	}
 }
 
-func (m *Model) PrepareConfigForUser(u User) {
+func (m *Store) PrepareConfigForUser(u User) {
 	san := bluemonday.UGCPolicy()
 	san.AllowElements(svgElems...)
 	san.AllowAttrs(svgAttrs...).OnElements(svgElems...)

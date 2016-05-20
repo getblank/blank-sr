@@ -16,7 +16,7 @@ import (
 
 var invalidPropValue = errors.New("Invalid prop value")
 
-func (m *Model) ValidateData(data bdb.M) (bdb.M, error) {
+func (m *Store) ValidateData(data bdb.M) (bdb.M, error) {
 	if len(m.Props) == 0 {
 		return nil, errors.New("No props in objects")
 	}

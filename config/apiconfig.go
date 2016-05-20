@@ -3,7 +3,7 @@ package config
 import "github.com/getblank/blank-sr/bdb"
 
 var (
-	apiConfig = Model{
+	apiConfig = Store{
 		Store:    ApiKeysBucket,
 		Type:     ObjSingle,
 		NavGroup: "config",

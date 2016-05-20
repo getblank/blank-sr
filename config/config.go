@@ -119,21 +119,16 @@ var (
 		"",
 	}
 
-	UpdateChannel      = make(chan Model, 1000)
 	concurrentChannels = map[string]chan struct{}{}
 
 	mutex  = &sync.RWMutex{}
-	config = map[string]Model{}
+	config = map[string]Store{}
 
-	HttpApiEnabledStores = []Model{}
-	DevMode              bool
+	HttpApiEnabledStores = []Store{}
 	DB                   = bdb.DB{}
-
-	Scripts             = map[string]string{}
-	VirtualPropsLoaders = map[string]string{}
 )
 
-type Model struct {
+type Store struct {
 	Type               string                 `json:"type"`                                  // Допустимые пока варианты: directory (простые справочники), process (справочники с состояниями и действиями над объектами), workspace (воркспейсы), inConfigSet (набор каких-то значений)
 	BaseStore          string                 `json:"baseStore,omitempty"`                   // Только для Type == 'proxy'. Содержит стору на которую производится проксирование.
 	Access             []Access               `json:"access,omitempty"`                      // Разрешения для работы с объектом. Если не заполнено, то доступ разрешён всем
@@ -164,7 +159,7 @@ type Model struct {
 	TableColumns       []interface{}          `json:"tableColumns,omitempty" ws:"yes"`       // Только для display:dataTable
 	DisableAutoSelect  bool                   `json:"disableAutoSelect,omitempty" ws:"yes"`  // Только для display:listView
 	OrderBy            string                 `json:"orderBy,omitempty" ws:"yes"`            // Сортировка данных по умолчанию.
-	Config             map[string]Model       `json:"config,omitempty"`                      // Конфиг, переопределяющий некоторые параметры. Только для type:workspace
+	Config             map[string]Store       `json:"config,omitempty"`                      // Конфиг, переопределяющий некоторые параметры. Только для type:workspace
 	ListViewOnly       bool                   `json:"listViewOnly,omitempty" ws:"yes"`       // Параметр, определяющий отображение сторы.
 	FullWidth          bool                   `json:"fullWidth,omitempty" ws:"yes"`          // Параметр отображения контента во всю ширину, когда не используется боковая панель.
 	DisablePartialLoad bool                   `json:"disablePartialLoad,omitempty" ws:"yes"` // TODO: Если true, то выдавать при запросе всех объектов, все поля сразу.

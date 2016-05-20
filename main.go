@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
 
@@ -95,7 +96,7 @@ func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 	decoder := json.NewDecoder(request.Body)
-	var t map[string]config.Model
+	var t map[string]config.Store
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -116,4 +117,5 @@ func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
 
 	// fmt.Println(t)
 	rw.Write([]byte("OK"))
+	log.Info("New config arrived")
 }

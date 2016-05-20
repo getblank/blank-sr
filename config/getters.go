@@ -6,21 +6,21 @@ import (
 	"github.com/ivahaev/go-logger"
 )
 
-func GetStoreObject(store string) (Model, bool) {
+func GetStoreObject(store string) (Store, bool) {
 	mutex.RLock()
 	defer mutex.RUnlock()
 	o, ok := config[store]
 	return o, ok
 }
 
-func GetAllStoreObjectsFromDb() map[string]Model {
-	result := map[string]Model{}
+func GetAllStoreObjectsFromDb() map[string]Store {
+	result := map[string]Store{}
 	_o, err := DB.GetAll(bucket)
 	if err != nil {
 		return result
 	}
 	for _, v := range _o {
-		var o Model
+		var o Store
 		err = json.Unmarshal(v, &o)
 		if err != nil {
 			return result
@@ -31,8 +31,8 @@ func GetAllStoreObjectsFromDb() map[string]Model {
 	return result
 }
 
-func GetStoreObjectFromDb(store string) (Model, bool) {
-	o := Model{}
+func GetStoreObjectFromDb(store string) (Store, bool) {
+	o := Store{}
 	_o, err := DB.Get(bucket, store)
 	if err != nil {
 		return o, false
@@ -46,14 +46,14 @@ func GetStoreObjectFromDb(store string) (Model, bool) {
 	return o, true
 }
 
-func GetObjectsForUser(u User) map[string]*Model {
+func GetObjectsForUser(u User) map[string]*Store {
 	stores, err := DB.GetAllKeys(bucket)
 	if err != nil {
 		logger.Error("Error when load stores keys")
 		return nil
 	}
 	var hasDefault, hasDefaultProcess, hasDefaultCampaign, hasDefaultNotification, hasDefaultSingle bool
-	var defaultDirectory, defaultProcess, defaultCampaign, defaultNotification, defaultSingle Model
+	var defaultDirectory, defaultProcess, defaultCampaign, defaultNotification, defaultSingle Store
 	_default, ok := GetStoreObjectFromDb(DefaultDirectory)
 	if ok {
 		hasDefault = true
@@ -79,7 +79,7 @@ func GetObjectsForUser(u User) map[string]*Model {
 		hasDefaultSingle = true
 		defaultSingle = _defaultS
 	}
-	result := map[string]*Model{}
+	result := map[string]*Store{}
 	for _, store := range stores {
 		switch store {
 		case DefaultDirectory, DefaultProcess, DefaultCampaign, DefaultNotification:

@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 )
 
 var (
-	conf           map[string]Model
+	conf           map[string]Store
 	mustacheRgx    = regexp.MustCompile(`(?U)({{.+}})`)
 	handleBarseRgx = regexp.MustCompile(`{?{{\s*(\w*)\s?(\w*)?\s?.*}}`)
 	itemPropsRgx   = regexp.MustCompile(`\$item.([A-Za-z][A-Za-z0-9]*)`)
@@ -105,7 +104,7 @@ func loadServerSettings() {
 func validateConfig() {
 	mutex.Lock()
 	defer mutex.Unlock()
-	_conf := map[string]Model{}
+	_conf := map[string]Store{}
 	var err error
 
 	for store, o := range conf {
@@ -297,7 +296,7 @@ ConfLoop:
 
 			// cloning base store
 			encoded, _ := json.Marshal(baseStore)
-			var store Model
+			var store Store
 			json.Unmarshal(encoded, &store)
 
 			store.Store = storeName
@@ -339,43 +338,11 @@ ConfLoop:
 	}
 }
 
-func (m *Model) preparePropHtmlTemplates() (err error) {
-	// Temporarly disabling loading html files
-
-	// for i := range m.Props {
-	// 	prop := m.Props[i]
-	// 	if m.Props[i].HtmlFile != "" {
-	// 		bytes, err := ioutil.ReadFile("local/lib/" + prop.HtmlFile)
-	// 		if err != nil {
-	// 			bytes, err = ioutil.ReadFile(prop.HtmlFile)
-	// 		}
-	// 		if err != nil {
-	// 			logger.Error("Can't read HtmlFile " + prop.HtmlFile + " for prop " + i)
-	// 			return err
-	// 		}
-	// 		prop.Html = string(bytes)
-	// 	}
-	// 	for j := range prop.Props {
-	// 		subProp := prop.Props[j]
-	// 		if subProp.HtmlFile != "" {
-	// 			bytes, err := ioutil.ReadFile("local/lib/" + subProp.HtmlFile)
-	// 			if err != nil {
-	// 				bytes, err = ioutil.ReadFile(subProp.HtmlFile)
-	// 			}
-	// 			if err != nil {
-	// 				logger.Error("Can't read HtmlFile " + subProp.HtmlFile + " for prop " + i + "." + j)
-	// 				return err
-	// 			}
-	// 			subProp.Html = string(bytes)
-	// 			prop.Props[j] = subProp
-	// 		}
-	// 	}
-	// 	m.Props[i] = prop
-	// }
+func (m *Store) preparePropHtmlTemplates() (err error) {
 	return nil
 }
 
-func (m *Model) compileActions() (err error) {
+func (m *Store) compileActions() (err error) {
 	var actionIds = []string{}
 	if m.Actions != nil && len(m.Actions) > 0 {
 		for i, a := range m.Actions {
@@ -418,13 +385,6 @@ func (m *Model) compileActions() (err error) {
 						return errors.New("Invalid action " + a.Id + ". Invalid hidden property")
 					}
 				}
-				scriptId := m.Store + "_action_" + a.Id
-				m.Actions[i].ScriptId = scriptId
-				if a.Type == "http" {
-					Scripts[scriptId] = `function($user, $data, $item, $request, $response){` + script + `}`
-				} else {
-					Scripts[scriptId] = `function($user, $data, $item){` + script + `}`
-				}
 			}
 			for k, v := range m.Actions[i].Props {
 				if v.Type == "" {
@@ -440,7 +400,7 @@ func (m *Model) compileActions() (err error) {
 	}
 	sort.Strings(actionIds)
 	if m.StoreActions != nil && len(m.StoreActions) > 0 {
-		for i, a := range m.StoreActions {
+		for _, a := range m.StoreActions {
 			if !actionIdRgx.MatchString(a.Id) {
 				return errors.New("Invalid action name. Must start with a letter or underscore and contains only letters, digits or underscores")
 			}
@@ -479,13 +439,6 @@ func (m *Model) compileActions() (err error) {
 						return errors.New("Invalid action " + a.Id + ". Invalid hidden property")
 					}
 				}
-				scriptId := m.Store + "_storeAction_" + a.Id
-				m.StoreActions[i].ScriptId = scriptId
-				if a.Type == "http" {
-					Scripts[scriptId] = `function($user, $data, $filter, $request, $response){` + script + `}`
-				} else {
-					Scripts[scriptId] = `function($user, $data, $filter){` + script + `}`
-				}
 				if a.ConcurentCallsLimit > 0 {
 					id := m.Store + "actions" + a.Id
 					concurrentChannels[id] = make(chan struct{}, a.ConcurentCallsLimit)
@@ -496,167 +449,18 @@ func (m *Model) compileActions() (err error) {
 	return nil
 }
 
-func (m *Model) prepareHooks(compile bool) (err error) {
-	if m.ObjectLifeCycle.WillCreate != "" {
-		scriptId := m.Store + "_willCreate"
-		m.ObjectLifeCycle.WillCreateScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($user, $item, $lastComment){` + m.ObjectLifeCycle.WillCreate + `}`
-			script := "(function(){" + m.ObjectLifeCycle.WillCreate + "}())"
-			script = `var error = ` + script + `; if (error) {return {"error": error, "$item": $item}}; return {"$item": $item}`
-			Scripts[scriptId+"Go"] = `function($user, $item, $lastComment){` + script + `}`
-
-		}
-	}
-	if m.ObjectLifeCycle.DidCreate != "" {
-		scriptId := m.Store + "_didCreate"
-		m.ObjectLifeCycle.DidCreateScriptId = scriptId
-		if compile {
-			script := "(function(){" + m.ObjectLifeCycle.DidCreate + "}())"
-			script = script
-			Scripts[scriptId] = `function($user, $item, $lastComment){` + script + `}`
-			Scripts[scriptId+"Go"] = `function($user, $item, $lastComment){` + script + `}`
-		}
-	}
-	if m.ObjectLifeCycle.WillSave != "" {
-		scriptId := m.Store + "_willSave"
-		m.ObjectLifeCycle.WillSaveScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($user, $item, $lastComment, $prevItem){` + m.ObjectLifeCycle.WillSave + `}`
-			script := "(function(){" + m.ObjectLifeCycle.WillSave + "}())"
-			script = `var error = ` + script + `; if (error) {return {"error": error, "$item": $item}}; return {"$item": $item}`
-			Scripts[scriptId+"Go"] = `function($user, $item, $lastComment, $prevItem){` + script + `}`
-
-		}
-	}
-	if m.ObjectLifeCycle.DidSave != "" {
-		scriptId := m.Store + "_didSave"
-		m.ObjectLifeCycle.DidSaveScriptId = scriptId
-		if compile {
-			script := "(function(){" + m.ObjectLifeCycle.DidSave + "}())"
-			script = script
-			Scripts[scriptId] = `function($user, $item, $lastComment, $prevItem){` + script + `}`
-			Scripts[scriptId+"Go"] = `function($user, $item, $lastComment, $prevItem){` + script + `}`
-		}
-	}
-	if m.ObjectLifeCycle.WillRemove != "" {
-		scriptId := m.Store + "_willRemove"
-		m.ObjectLifeCycle.WillRemoveScriptId = scriptId
-		if compile {
-			script := "(function(){" + m.ObjectLifeCycle.WillRemove + "}())"
-			script = `var error = ` + script + `; if (error) {return {"error": error, "$item": $item}}; return {"$item": $item}`
-			Scripts[scriptId] = `function($user, $item, $lastComment){` + script + `}`
-			Scripts[scriptId+"Go"] = `function($user, $item, $lastComment){` + script + `}`
-		}
-	}
-	if m.ObjectLifeCycle.DidRemove != "" {
-		scriptId := m.Store + "_didRemove"
-		m.ObjectLifeCycle.DidRemoveScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($user, $item, $lastComment){` + m.ObjectLifeCycle.DidRemove + `}`
-			Scripts[scriptId+"Go"] = `function($user, $item, $lastComment){` + m.ObjectLifeCycle.DidRemove + `}`
-		}
-	}
-	if m.ObjectLifeCycle.DidRead != "" {
-		scriptId := m.Store + "_didRead"
-		m.ObjectLifeCycle.DidReadScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($user, $item, $lastComment){` + m.ObjectLifeCycle.DidRead + `}`
-			Scripts[scriptId+"Go"] = `function($user, $item, $lastComment){` + m.ObjectLifeCycle.DidRead + `}`
-		}
-	}
-
-	if m.StoreLifeCycle.WillCreate != "" {
-		scriptId := m.Store + "_storeWillCreate"
-		m.StoreLifeCycle.WillCreateScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($item){` + m.StoreLifeCycle.WillCreate + `}`
-			Scripts[scriptId+"Go"] = `function($item){` + m.StoreLifeCycle.WillCreate + `}`
-		}
-	}
-	if m.StoreLifeCycle.DidCreate != "" {
-		scriptId := m.Store + "_storeDidCreate"
-		m.StoreLifeCycle.DidCreateScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($item){` + m.StoreLifeCycle.DidCreate + `}`
-			Scripts[scriptId+"Go"] = `function($item){` + m.StoreLifeCycle.DidCreate + `}`
-		}
-	}
-	if m.StoreLifeCycle.WillSave != "" {
-		scriptId := m.Store + "_storeWillSave"
-		m.StoreLifeCycle.WillSaveScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($item){` + m.StoreLifeCycle.WillCreate + `}`
-			Scripts[scriptId+"Go"] = `function($item){` + m.StoreLifeCycle.WillCreate + `}`
-		}
-	}
-	if m.StoreLifeCycle.DidSave != "" {
-		scriptId := m.Store + "_storeDidSave"
-		m.StoreLifeCycle.DidCreateScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($item){` + m.StoreLifeCycle.DidSave + `}`
-			Scripts[scriptId+"Go"] = `function($item){` + m.StoreLifeCycle.DidSave + `}`
-		}
-	}
-	if m.StoreLifeCycle.WillRemove != "" {
-		scriptId := m.Store + "_storeWillRemove"
-		m.StoreLifeCycle.WillRemoveScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($item){` + m.StoreLifeCycle.WillRemove + `}`
-			Scripts[scriptId+"Go"] = `function($item){` + m.StoreLifeCycle.WillRemove + `}`
-		}
-	}
-	if m.StoreLifeCycle.DidRemove != "" {
-		scriptId := m.Store + "_storeDidRemove"
-		m.StoreLifeCycle.DidRemoveScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($item){` + m.StoreLifeCycle.DidRemove + `}`
-			Scripts[scriptId+"Go"] = `function($item){` + m.StoreLifeCycle.DidRemove + `}`
-		}
-	}
-	if m.StoreLifeCycle.DidStart != "" {
-		scriptId := m.Store + "_storeDidStart"
-		m.StoreLifeCycle.DidStartScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($item){` + m.StoreLifeCycle.DidStart + `}`
-			Scripts[scriptId+"Go"] = `function($item){` + m.StoreLifeCycle.DidStart + `}`
-		}
-	}
-	for k, v := range m.HttpHooks {
-		switch v.Method {
-		case "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS":
-			//				logger.Info("This is httpHook with", v.Method, "method")
-		default:
-			logger.Error("Unknown http method in httpHook", v.Method)
-			return errors.New("Unknown http method in httpHook")
-		}
-		scriptId := m.Store + "_httpHook_" + v.Method + "_" + v.Uri
-		m.HttpHooks[k].ScriptId = scriptId
-		if compile {
-			Scripts[scriptId] = `function($request, $response){` + v.Script + `}`
-			if v.ConcurentCallsLimit > 0 {
-				id := m.Store + "httpHook" + v.Uri
-				concurrentChannels[id] = make(chan struct{}, v.ConcurentCallsLimit)
-			}
-		}
-	}
-	if compile {
-		UpdateChannel <- *m
-	}
+func (m *Store) prepareHooks(compile bool) (err error) {
 
 	return nil
 }
 
-func (m *Model) createTasks() error {
-	for i, t := range m.Tasks {
-		t.ScriptId = m.Store + "_task_" + strconv.Itoa(i)
-		Scripts[t.ScriptId] = `function(){` + t.Script + `}`
-	}
+func (m *Store) createTasks() error {
+	// for i, t := range m.Tasks {
+	// }
 	return nil
 }
 
-func (m *Model) validateProps(props map[string]Prop, parseObjects bool) error {
-	var virtualPropsLoaders = map[string]string{}
+func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 	for pName, prop := range props {
 		prop.Name = pName
 		// Processing Type
@@ -790,9 +594,6 @@ func (m *Model) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearNumberParams()
 			prop.clearObjectParams()
 			prop.Default = nil
-			if m.Type != ObjWorkspace {
-				virtualPropsLoaders[pName] = `(function($item, $user){` + prop.Load + `})`
-			}
 			props[pName] = prop
 		case PropObject:
 			if !parseObjects {
@@ -841,19 +642,10 @@ func (m *Model) validateProps(props map[string]Prop, parseObjects bool) error {
 			return errors.New("Unknown prop type: '" + pName + "' '" + prop.Type + "'")
 		}
 	}
-	if len(virtualPropsLoaders) > 0 {
-		script := "function($item, $user){\n"
-		for k, v := range virtualPropsLoaders {
-			script += `$item.` + k + ` = ` + v + "($item, $user);\n"
-		}
-		script += "return $item\n}\n"
-		VirtualPropsLoaders[m.Store] = script
-		m.HasVirtualProps = true
-	}
 	return nil
 }
 
-func (m *Model) checkPropsRequiredConditions() {
+func (m *Store) checkPropsRequiredConditions() {
 	for k, v := range m.Props {
 		v.createRequired()
 		m.Props[k] = v
@@ -949,7 +741,7 @@ func (p *Prop) clearStringParams() {
 	p.Mask = ""
 }
 
-func (m *Model) LoadDefaultIntoProp(name string, p Prop) {
+func (m *Store) LoadDefaultIntoProp(name string, p Prop) {
 	if m.Props == nil {
 		m.Props = map[string]Prop{}
 	}
@@ -1032,7 +824,7 @@ func (m *Model) LoadDefaultIntoProp(name string, p Prop) {
 	m.Props[name] = p
 }
 
-func (m *Model) mergeAccess(defaultStore *Model) {
+func (m *Store) mergeAccess(defaultStore *Store) {
 	if m.Access == nil {
 		for i := range defaultStore.Access {
 			m.Access = append(m.Access, defaultStore.Access[i])
@@ -1040,7 +832,7 @@ func (m *Model) mergeAccess(defaultStore *Model) {
 	}
 }
 
-func (m *Model) mergeFilters(defaultStore *Model) {
+func (m *Store) mergeFilters(defaultStore *Store) {
 	if len(defaultStore.Filters) == 0 {
 		return
 	}
@@ -1087,7 +879,7 @@ func (m *Model) mergeFilters(defaultStore *Model) {
 	}
 }
 
-func mergeModels(from, to *Model) {
+func mergeModels(from, to *Store) {
 	if from.Filters != nil {
 		to.Filters = from.Filters
 	}
@@ -1238,7 +1030,7 @@ func mergeProps(from, to *Prop) {
 	}
 }
 
-func (m *Model) LoadDefaultValues(data bdb.M) {
+func (m *Store) LoadDefaultValues(data bdb.M) {
 	for k, v := range m.Props {
 		if v.Default == nil {
 			continue
@@ -1258,7 +1050,7 @@ func (m *Model) LoadDefaultValues(data bdb.M) {
 	}
 }
 
-func (m *Model) preparePartialFlags() {
+func (m *Store) preparePartialFlags() {
 	m.PartialProps = []string{}
 	if len(m.TableColumns) > 0 {
 		for _, v := range m.TableColumns {
@@ -1372,7 +1164,7 @@ func (m *Model) preparePartialFlags() {
 	}
 }
 
-func (m *Model) prepareI18nForUser(u User) {
+func (m *Store) prepareI18nForUser(u User) {
 	if u.GetLanguage() != "" {
 		if _locale, ok := m.I18n[u.GetLanguage()]; ok {
 			if locale, ok := _locale.(map[string]interface{}); ok {
