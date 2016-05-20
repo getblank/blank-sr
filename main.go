@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -32,6 +33,7 @@ func main() {
 		wamp.WampHandler(ws, nil)
 	}
 	http.Handle("/", s)
+	http.HandleFunc("/config", postConfigHandler)
 
 	wamp.RegisterSubHandler("registry", registryHandler, nil)
 	wamp.RegisterSubHandler("config", configHandler, nil)
@@ -84,4 +86,34 @@ func publishSession(s *sessionstore.Session) {
 
 func publishDeleteSession(s *sessionstore.Session) {
 	wamp.Publish("sessions", map[string]interface{}{"apiKey": s.APIKey, "deleted": true})
+}
+
+func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodPost {
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("Only POST request is allowed"))
+		return
+	}
+	decoder := json.NewDecoder(request.Body)
+	var t map[string]config.Model
+
+	defer func() {
+		if r := recover(); r != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			switch r.(type) {
+			case string:
+				rw.Write([]byte(r.(string)))
+			case error:
+				rw.Write([]byte(r.(error).Error()))
+			}
+		}
+	}()
+	err := decoder.Decode(&t)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// fmt.Println(t)
+	rw.Write([]byte("OK"))
 }
