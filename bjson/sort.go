@@ -7,7 +7,7 @@ import (
 
 	"github.com/getblank/blank-sr/bdb"
 
-	"github.com/ivahaev/go-logger"
+	log "github.com/Sirupsen/logrus"
 )
 
 const (
@@ -50,7 +50,7 @@ func SortMaps(data []bdb.M, prop, t string) {
 				}
 			}
 			if data[i]["_id"] == nil {
-				logger.Warn("No _id in data", data[i])
+				log.Warn("No _id in data", data[i])
 				sm.ids[i] = ""
 				continue
 			}
@@ -70,7 +70,7 @@ func SortMaps(data []bdb.M, prop, t string) {
 			}
 			sm.numberValues[i] = math.Inf(-1)
 			if data[i]["_id"] == nil {
-				logger.Warn("No _id in data", data[i])
+				log.Warn("No _id in data", data[i])
 				sm.ids[i] = ""
 				continue
 			}
@@ -88,7 +88,7 @@ func SortMaps(data []bdb.M, prop, t string) {
 			}
 			sm.boolValues[i] = false
 			if data[i]["_id"] == nil {
-				logger.Warn("No _id in data", data[i])
+				log.Warn("No _id in data", data[i])
 				sm.ids[i] = ""
 				continue
 			}

@@ -15,16 +15,17 @@ import (
 	"github.com/getblank/blank-sr/bdb"
 	"github.com/getblank/blank-sr/utils/array"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/imdario/mergo"
-	"github.com/ivahaev/go-logger"
 )
 
 var (
-	conf           map[string]Store
 	mustacheRgx    = regexp.MustCompile(`(?U)({{.+}})`)
 	handleBarseRgx = regexp.MustCompile(`{?{{\s*(\w*)\s?(\w*)?\s?.*}}`)
 	itemPropsRgx   = regexp.MustCompile(`\$item.([A-Za-z][A-Za-z0-9]*)`)
 	actionIdRgx    = regexp.MustCompile(`^[A-Za-z_]+[A-Za-z0-9_]*$`)
+
+	storeUpdateHandlers = []func(map[string]Store){}
 )
 
 func Init(confFile string) {
@@ -32,83 +33,102 @@ func Init(confFile string) {
 	mustReadConfig(confFile)
 }
 
+func ReloadConfig(conf map[string]Store) {
+	log.Info("Starting to reload config")
+
+	loadCommonSettings(conf)
+	loadServerSettings(conf)
+	validateConfig(conf)
+}
+
+func OnUpdate(fn func(map[string]Store)) {
+	storeUpdateHandlers = append(storeUpdateHandlers, fn)
+}
+
+func updated(config map[string]Store) {
+	for _, fn := range storeUpdateHandlers {
+		fn(config)
+	}
+}
+
 func mustReadConfig(confFile string) {
-	logger.Info("Try to load config from: " + confFile)
+	log.Info("Try to load config from: " + confFile)
 	file, err := ioutil.ReadFile(confFile)
 	if err != nil {
 		if confFile == "config.json" {
-			logger.Notice("Can't find 'config.json'. Will work with saved config.")
+			log.Info("Can't find 'config.json'. Will work with saved config.")
 			time.Sleep(time.Microsecond * 200)
 			return
 		} else {
-			logger.Error(fmt.Sprintf("Config file read error: %v", err.Error()))
+			log.Error(fmt.Sprintf("Config file read error: %v", err.Error()))
 			time.Sleep(time.Microsecond * 200)
 			os.Exit(1)
 		}
 	}
 
+	var conf map[string]Store
 	err = json.Unmarshal(file, &conf)
 	if err != nil {
-		logger.Error("Error when read objects config", err.Error())
+		log.Error("Error when read objects config", err.Error())
 		time.Sleep(time.Microsecond * 200)
 		os.Exit(1)
 	}
-	loadCommonSettings()
-	loadServerSettings()
-	validateConfig()
+	loadCommonSettings(conf)
+	loadServerSettings(conf)
+	validateConfig(conf)
 }
 
-func loadCommonSettings() {
+func loadCommonSettings(conf map[string]Store) {
 	cs, ok := conf[ObjCommonSettings]
 	if !ok {
-		logger.Warn("No common settings in config")
+		log.Warn("No common settings in config")
 		return
 	}
 	encoded, err := json.Marshal(cs.Entries)
 	if err != nil {
-		logger.Error("Can't marshal common settings", cs.Entries, err.Error())
+		log.Error("Can't marshal common settings", cs.Entries, err.Error())
 	} else {
 		err = json.Unmarshal(encoded, CommonSettings)
 		if err != nil {
-			logger.Error("Can't unmarshal common settings", string(encoded), err.Error())
+			log.Error("Can't unmarshal common settings", string(encoded), err.Error())
 		}
 	}
 	encoded, err = json.Marshal(cs.I18n)
 	if err != nil {
-		logger.Error("Can't marshal common i18n", cs.I18n, err.Error())
+		log.Error("Can't marshal common i18n", cs.I18n, err.Error())
 		return
 	}
 	err = json.Unmarshal(encoded, &CommonSettings.I18n)
 	if err != nil {
-		logger.Error("Can't unmarshal common i18n", string(encoded), err.Error())
+		log.Error("Can't unmarshal common i18n", string(encoded), err.Error())
 	}
 }
 
-func loadServerSettings() {
+func loadServerSettings(conf map[string]Store) {
 	ss, ok := conf[ObjServerSettings]
 	if !ok {
-		logger.Warn("No server settings in config")
+		log.Warn("No server settings in config")
 		return
 	}
 	encoded, err := json.Marshal(ss.Entries)
 	if err != nil {
-		logger.Error("Can't marshal server settings", ss.Entries, err.Error())
+		log.Error("Can't marshal server settings", ss.Entries, err.Error())
 		return
 	}
 	err = json.Unmarshal(encoded, ServerSettings)
 	if err != nil {
-		logger.Error("Can't unmarshal server settings", string(encoded), err.Error())
+		log.Error("Can't unmarshal server settings", string(encoded), err.Error())
 	}
 }
 
-func validateConfig() {
+func validateConfig(conf map[string]Store) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	_conf := map[string]Store{}
 	var err error
 
 	for store, o := range conf {
-		logger.Info("Parsing config for store:", store)
+		log.Info("Parsing config for store:", store)
 		o.Store = store
 		if o.Props == nil {
 			o.Props = map[string]Prop{}
@@ -120,25 +140,25 @@ func validateConfig() {
 		// Checking object type
 		switch o.Type {
 		case ObjDirectory:
-			//			logger.Info("Store is 'directory' type")
+			//			log.Info("Store is 'directory' type")
 		case ObjProcess:
-			//			logger.Info("Store is 'process' type")
+			//			log.Info("Store is 'process' type")
 		case ObjMap:
-			//			logger.Info("Store is 'inConfigSet' type")
+			//			log.Info("Store is 'inConfigSet' type")
 			o.Props = nil
 		case ObjWorkspace:
-			//			logger.Info("Store is 'workspace' type")
+			//			log.Info("Store is 'workspace' type")
 			o.Props = nil
 		case ObjCampaign:
-			//			logger.Info("Store is 'campaign' type")
+			//			log.Info("Store is 'campaign' type")
 		case ObjNotification:
-			//			logger.Info("Store is 'notification' type")
+			//			log.Info("Store is 'notification' type")
 		case ObjSingle:
-			//			logger.Info("Store is 'single' type")
+			//			log.Info("Store is 'single' type")
 		case ObjFile:
-			// 		logger.Info("Store is 'file' type")
+			// 		log.Info("Store is 'file' type")
 		case ObjProxy:
-			// 		logger.Info("Store is 'proxy' type")
+			// 		log.Info("Store is 'proxy' type")
 		default:
 			o.Type = ObjDirectory
 		}
@@ -147,35 +167,35 @@ func validateConfig() {
 
 		err = o.validateProps(o.Props, true)
 		if err != nil {
-			logger.Error("Validating props failed:", err)
+			log.Error("Validating props failed:", err)
 			allPropsValid = false
 			continue
 		}
 
 		// prepare HtmlFile for props
 		if err = o.preparePropHtmlTemplates(); err != nil {
-			logger.Error("Preparing HTML templates failed:", err)
+			log.Error("Preparing HTML templates failed:", err)
 			allPropsValid = false
 			continue
 		}
 
 		//compile actions
 		if err = o.compileActions(); err != nil {
-			logger.Error("Compiling actions failed:", err)
+			log.Error("Compiling actions failed:", err)
 			allPropsValid = false
 			continue
 		}
 
 		//compile hooks
 		if err = o.prepareHooks(true); err != nil {
-			logger.Error("Preparing hooks failed:", err)
+			log.Error("Preparing hooks failed:", err)
 			allPropsValid = false
 			continue
 		}
 
 		//create tasks
 		if err = o.createTasks(); err != nil {
-			logger.Error("Creating tasks failed:", err)
+			log.Error("Creating tasks failed:", err)
 			allPropsValid = false
 			continue
 		}
@@ -183,7 +203,7 @@ func validateConfig() {
 		if allPropsValid {
 			_conf[store] = o
 		} else {
-			logger.Error("Invalid Store", store, o)
+			log.Error("Invalid Store", store, o)
 		}
 
 		o.checkPropsRequiredConditions()
@@ -208,7 +228,7 @@ ConfLoop:
 			if p.Type == PropRef || p.Type == PropRefList || p.Type == PropVirtualRefList {
 				_, ok := _conf[p.Store]
 				if !ok {
-					logger.Error("Oppostite store '" + p.Store + "' not exists for prop '" + name + "' in store '" + storeName + "'. Store will ignored!")
+					log.Error("Oppostite store '" + p.Store + "' not exists for prop '" + name + "' in store '" + storeName + "'. Store will ignored!")
 					continue ConfLoop
 				}
 			}
@@ -217,7 +237,7 @@ ConfLoop:
 				if subP.Type == PropRef || subP.Type == PropRefList || subP.Type == PropVirtualRefList {
 					_, ok := _conf[subP.Store]
 					if !ok {
-						logger.Error("Oppostite store '" + subP.Store + "' not exists for prop '" + name + "." + subName + "' in store '" + storeName + "'. Store will ignored!")
+						log.Error("Oppostite store '" + subP.Store + "' not exists for prop '" + name + "." + subName + "' in store '" + storeName + "'. Store will ignored!")
 						continue ConfLoop
 					}
 				}
@@ -226,7 +246,7 @@ ConfLoop:
 
 		switch storeName {
 		case DefaultDirectory, DefaultSingle, DefaultCampaign, DefaultNotification, DefaultProcess:
-			//			logger.Info("This is", store, "store")
+			//			log.Info("This is", store, "store")
 		default:
 			if defaultDirectory, ok := _conf[DefaultDirectory]; ok {
 				for _pName, _prop := range defaultDirectory.Props {
@@ -259,17 +279,10 @@ ConfLoop:
 					}
 				}
 			}
-			// if len(store.Access) == 0 {
-			// 	store.Access = []Access{
-			// 		{
-			// 			Role:        "all",
-			// 			Permissions: "crud",
-			// 		},
-			// 	}
-			// }
+
 			err := DB.Save(bucket, storeName, store)
 			if err != nil {
-				logger.Error("Error when saving store in conf", err.Error())
+				log.Error("Error when saving store in conf", err.Error())
 			}
 		}
 
@@ -284,7 +297,7 @@ ConfLoop:
 
 			baseStore, ok := config[_store.BaseStore]
 			if !ok {
-				logger.Error("Can't find baseStore " + _store.BaseStore + " for proxy store " + _store.Store)
+				log.Error("Can't find baseStore " + _store.BaseStore + " for proxy store " + _store.Store)
 				delete(config, _store.Store)
 				continue
 			}
@@ -331,11 +344,12 @@ ConfLoop:
 
 			err := DB.Save(bucket, store.Store, store)
 			if err != nil {
-				logger.Error("Error when saving object in conf", err.Error())
+				log.Error("Error when saving object in conf", err.Error())
 			}
 			_store = store
 		}
 	}
+	updated(config)
 }
 
 func (m *Store) preparePropHtmlTemplates() (err error) {
@@ -666,13 +680,13 @@ func (p *Prop) createRequired() {
 
 	encoded, err := json.Marshal(p.Required)
 	if err != nil {
-		logger.Error("Can't marshal required", p.Required, err.Error())
+		log.Error("Can't marshal required", p.Required, err.Error())
 		return
 	}
 	var required []*Condition
 	err = json.Unmarshal(encoded, &required)
 	if err != nil {
-		logger.Error("Can't unmarshal required", string(encoded), err.Error())
+		log.Error("Can't unmarshal required", string(encoded), err.Error())
 		return
 	}
 	p.requiredConditions = required

@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 
-	"github.com/ivahaev/go-logger"
+	log "github.com/Sirupsen/logrus"
 )
 
 func GetStoreObject(store string) (Store, bool) {
@@ -49,7 +49,7 @@ func GetStoreObjectFromDb(store string) (Store, bool) {
 func GetObjectsForUser(u User) map[string]*Store {
 	stores, err := DB.GetAllKeys(bucket)
 	if err != nil {
-		logger.Error("Error when load stores keys")
+		log.Error("Error when load stores keys")
 		return nil
 	}
 	var hasDefault, hasDefaultProcess, hasDefaultCampaign, hasDefaultNotification, hasDefaultSingle bool
@@ -87,7 +87,7 @@ func GetObjectsForUser(u User) map[string]*Store {
 		}
 		v, ok := GetStoreObjectFromDb(store)
 		if !ok {
-			logger.Error("Error when load store", store)
+			log.Error("Error when load store", store)
 			continue
 		}
 		if v.Type == ObjWorkspace {

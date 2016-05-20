@@ -11,7 +11,7 @@ import (
 	"github.com/getblank/blank-sr/berror"
 	"github.com/getblank/blank-sr/utils/comparer"
 
-	"github.com/ivahaev/go-logger"
+	log "github.com/Sirupsen/logrus"
 )
 
 var invalidPropValue = errors.New("Invalid prop value")
@@ -207,7 +207,7 @@ func validatePropInt(p *Prop, pData int) (int, error) {
 	if p.Min != nil {
 		min, ok := p.Min.(float64)
 		if !ok {
-			logger.Error("Wrong config for prop", p)
+			log.Error("Wrong config for prop", p)
 			return 0, invalidPropValue
 		}
 		if pData < int(min) {
@@ -217,7 +217,7 @@ func validatePropInt(p *Prop, pData int) (int, error) {
 	if p.Max != nil {
 		max, ok := p.Max.(float64)
 		if !ok {
-			logger.Error("Wrong config for prop", p)
+			log.Error("Wrong config for prop", p)
 			return 0, invalidPropValue
 		}
 		if pData > int(max) {
@@ -231,7 +231,7 @@ func validatePropFloat(p *Prop, pData float64) (float64, error) {
 	if p.Min != nil {
 		min, ok := p.Min.(float64)
 		if !ok {
-			logger.Error("Wrong config for prop", p)
+			log.Error("Wrong config for prop", p)
 			return 0, invalidPropValue
 		}
 		if pData < min {
@@ -241,7 +241,7 @@ func validatePropFloat(p *Prop, pData float64) (float64, error) {
 	if p.Max != nil {
 		max, ok := p.Max.(float64)
 		if !ok {
-			logger.Error("Wrong config for prop", p)
+			log.Error("Wrong config for prop", p)
 			return 0, invalidPropValue
 		}
 		if pData > max {

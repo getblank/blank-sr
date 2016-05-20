@@ -63,12 +63,6 @@
 			"revisionTime": "2015-10-17T12:49:07Z"
 		},
 		{
-			"checksumSHA1": "ybqytgofV0kmOG685+4GsDQ6fm0=",
-			"path": "github.com/ivahaev/go-logger",
-			"revision": "21b9e143c9edbb4a901d64e9b06042c1cad319e2",
-			"revisionTime": "2016-01-21T07:04:00Z"
-		},
-		{
 			"checksumSHA1": "aWFlo4bE5DKh4SvbKM/NsxR85qk=",
 			"path": "github.com/manucorporat/sse",
 			"revision": "fe6ea2c8e398672518ef204bf0fbd9af858d0e15",

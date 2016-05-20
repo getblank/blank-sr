@@ -12,7 +12,7 @@ import (
 	"github.com/getblank/blank-sr/bjson"
 	"github.com/getblank/blank-sr/utils/array"
 
-	"github.com/ivahaev/go-logger"
+	log "github.com/Sirupsen/logrus"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
 )
@@ -211,7 +211,7 @@ func createProfile(u User) Store {
 	profile.Props = map[string]Prop{}
 	object, ok := GetStoreObjectFromDb("users")
 	if !ok {
-		logger.Warn("No users store provided!")
+		log.Warn("No users store provided!")
 		return profile
 	}
 	if _default, ok := GetStoreObjectFromDb(DefaultDirectory); ok {
@@ -282,7 +282,7 @@ func (m *Store) prepareTemplate() {
 			template, err = ioutil.ReadFile(m.TemplateFile)
 		}
 		if err != nil {
-			logger.Error("Can't load template", m.TemplateFile, err.Error())
+			log.Error("Can't load template", m.TemplateFile, err.Error())
 			m.TemplateFile = ""
 			return
 		}

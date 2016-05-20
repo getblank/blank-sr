@@ -10,8 +10,8 @@ import (
 
 	"github.com/getblank/blank-sr/berror"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/boltdb/bolt"
-	"github.com/ivahaev/go-logger"
 )
 
 var (
@@ -282,7 +282,7 @@ func (DB) GetAllUnmarshalled(bucket string) (result []M, err error) {
 			var m M
 			err = json.Unmarshal(_v, &m)
 			if err != nil {
-				logger.Error("Error when unmarshall", err.Error())
+				log.Error("Error when unmarshall", err.Error())
 				continue
 			}
 			result = append(result, m)
@@ -363,7 +363,7 @@ func (DB) GetNextSequenceForBucket(bucket string, subBucket *string) (sequence i
 	BoltDB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucket))
 		if err != nil {
-			logger.Error("Can't create bucket:", bucket, err.Error())
+			log.Error("Can't create bucket:", bucket, err.Error())
 			return err
 		}
 		if subBucket == nil {
@@ -372,7 +372,7 @@ func (DB) GetNextSequenceForBucket(bucket string, subBucket *string) (sequence i
 		}
 		subB, err := b.CreateBucketIfNotExists([]byte(*subBucket))
 		if err != nil {
-			logger.Error("Can't create subBucket bucket:", bucket+"."+*subBucket, err.Error())
+			log.Error("Can't create subBucket bucket:", bucket+"."+*subBucket, err.Error())
 			return err
 		}
 		_sequence, err = subB.NextSequence()
@@ -405,7 +405,7 @@ func (DB) Save(bucket, key string, value interface{}) (err error) {
 	BoltDB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucket))
 		if err != nil {
-			logger.Error("Can't create bucket:", bucket, err.Error())
+			log.Error("Can't create bucket:", bucket, err.Error())
 			return err
 		}
 		err = b.Put([]byte(key), encoded)
@@ -422,7 +422,7 @@ func (DB) SaveInNested(bucket, nestedBucket, key string, value interface{}) (err
 	BoltDB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucket))
 		if err != nil {
-			logger.Error("Can't create bucket:", bucket, err.Error())
+			log.Error("Can't create bucket:", bucket, err.Error())
 			return err
 		}
 		nb, err := b.CreateBucketIfNotExists([]byte(nestedBucket))

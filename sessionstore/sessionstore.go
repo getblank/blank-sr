@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/getblank/blank-sr/bdb"
 	"github.com/getblank/blank-sr/berror"
 	"github.com/getblank/uuid"
-	"github.com/ivahaev/go-logger"
 )
 
 var (
@@ -76,7 +76,7 @@ func GetByUserID(id string) (s *Session, err error) {
 func Delete(APIKey string) {
 	err := db.Delete(bucket, APIKey)
 	if err != nil {
-		logger.Error("Can't delete session", APIKey, err.Error())
+		log.Error("Can't delete session", APIKey, err.Error())
 	}
 	locker.Lock()
 	defer locker.Unlock()
@@ -136,7 +136,7 @@ func (s *Session) DeleteSubscription(connID, uri string) {
 func (s *Session) Delete() {
 	err := db.Delete(bucket, s.APIKey)
 	if err != nil {
-		logger.Error("Can't delete session", s, err.Error())
+		log.Error("Can't delete session", s, err.Error())
 	}
 	locker.Lock()
 	defer locker.Unlock()
@@ -150,7 +150,7 @@ func (s *Session) Save() {
 	s.LastRequest = time.Now()
 	err := db.Save(bucket, s.APIKey, s)
 	if err != nil {
-		logger.Error("Can't save session", s, err.Error())
+		log.Error("Can't save session", s, err.Error())
 	}
 }
 
@@ -200,7 +200,7 @@ func clearRottenSessions() {
 		if now.Sub(s.LastRequest) > ttl || (s.ttl > 0 && now.Sub(s.LastRequest) > s.ttl) {
 			err := db.Delete(bucket, s.APIKey)
 			if err != nil {
-				logger.Error("Can't delete session", s, err.Error())
+				log.Error("Can't delete session", s, err.Error())
 			}
 			delete(sessions, s.APIKey)
 		}
@@ -210,7 +210,7 @@ func clearRottenSessions() {
 func loadSessions() {
 	_sessions, err := db.GetAll(bucket)
 	if err != nil && err != berror.DbNotFound {
-		logger.Error("Can't read all sessions", err.Error())
+		log.Error("Can't read all sessions", err.Error())
 	}
 	now := time.Now()
 	locker.Lock()
@@ -219,13 +219,13 @@ func loadSessions() {
 		var s Session
 		err := json.Unmarshal(_s, &s)
 		if err != nil {
-			logger.Error("Can't unmarshal session", _s, err.Error())
+			log.Error("Can't unmarshal session", _s, err.Error())
 			continue
 		}
 		if now.Sub(s.LastRequest) > ttl {
 			err := db.Delete(bucket, s.APIKey)
 			if err != nil {
-				logger.Error("Can't delete session when Init()", s, err.Error())
+				log.Error("Can't delete session when Init()", s, err.Error())
 			}
 			continue
 		}

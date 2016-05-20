@@ -66,6 +66,11 @@ func main() {
 		wamp.Publish("registry", services)
 	})
 
+	config.OnUpdate(func(c map[string]config.Store) {
+		log.Info("Config updated. Will publish to receivers")
+		wamp.Publish("config", c)
+	})
+
 	err := http.ListenAndServe(":1234", nil)
 	if err != nil {
 		panic("ListenAndServe: " + err.Error())
@@ -96,7 +101,7 @@ func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 	decoder := json.NewDecoder(request.Body)
-	var t map[string]config.Store
+	var data map[string]config.Store
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -109,7 +114,7 @@ func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
 			}
 		}
 	}()
-	err := decoder.Decode(&t)
+	err := decoder.Decode(&data)
 
 	if err != nil {
 		panic(err)
@@ -117,5 +122,5 @@ func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
 
 	// fmt.Println(t)
 	rw.Write([]byte("OK"))
-	log.Info("New config arrived")
+	config.ReloadConfig(data)
 }
