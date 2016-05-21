@@ -11,4 +11,6 @@ env:
 script:
 - go test -v github.com/getblank/blank-sr/sessionstore
 - go test -v github.com/getblank/blank-sr/registry
-after_success: curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://40.85.96.132/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-$TRAVIS_OS_NAME/blank-sr
+after_success:
+- curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://40.85.96.132/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-$TRAVIS_OS_NAME/blank-sr
+- curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://40.85.96.132/releases/blank-sr/$TRAVIS_OS_NAME/blank-sr
