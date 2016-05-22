@@ -17,6 +17,7 @@ var (
 	sessions              = map[string]*Session{}
 	locker                sync.RWMutex
 	sessionUpdateHandlers = []func(*Session){}
+	sessionDeleteHandlers = []func(*Session){}
 	db                    = bdb.DB{}
 )
 
@@ -60,6 +61,17 @@ func New(userID string, tmp ...bool) *Session {
 	sessions[s.APIKey] = s
 	go sessionUpdated(s)
 	return s
+}
+
+// GetAll returns all stored sessions
+func GetAll() []*Session {
+	result := make([]*Session, len(sessions))
+	var i int
+	for _, s := range sessions {
+		result[i] = s
+		i++
+	}
+	return result
 }
 
 // GetByApiKey returns point to Session or error if it is not exists.
@@ -141,6 +153,7 @@ func (s *Session) Delete() {
 	locker.Lock()
 	defer locker.Unlock()
 	delete(sessions, s.APIKey)
+	sessionDeleted(s)
 }
 
 // Save saves session in store and update LastRequest prop in it.
@@ -162,6 +175,16 @@ func (s *Session) GetUserID() string {
 // GetUserID returns apiKey of session
 func (s *Session) GetAPIKey() string {
 	return s.APIKey
+}
+
+func OnSessionUpdate(handler func(*Session)) {
+	sessionUpdateHandlers = append(sessionUpdateHandlers, handler)
+	return
+}
+
+func OnSessionDelete(handler func(*Session)) {
+	sessionDeleteHandlers = append(sessionDeleteHandlers, handler)
+	return
 }
 
 func getByApiKey(APIKey string) (s *Session, err error) {
@@ -241,14 +264,15 @@ func ttlWatcher() {
 	}
 }
 
-func OnSessionUpdate(handler func(*Session)) {
-	sessionUpdateHandlers = append(sessionUpdateHandlers, handler)
-	return
-}
-
 func sessionUpdated(s *Session) {
 	s.Save()
 	for _, handler := range sessionUpdateHandlers {
+		go handler(s)
+	}
+}
+
+func sessionDeleted(s *Session) {
+	for _, handler := range sessionDeleteHandlers {
 		go handler(s)
 	}
 }

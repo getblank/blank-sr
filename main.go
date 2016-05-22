@@ -36,10 +36,10 @@ func main() {
 	http.Handle("/", s)
 	http.HandleFunc("/config", postConfigHandler)
 
-	wamp.RegisterSubHandler("registry", registryHandler, nil)
-	wamp.RegisterSubHandler("config", configHandler, nil)
-	wamp.RegisterSubHandler("sessions", nil, nil)
-	wamp.RegisterSubHandler("events", nil, nil)
+	wamp.RegisterSubHandler("registry", registryHandler, nil, nil)
+	wamp.RegisterSubHandler("config", configHandler, nil, nil)
+	wamp.RegisterSubHandler("sessions", subSessionsHandler, nil, nil)
+	wamp.RegisterSubHandler("events", nil, nil, nil)
 
 	wamp.RegisterRPCHandler("register", registerHandler)
 	wamp.RegisterRPCHandler("publish", publishHandler)
@@ -64,6 +64,14 @@ func main() {
 	registry.OnDelete(func() {
 		services := registry.GetAll()
 		wamp.Publish("registry", services)
+	})
+
+	sessionstore.OnSessionUpdate(func(s *sessionstore.Session) {
+		wamp.Publish("sessions", map[string]interface{}{"event": "updated", "data": s})
+	})
+
+	sessionstore.OnSessionDelete(func(s *sessionstore.Session) {
+		wamp.Publish("sessions", map[string]interface{}{"event": "deleted", "data": s.APIKey})
 	})
 
 	config.OnUpdate(func(c map[string]config.Store) {

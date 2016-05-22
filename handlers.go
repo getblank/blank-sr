@@ -163,7 +163,7 @@ func sessionSubscribedHandler(c *wango.Conn, _uri string, args ...interface{}) (
 // args must have 3 members
 // apiKey, connID, uri string
 func sessionUnsubscribedHandler(c *wango.Conn, _uri string, args ...interface{}) (interface{}, error) {
-	if len(args) < 4 {
+	if len(args) < 3 {
 		return nil, ErrInvalidArguments
 	}
 	apiKey, ok := args[0].(string)
@@ -191,7 +191,7 @@ func sessionUnsubscribedHandler(c *wango.Conn, _uri string, args ...interface{})
 // args must have 2 members
 // apiKey, connID string
 func sessionDeleteConnectionHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	if len(args) < 4 {
+	if len(args) < 2 {
 		return nil, ErrInvalidArguments
 	}
 	apiKey, ok := args[0].(string)
@@ -210,4 +210,9 @@ func sessionDeleteConnectionHandler(c *wango.Conn, uri string, args ...interface
 	publishSession(s)
 
 	return nil, nil
+}
+
+func subSessionsHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	all := sessionstore.GetAll()
+	return map[string]interface{}{"event": "init", "data": all}, nil
 }
