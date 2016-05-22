@@ -41,14 +41,15 @@ type SubHandler func(c *Conn, uri string, args ...interface{}) (interface{}, err
 type PubHandler func(uri string, event interface{}, extra interface{}) (bool, interface{})
 
 type subHandler struct {
-	subHandler SubHandler
-	pubHandler PubHandler
+	subHandler   SubHandler
+	unsubHandler SubHandler
+	pubHandler   PubHandler
 }
 
 type subscribersMap map[string]bool
 
 type subRequestsListeners struct {
-	locker    sync.Mutex
+	locker    *sync.Mutex
 	listeners map[string][]subRequestsListener
 }
 
@@ -230,16 +231,21 @@ func (w *Wango) RegisterRPCHandler(_uri interface{}, fn func(c *Conn, uri string
 	return nil
 }
 
-// RegisterSubHandler registers subscription handler function for provided URI
-// fnSub and fnPub can be nil
-func (w *Wango) RegisterSubHandler(uri string, fnSub func(c *Conn, uri string, args ...interface{}) (interface{}, error), fnPub func(uri string, event interface{}, extra interface{}) (bool, interface{})) error {
+// RegisterSubHandler registers subscription handler function for provided URI.
+// fnSub, fnUnsub and fnPub can be nil.
+// fnSub will called when subscribe event arrived.
+// fnUnsub will called when unsubscribe event arrived.
+// fnPub will called when called Publish method. It can control sending event to connections. If first returned argument is true,
+// then to connection will send data from second argument.
+func (w *Wango) RegisterSubHandler(uri string, fnSub func(c *Conn, uri string, args ...interface{}) (interface{}, error), fnUnsub func(c *Conn, uri string, args ...interface{}) (interface{}, error), fnPub func(uri string, event interface{}, extra interface{}) (bool, interface{})) error {
 	if _, ok := w.subHandlers[uri]; ok {
 		return errors.Wrap(ErrHandlerAlreadyRegistered, "when registering subHandler")
 	}
 
 	w.subHandlers[uri] = subHandler{
-		subHandler: fnSub,
-		pubHandler: fnPub,
+		subHandler:   fnSub,
+		unsubHandler: fnUnsub,
+		pubHandler:   fnPub,
 	}
 	return nil
 }
@@ -257,7 +263,7 @@ func (w *Wango) SendEvent(uri string, event interface{}, connIDs []string) {
 }
 
 // Subscribe sends subscribe request for uri provided.
-func (w *Wango) Subscribe(uri string, fn EventHandler, id ...string) error {
+func (w *Wango) Subscribe(uri string, fn func(uri string, event interface{}), id ...string) error {
 	if uri == "" {
 		return errors.New("Empty uri")
 	}
@@ -639,6 +645,11 @@ func (w *Wango) handleUnSubscribe(c *Conn, msg []interface{}) {
 				delete(subscribers, c.id)
 				response, _ := createMessage(msgUnsubscribed, _uri)
 				go c.send(response)
+				for handlersURI, handler := range w.subHandlers {
+					if strings.HasPrefix(_uri, handlersURI) && handler.unsubHandler != nil {
+						handler.unsubHandler(c, _uri, nil)
+					}
+				}
 				return
 			}
 			response, _ := createMessage(msgUnsubscribeError, _uri, createError(ErrNotSubscribes))
@@ -677,14 +688,17 @@ func (w *Wango) addConnection(ws *websocket.Conn, extra interface{}) *Conn {
 	cn.sendChan = make(chan []byte, sendChanBufferSize)
 	cn.eventHandlers = map[string]EventHandler{}
 	cn.callResults = map[string]chan *callResult{}
-	cn.subRequests = subRequestsListeners{listeners: map[string][]subRequestsListener{}}
-	cn.unsubRequests = subRequestsListeners{listeners: map[string][]subRequestsListener{}}
+	cn.subRequests = subRequestsListeners{listeners: map[string][]subRequestsListener{}, locker: new(sync.Mutex)}
+	cn.unsubRequests = subRequestsListeners{listeners: map[string][]subRequestsListener{}, locker: new(sync.Mutex)}
 	cn.breakChan = make(chan struct{})
 	cn.connected = true
 	cn.aliveTimeout = w.aliveTimeout
 	cn.aliveTimer = time.AfterFunc(cn.aliveTimeout, func() {
 		cn.Close()
 	})
+	cn.extraLocker = new(sync.RWMutex)
+	cn.callResultsLocker = new(sync.Mutex)
+	cn.eventHandlersLocker = new(sync.RWMutex)
 	w.connectionsLocker.Lock()
 	defer w.connectionsLocker.Unlock()
 	w.connections[cn.id] = cn
