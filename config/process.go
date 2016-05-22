@@ -249,6 +249,7 @@ ConfLoop:
 			//			log.Info("This is", store, "store")
 		default:
 			if defaultDirectory, ok := _conf[DefaultDirectory]; ok {
+				store.mergeFilters(&defaultDirectory)
 				for _pName, _prop := range defaultDirectory.Props {
 					store.LoadDefaultIntoProp(_pName, _prop)
 				}
@@ -256,13 +257,8 @@ ConfLoop:
 			switch store.Type {
 			case ObjProcess:
 				if defaultProcess, ok := _conf[DefaultProcess]; ok {
+					store.mergeFilters(&defaultProcess)
 					for _pName, _prop := range defaultProcess.Props {
-						store.LoadDefaultIntoProp(_pName, _prop)
-					}
-				}
-			case ObjCampaign:
-				if defaultCampaign, ok := _conf[DefaultCampaign]; ok {
-					for _pName, _prop := range defaultCampaign.Props {
 						store.LoadDefaultIntoProp(_pName, _prop)
 					}
 				}
@@ -274,6 +270,7 @@ ConfLoop:
 				}
 			case ObjSingle:
 				if defaultSingle, ok := _conf[DefaultSingle]; ok {
+					store.mergeFilters(&defaultSingle)
 					for _pName, _prop := range defaultSingle.Props {
 						store.LoadDefaultIntoProp(_pName, _prop)
 					}
