@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/getblank/blank-sr/bdb"
 	"runtime"
+
+	"github.com/getblank/blank-sr/bdb"
 )
 
 var (
@@ -34,7 +35,7 @@ type ServerSettingsStructure struct {
 	MemoryCheckingInterval            int     `json:"memoryCheckingInterval,omitempty"`
 	MemoryUsageToCleanWorkers         float64 `json:"memoryUsageToCleanWorkers,omitempty"`
 	Port                              string  `json:"port,omitempty"`
-	DBDriver						  string  `json:"dbDriver,omitempty"`
+	DBDriver                          string  `json:"dbDriver,omitempty"`
 	MongoURI                          string  `json:"mongoURI,omitempty"`
 }
 
