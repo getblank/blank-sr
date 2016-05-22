@@ -65,8 +65,9 @@ func publishHandler(c *wango.Conn, _uri string, args ...interface{}) (interface{
 	message := map[string]interface{}{
 		"event":       args[1],
 		"subscribers": args[2],
+		"uri":         uri,
 	}
-	wamp.Publish(uri, message)
+	wamp.Publish("events", message)
 
 	return nil, nil
 }
