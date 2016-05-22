@@ -336,8 +336,8 @@ type Hooks struct {
 }
 
 type Label struct {
-	Text       string `json:"text,omitempty ws:"yes""`       // Текст лейблы
-	Icon       string `json:"icon,omitempty ws:"yes""`       // Иконка слева от текста (только CSS класс)
+	Text       string `json:"text,omitempty" ws:"yes"`       // Текст лейблы
+	Icon       string `json:"icon,omitempty" ws:"yes"`       // Иконка слева от текста (только CSS класс)
 	ShowInList int    `json:"showInList,omitempty" ws:"yes"` // Порядок отображения в списке. Если 0, не отображать
 	HideInForm bool   `json:"hideInForm,omitempty" ws:"yes"` // Не показывать на основой форме
 	Color      string `json:"color,omitempty" ws:"yes"`      // Цвет рамочки на форме и цвет текста в списке
