@@ -52,7 +52,7 @@ func registerHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 }
 
 // args: uri string, event interface{}, subscribers array of connIDs
-// This data will be transfered sent as event on "events" topic
+// This data will be transferred sent as event on "events" topic
 func publishHandler(c *wango.Conn, _uri string, args ...interface{}) (interface{}, error) {
 	uri, ok := args[0].(string)
 	if !ok {
