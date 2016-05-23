@@ -14,6 +14,7 @@ const (
 	TypeWorker    = "worker"
 	TypePBX       = "PBX"
 	TypeTaskQueue = "taskQueue"
+	TypeCron      = "cron"
 
 	PortWorker    = "1234"
 	PortPBX       = "1234"
