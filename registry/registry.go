@@ -22,16 +22,18 @@ const (
 )
 
 type Service struct {
-	Type    string `json:"type"`
-	Address string `json:"address"`
-	Port    string `json:"port"`
-	connID  string
+	Type     string `json:"type"`
+	Address  string `json:"address"`
+	Port     string `json:"port"`
+	CommonJS string `json:"commonJS,omitempty"`
+	connID   string
 }
 
 type RegisterMessage struct {
 	Type string `json:"type"`
 }
 
+// GetAll returns all services from registry
 func GetAll() map[string][]Service {
 	locker.RLock()
 	defer locker.RUnlock()
@@ -45,19 +47,23 @@ func GetAll() map[string][]Service {
 	return all
 }
 
+// OnCreate pass handler func, that will call when new service will created
 func OnCreate(fn func()) {
 	createHandlers = append(createHandlers, fn)
 }
 
+// OnUpdate pass handler func, that will call when existing service will created
 func OnUpdate(fn func()) {
 	updateHandlers = append(updateHandlers, fn)
 }
 
+// OnDelete pass handler func, that will call when existing service will deleted
 func OnDelete(fn func()) {
 	deleteHandlers = append(deleteHandlers, fn)
 }
 
-func Register(typ, remoteAddr, port, connID string) (interface{}, error) {
+// Register adds new service in registry
+func Register(typ, remoteAddr, port, connID, commonJS string) (interface{}, error) {
 	if port == "" {
 		switch typ {
 		case TypeWorker:
@@ -69,10 +75,11 @@ func Register(typ, remoteAddr, port, connID string) (interface{}, error) {
 		}
 	}
 	s := Service{
-		Type:    typ,
-		Address: remoteAddr,
-		Port:    port,
-		connID:  connID,
+		Type:     typ,
+		Address:  remoteAddr,
+		Port:     port,
+		CommonJS: commonJS,
+		connID:   connID,
 	}
 	register(s)
 
@@ -83,6 +90,7 @@ func Register(typ, remoteAddr, port, connID string) (interface{}, error) {
 	return nil, nil
 }
 
+// Unregister removes service from registry
 func Unregister(id string) {
 	unregister(id)
 }

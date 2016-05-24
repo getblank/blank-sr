@@ -12,13 +12,13 @@ func TestRegister(t *testing.T) {
 	g.Describe("Service Register", func() {
 		g.Describe("#Register", func() {
 			g.It("Should register service", func() {
-				s := Service{"type1", "addr1", "8888", "id1"}
+				s := Service{"type1", "addr1", "8888", "id1", ""}
 				register(s)
 				g.Assert(len(services["type1"])).Equal(1)
 			})
 
 			g.It("Should register same type service", func() {
-				s := Service{"type1", "addr2", "9999", "id2"}
+				s := Service{"type1", "addr2", "9999", "id2", ""}
 				register(s)
 				if len(services["type1"]) != 2 {
 					t.Fatal("Service was not registered")
@@ -26,7 +26,7 @@ func TestRegister(t *testing.T) {
 			})
 
 			g.It("Should register another type service", func() {
-				s := Service{"type3", "addr3", "8881", "id3"}
+				s := Service{"type3", "addr3", "8881", "id3", ""}
 				register(s)
 				g.Assert(len(services["type3"])).Equal(1)
 			})

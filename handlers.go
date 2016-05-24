@@ -46,7 +46,11 @@ func registerHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 	if _port, ok := mes["port"]; ok {
 		port, ok = _port.(string)
 	}
-	registry.Register(typ, remoteAddr, port, c.ID())
+	var commonJS string
+	if _commonJS, ok := mes["commonJS"]; ok {
+		commonJS, ok = _commonJS.(string)
+	}
+	registry.Register(typ, remoteAddr, port, c.ID(), commonJS)
 
 	return nil, nil
 }
