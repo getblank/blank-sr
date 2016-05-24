@@ -12,7 +12,7 @@ var (
 
 const (
 	TypeWorker    = "worker"
-	TypePBX       = "PBX"
+	TypePBX       = "pbx"
 	TypeTaskQueue = "taskQueue"
 	TypeCron      = "cron"
 
