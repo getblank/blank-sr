@@ -215,14 +215,14 @@ func (w *Wango) RegisterRPCHandler(_uri interface{}, fn func(c *Conn, uri string
 	case string:
 		uri := _uri.(string)
 		if _, ok := w.rpcHandlers[uri]; ok {
-			return errors.Wrap(ErrHandlerAlreadyRegistered, "when registering string rpcHandler")
+			return errors.Wrap(errHandlerAlreadyRegistered, "when registering string rpcHandler")
 		}
 		w.rpcHandlers[uri] = fn
 	case *regexp.Regexp:
 		rgx := _uri.(*regexp.Regexp)
 		for k := range w.rpcRgxHandlers {
 			if k.String() == rgx.String() {
-				return errors.Wrap(ErrHandlerAlreadyRegistered, "when registering rgx rpcHandler")
+				return errors.Wrap(errHandlerAlreadyRegistered, "when registering rgx rpcHandler")
 			}
 		}
 		w.rpcRgxHandlers[rgx] = fn
@@ -239,7 +239,7 @@ func (w *Wango) RegisterRPCHandler(_uri interface{}, fn func(c *Conn, uri string
 // then to connection will send data from second argument.
 func (w *Wango) RegisterSubHandler(uri string, fnSub func(c *Conn, uri string, args ...interface{}) (interface{}, error), fnUnsub func(c *Conn, uri string, args ...interface{}) (interface{}, error), fnPub func(uri string, event interface{}, extra interface{}) (bool, interface{})) error {
 	if _, ok := w.subHandlers[uri]; ok {
-		return errors.Wrap(ErrHandlerAlreadyRegistered, "when registering subHandler")
+		return errors.Wrap(errHandlerAlreadyRegistered, "when registering subHandler")
 	}
 
 	w.subHandlers[uri] = subHandler{
@@ -256,7 +256,7 @@ func (w *Wango) SendEvent(uri string, event interface{}, connIDs []string) {
 	for _, id := range connIDs {
 		c, err := w.getConnection(id)
 		if err != nil {
-			return
+			continue
 		}
 		c.send(msg)
 	}
@@ -506,6 +506,15 @@ func (w *Wango) handleSubscribed(c *Conn, msg []interface{}) {
 	for _, l := range listeners {
 		l.ch <- nil
 	}
+	if len(subMessage.Args) != 0 {
+		c.eventHandlersLocker.RLock()
+		handler, ok := c.eventHandlers[subMessage.URI]
+		c.eventHandlersLocker.RUnlock()
+		if !ok {
+			return
+		}
+		handler(subMessage.URI, subMessage.Args[0])
+	}
 }
 
 func (w *Wango) handleSubscribeError(c *Conn, msg []interface{}) {
@@ -591,7 +600,7 @@ func (w *Wango) handleRPCCall(c *Conn, msg []interface{}) {
 		return
 	}
 
-	response, _ := createMessage(msgCallError, rpcMessage.ID, createError(ErrRPCNotRegistered))
+	response, _ := createMessage(msgCallError, rpcMessage.ID, createError(errRPCNotRegistered))
 	c.send(response)
 }
 
@@ -625,7 +634,7 @@ func (w *Wango) handleSubscribe(c *Conn, msg []interface{}) {
 			return
 		}
 	}
-	response, _ := createMessage(msgSubscribeError, _uri, createError(ErrSubURINotRegistered))
+	response, _ := createMessage(msgSubscribeError, _uri, createError(errSubURINotRegistered))
 	go c.send(response)
 }
 
@@ -652,12 +661,12 @@ func (w *Wango) handleUnSubscribe(c *Conn, msg []interface{}) {
 				}
 				return
 			}
-			response, _ := createMessage(msgUnsubscribeError, _uri, createError(ErrNotSubscribes))
+			response, _ := createMessage(msgUnsubscribeError, _uri, createError(errNotSubscribes))
 			go c.send(response)
 			return
 		}
 	}
-	response, _ := createMessage(msgUnsubscribeError, _uri, createError(ErrSubURINotRegistered))
+	response, _ := createMessage(msgUnsubscribeError, _uri, createError(errSubURINotRegistered))
 	go c.send(response)
 }
 
@@ -687,7 +696,7 @@ func (w *Wango) addConnection(ws *websocket.Conn, extra interface{}) *Conn {
 	cn.extra = extra
 	cn.sendChan = make(chan []byte, sendChanBufferSize)
 	cn.eventHandlers = map[string]EventHandler{}
-	cn.callResults = map[string]chan *callResult{}
+	cn.callResults = map[interface{}]chan *callResult{}
 	cn.subRequests = subRequestsListeners{listeners: map[string][]subRequestsListener{}, locker: new(sync.Mutex)}
 	cn.unsubRequests = subRequestsListeners{listeners: map[string][]subRequestsListener{}, locker: new(sync.Mutex)}
 	cn.breakChan = make(chan struct{})

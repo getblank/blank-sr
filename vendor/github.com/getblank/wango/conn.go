@@ -17,7 +17,7 @@ type Conn struct {
 	breakChan           chan struct{}
 	subRequests         subRequestsListeners
 	unsubRequests       subRequestsListeners
-	callResults         map[string]chan *callResult
+	callResults         map[interface{}]chan *callResult
 	callResultsLocker   *sync.Mutex
 	eventHandlers       map[string]EventHandler
 	eventHandlersLocker *sync.RWMutex
@@ -61,6 +61,16 @@ func (c *Conn) ID() string {
 // RemoteAddr returns remote address
 func (c *Conn) RemoteAddr() string {
 	return c.connection.Request().RemoteAddr
+}
+
+// SendEvent sends event for provided uri directly to connection
+func (c *Conn) SendEvent(uri string, event interface{}) error {
+	msg, _ := createMessage(msgEvent, uri, event)
+	if !c.Connected() {
+		return errConnectionClosed
+	}
+	c.send(msg)
+	return nil
 }
 
 // SetExtra stores extra data in connection
