@@ -36,6 +36,18 @@ func Init(confFile string) {
 func ReloadConfig(conf map[string]Store) {
 	log.Info("Starting to reload config")
 
+	encoded, err := json.Marshal(conf)
+	if err != nil {
+		log.Errorf("Can't marshal config when reloding: %s", err.Error())
+	} else {
+		err = ioutil.WriteFile("config.json", encoded, 0755)
+		if err != nil {
+			log.Errorf("Can't save new config.json: %s", err.Error())
+		} else {
+			log.Info("New config.json file saved")
+		}
+	}
+
 	loadCommonSettings(conf)
 	loadServerSettings(conf)
 	validateConfig(conf)
