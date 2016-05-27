@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -30,7 +29,7 @@ var (
 
 func Init(confFile string) {
 	makeDefaultSettings()
-	mustReadConfig(confFile)
+	readConfig(confFile)
 }
 
 func ReloadConfig(conf map[string]Store) {
@@ -63,19 +62,12 @@ func updated(config map[string]Store) {
 	}
 }
 
-func mustReadConfig(confFile string) {
+func readConfig(confFile string) {
 	log.Info("Try to load config from: " + confFile)
 	file, err := ioutil.ReadFile(confFile)
 	if err != nil {
-		if confFile == "config.json" {
-			log.Info("Can't find 'config.json'. Will work with saved config.")
-			time.Sleep(time.Microsecond * 200)
-			return
-		} else {
-			log.Error(fmt.Sprintf("Config file read error: %v", err.Error()))
-			time.Sleep(time.Microsecond * 200)
-			os.Exit(1)
-		}
+		log.Errorf("Config file read error: %v", err.Error())
+		return
 	}
 
 	var conf map[string]Store
