@@ -1,6 +1,10 @@
 package registry
 
-import "sync"
+import (
+	"sync"
+
+	log "github.com/Sirupsen/logrus"
+)
 
 var (
 	services       = map[string][]Service{}
@@ -15,6 +19,7 @@ const (
 	TypePBX       = "pbx"
 	TypeTaskQueue = "taskQueue"
 	TypeCron      = "cron"
+	TypeFileStore = "fileStore"
 
 	PortWorker    = "1234"
 	PortPBX       = "1234"
@@ -86,6 +91,7 @@ func Register(typ, remoteAddr, port, connID, commonJS string) (interface{}, erro
 	for _, h := range createHandlers {
 		h()
 	}
+	log.Infof(`Registered "%s" service at address: "%s" and port: "%s"`, typ, remoteAddr, port)
 
 	return nil, nil
 }

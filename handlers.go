@@ -38,9 +38,15 @@ func registerHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 	if !ok || typ == "" {
 		return nil, errors.New("Invalid register message. No type")
 	}
-	remoteAddr := "ws://" + strings.Split(c.RemoteAddr(), ":")[0]
-	if remoteAddr == "ws://[" {
-		remoteAddr = "ws://127.0.0.1"
+	remoteAddr := strings.Split(c.RemoteAddr(), ":")[0]
+	if remoteAddr == "[" {
+		remoteAddr = "127.0.0.1"
+	}
+	switch typ {
+	case registry.TypeFileStore:
+		remoteAddr = "http://" + remoteAddr
+	default:
+		remoteAddr = "ws://" + remoteAddr
 	}
 	var port string
 	if _port, ok := mes["port"]; ok {
@@ -88,7 +94,7 @@ func newSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interfac
 	return sessionstore.New(userId).APIKey, nil
 }
 
-func checkSessionByApiKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+func checkSessionByAPIKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
 	if args == nil {
 		return nil, ErrInvalidArguments
 	}
