@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -191,7 +190,6 @@ func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 
-	// fmt.Println(t)
 	rw.Write([]byte("OK"))
 	config.ReloadConfig(data)
 }
@@ -212,7 +210,6 @@ func libHandler(rw http.ResponseWriter, request *http.Request) {
 }
 
 func getLibHandler(rw http.ResponseWriter, request *http.Request) {
-	filePath := strings.TrimPrefix(request.RequestURI, "/lib")
 	fsLocker.RLock()
 	if libFS == nil {
 		rw.WriteHeader(http.StatusNotFound)
@@ -220,7 +217,7 @@ func getLibHandler(rw http.ResponseWriter, request *http.Request) {
 		fsLocker.RUnlock()
 		return
 	}
-	b, err := vfs.ReadFile(libFS, filePath)
+	b, err := vfs.ReadFile(libFS, request.RequestURI)
 	fsLocker.RUnlock()
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
@@ -232,13 +229,14 @@ func getLibHandler(rw http.ResponseWriter, request *http.Request) {
 }
 
 func postLibHandler(fileName string, rw http.ResponseWriter, request *http.Request) error {
-	file, _, err := request.FormFile("file")
+	buf := bytes.NewBuffer(nil)
+	_, err := buf.ReadFrom(request.Body)
 	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte("no file in form"))
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("can't read file"))
 		return errLibCreateError
 	}
-	defer file.Close()
+
 	out, err := os.Create(fileName)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -246,13 +244,13 @@ func postLibHandler(fileName string, rw http.ResponseWriter, request *http.Reque
 		return errLibCreateError
 	}
 	defer out.Close()
-	written, err := io.Copy(out, file)
+	written, err := io.Copy(out, buf)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		rw.Write([]byte("can't write file"))
 		return errLibCreateError
 	}
-	log.Infof("new lib.zip file created %v bytes", written)
+	log.Infof("new %s file created. Written %v bytes", fileName, written)
 	return nil
 }
 
@@ -273,7 +271,6 @@ func assetsHandler(rw http.ResponseWriter, request *http.Request) {
 }
 
 func getAssetsHandler(rw http.ResponseWriter, request *http.Request) {
-	filePath := strings.TrimPrefix(request.RequestURI, "/assets")
 	fsLocker.RLock()
 	if assetsFS == nil {
 		rw.WriteHeader(http.StatusNotFound)
@@ -282,7 +279,7 @@ func getAssetsHandler(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	b, err := vfs.ReadFile(assetsFS, filePath)
+	b, err := vfs.ReadFile(assetsFS, request.RequestURI)
 	fsLocker.RUnlock()
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
