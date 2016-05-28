@@ -136,6 +136,24 @@
 			"revisionTime": "2015-10-26T03:18:18Z"
 		},
 		{
+			"checksumSHA1": "OEfOUXOQRf0s+edWW9ZLzWfZn5A=",
+			"path": "golang.org/x/tools/godoc/vfs",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
+			"revisionTime": "2016-05-12T04:39:32Z"
+		},
+		{
+			"checksumSHA1": "DMJmqILrly4y849hJKVBw9zQXE0=",
+			"path": "golang.org/x/tools/godoc/vfs/mapfs",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
+			"revisionTime": "2016-05-12T04:39:32Z"
+		},
+		{
+			"checksumSHA1": "waygC1UupavTEZxih+sWDYA2cRo=",
+			"path": "golang.org/x/tools/godoc/vfs/zipfs",
+			"revision": "ba484b064f228462fd5d8e41dcbbf4004636bbfe",
+			"revisionTime": "2016-05-12T04:39:32Z"
+		},
+		{
 			"checksumSHA1": "2+N0aw8S/oNwQ7dK3LnRyEZvQCo=",
 			"path": "gopkg.in/bluesuncorp/validator.v5",
 			"revision": "98121ac23ff3d764f525d18d8de944d150e3c0fe",

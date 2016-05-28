@@ -1,12 +1,21 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/json"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"strings"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
+	"golang.org/x/tools/godoc/vfs"
+	"golang.org/x/tools/godoc/vfs/zipfs"
 
 	"github.com/getblank/blank-sr/config"
 	"github.com/getblank/blank-sr/registry"
@@ -14,9 +23,18 @@ import (
 	"github.com/getblank/wango"
 )
 
+const (
+	libZip    = "lib.zip"
+	assetsZip = "assets.zip"
+)
+
 var (
 	ErrInvalidArguments = errors.New("Invalid arguments")
 	wamp                = wango.New()
+	libFS               vfs.FileSystem
+	assetsFS            vfs.FileSystem
+	fsLocker            sync.RWMutex
+	errLibCreateError   = errors.New("Error saving uploaded file")
 )
 
 func main() {
@@ -33,8 +51,12 @@ func main() {
 	s.Handler = func(ws *websocket.Conn) {
 		wamp.WampHandler(ws, nil)
 	}
-	http.Handle("/", s)
-	http.HandleFunc("/config", postConfigHandler)
+
+	mux := http.NewServeMux()
+	mux.Handle("/", s)
+	mux.HandleFunc("/config", postConfigHandler)
+	mux.HandleFunc("/lib/", libHandler)
+	mux.HandleFunc("/assets/", assetsHandler)
 
 	wamp.RegisterSubHandler("registry", registryHandler, nil, nil)
 	wamp.RegisterSubHandler("config", configHandler, nil, nil)
@@ -79,7 +101,10 @@ func main() {
 		wamp.Publish("config", c)
 	})
 
-	err := http.ListenAndServe(":1234", nil)
+	makeLibFS()
+	makeAssetsFS()
+
+	err := http.ListenAndServe(":1234", mux)
 	if err != nil {
 		panic("ListenAndServe: " + err.Error())
 	}
@@ -100,6 +125,44 @@ func publishSession(s *sessionstore.Session) {
 
 func publishDeleteSession(s *sessionstore.Session) {
 	wamp.Publish("sessions", map[string]interface{}{"apiKey": s.APIKey, "deleted": true})
+}
+
+func makeLibFS() {
+	lib, err := ioutil.ReadFile(libZip)
+	if err != nil {
+		log.WithError(err).Warn("No lib.zip file found")
+		return
+	}
+	zr, err := zip.NewReader(bytes.NewReader(lib), int64(len(lib)))
+	if err != nil {
+		log.WithError(err).Error("Can't make zip.Reader from lib.zip file ")
+		return
+	}
+	rc := &zip.ReadCloser{
+		Reader: *zr,
+	}
+	fsLocker.Lock()
+	libFS = zipfs.New(rc, "lib")
+	fsLocker.Unlock()
+}
+
+func makeAssetsFS() {
+	lib, err := ioutil.ReadFile(assetsZip)
+	if err != nil {
+		log.WithError(err).Warn("No assets.zip file found")
+		return
+	}
+	zr, err := zip.NewReader(bytes.NewReader(lib), int64(len(lib)))
+	if err != nil {
+		log.WithError(err).Error("Can't make zip.Reader from assets.zip file ")
+		return
+	}
+	rc := &zip.ReadCloser{
+		Reader: *zr,
+	}
+	fsLocker.Lock()
+	assetsFS = zipfs.New(rc, "lib")
+	fsLocker.Unlock()
 }
 
 func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
@@ -131,4 +194,101 @@ func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
 	// fmt.Println(t)
 	rw.Write([]byte("OK"))
 	config.ReloadConfig(data)
+}
+
+func libHandler(rw http.ResponseWriter, request *http.Request) {
+	switch request.Method {
+	case http.MethodPost:
+		err := postLibHandler(libZip, rw, request)
+		if err == nil {
+			makeLibFS()
+		}
+	case http.MethodGet:
+		getLibHandler(rw, request)
+	default:
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("Only GET and POST request is allowed"))
+	}
+}
+
+func getLibHandler(rw http.ResponseWriter, request *http.Request) {
+	filePath := strings.TrimPrefix(request.RequestURI, "/lib")
+	fsLocker.RLock()
+	if libFS == nil {
+		rw.WriteHeader(http.StatusNotFound)
+		rw.Write([]byte("file not found"))
+		fsLocker.RUnlock()
+		return
+	}
+	b, err := vfs.ReadFile(libFS, filePath)
+	fsLocker.RUnlock()
+	if err != nil {
+		rw.WriteHeader(http.StatusNotFound)
+		rw.Write([]byte("file not found"))
+		return
+	}
+	rw.WriteHeader(http.StatusOK)
+	rw.Write(b)
+}
+
+func postLibHandler(fileName string, rw http.ResponseWriter, request *http.Request) error {
+	file, _, err := request.FormFile("file")
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("no file in form"))
+		return errLibCreateError
+	}
+	defer file.Close()
+	out, err := os.Create(fileName)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("can't create file"))
+		return errLibCreateError
+	}
+	defer out.Close()
+	written, err := io.Copy(out, file)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("can't write file"))
+		return errLibCreateError
+	}
+	log.Infof("new lib.zip file created %v bytes", written)
+	return nil
+}
+
+func assetsHandler(rw http.ResponseWriter, request *http.Request) {
+	switch request.Method {
+	case http.MethodPost:
+		err := postLibHandler(assetsZip, rw, request)
+		if err == nil {
+			makeAssetsFS()
+		}
+
+	case http.MethodGet:
+		getAssetsHandler(rw, request)
+	default:
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("Only GET and POST request is allowed"))
+	}
+}
+
+func getAssetsHandler(rw http.ResponseWriter, request *http.Request) {
+	filePath := strings.TrimPrefix(request.RequestURI, "/assets")
+	fsLocker.RLock()
+	if assetsFS == nil {
+		rw.WriteHeader(http.StatusNotFound)
+		rw.Write([]byte("file not found"))
+		fsLocker.RUnlock()
+		return
+	}
+
+	b, err := vfs.ReadFile(assetsFS, filePath)
+	fsLocker.RUnlock()
+	if err != nil {
+		rw.WriteHeader(http.StatusNotFound)
+		rw.Write([]byte("file not found"))
+		return
+	}
+	rw.WriteHeader(http.StatusOK)
+	rw.Write(b)
 }

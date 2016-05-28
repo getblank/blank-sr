@@ -1,12 +1,12 @@
 language: go
 os:
-- linux
-- osx
+  - linux
+  - osx
 go:
-- 1.6.2
+  - 1.6.2
 script:
-- go test -v github.com/getblank/blank-sr/sessionstore
-- go test -v github.com/getblank/blank-sr/registry
+  - go test -v github.com/getblank/blank-sr/sessionstore
+  - go test -v github.com/getblank/blank-sr/registry
 after_success:
-- curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-$TRAVIS_OS_NAME/blank-sr
-- curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$TRAVIS_OS_NAME/blank-sr
+  - curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-$TRAVIS_OS_NAME/blank-sr
+  - curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$TRAVIS_OS_NAME/blank-sr
