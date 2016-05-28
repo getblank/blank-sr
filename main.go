@@ -66,7 +66,7 @@ func main() {
 	wamp.RegisterRPCHandler("publish", publishHandler)
 
 	wamp.RegisterRPCHandler("session.new", newSessionHandler)
-	wamp.RegisterRPCHandler("session.check", checkSessionByApiKeyHandler)
+	wamp.RegisterRPCHandler("session.check", checkSessionByAPIKeyHandler)
 	wamp.RegisterRPCHandler("session.delete", deleteSessionHandler)
 	wamp.RegisterRPCHandler("session.subscribed", sessionSubscribedHandler)
 	wamp.RegisterRPCHandler("session.unsubscribed", sessionUnsubscribedHandler)
@@ -283,7 +283,7 @@ func getAssetsHandler(rw http.ResponseWriter, request *http.Request) {
 	fsLocker.RUnlock()
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
-		rw.Write([]byte("file not found"))
+		rw.Write([]byte(err.Error()))
 		return
 	}
 	rw.WriteHeader(http.StatusOK)
