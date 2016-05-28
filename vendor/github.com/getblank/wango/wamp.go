@@ -470,10 +470,13 @@ func (w *Wango) handleCallError(c *Conn, msg []interface{}) {
 	res := new(callResult)
 	res.err = errors.New("RPC error#")
 	if len(callResultMessage.Args) > 0 {
-		if _err := callResultMessage.Args[0].(string); ok {
-			err = errors.New("RPC error#" + _err)
+		var _err Error
+		_err, err = parseErrMsg(callResultMessage.Args[0])
+		if err == nil {
+			err = errors.New("RPC error#" + _err.Desc)
 		}
 	}
+
 	resChan <- &callResult{nil, err}
 }
 
@@ -735,6 +738,8 @@ func (w *Wango) deleteConnection(c *Conn) {
 	w.connectionsLocker.Lock()
 	delete(w.connections, c.id)
 	w.connectionsLocker.Unlock()
+
+	c.subRequests.closeRequests()
 
 	w.subscribersLocker.Lock()
 	for _, subscribers := range w.subscribers {
