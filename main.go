@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -23,8 +25,8 @@ import (
 )
 
 const (
-	libZip    = "lib.zip"
-	assetsZip = "assets.zip"
+	libZipFileName    = "lib.zip"
+	assetsZipFileName = "assets.zip"
 )
 
 var (
@@ -32,6 +34,7 @@ var (
 	wamp                = wango.New()
 	libFS               vfs.FileSystem
 	assetsFS            vfs.FileSystem
+	libZip              []byte
 	fsLocker            sync.RWMutex
 	errLibCreateError   = errors.New("Error saving uploaded file")
 )
@@ -127,7 +130,7 @@ func publishDeleteSession(s *sessionstore.Session) {
 }
 
 func makeLibFS() {
-	lib, err := ioutil.ReadFile(libZip)
+	lib, err := ioutil.ReadFile(libZipFileName)
 	if err != nil {
 		log.WithError(err).Warn("No lib.zip file found")
 		return
@@ -142,11 +145,12 @@ func makeLibFS() {
 	}
 	fsLocker.Lock()
 	libFS = zipfs.New(rc, "lib")
+	libZip = lib
 	fsLocker.Unlock()
 }
 
 func makeAssetsFS() {
-	lib, err := ioutil.ReadFile(assetsZip)
+	lib, err := ioutil.ReadFile(assetsZipFileName)
 	if err != nil {
 		log.WithError(err).Warn("No assets.zip file found")
 		return
@@ -197,7 +201,7 @@ func postConfigHandler(rw http.ResponseWriter, request *http.Request) {
 func libHandler(rw http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case http.MethodPost:
-		err := postLibHandler(libZip, rw, request)
+		err := postLibHandler(libZipFileName, rw, request)
 		if err == nil {
 			makeLibFS()
 		}
@@ -217,13 +221,22 @@ func getLibHandler(rw http.ResponseWriter, request *http.Request) {
 		fsLocker.RUnlock()
 		return
 	}
-	b, err := vfs.ReadFile(libFS, request.RequestURI)
+	var b []byte
+	var err error
+	if request.RequestURI == "/lib/" {
+		b = append([]byte{}, libZip...)
+		rw.Header().Set("Content-Disposition", `attachment; filename="lib.zip"`)
+	} else {
+		b, err = vfs.ReadFile(libFS, strings.TrimPrefix(request.RequestURI, "/lib"))
+		rw.Header().Set("Content-Disposition", `attachment; filename="`+filepath.Base(request.RequestURI)+`"`)
+	}
 	fsLocker.RUnlock()
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
 		rw.Write([]byte("file not found"))
 		return
 	}
+
 	rw.WriteHeader(http.StatusOK)
 	rw.Write(b)
 }
@@ -257,7 +270,7 @@ func postLibHandler(fileName string, rw http.ResponseWriter, request *http.Reque
 func assetsHandler(rw http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case http.MethodPost:
-		err := postLibHandler(assetsZip, rw, request)
+		err := postLibHandler(assetsZipFileName, rw, request)
 		if err == nil {
 			makeAssetsFS()
 		}
@@ -278,8 +291,7 @@ func getAssetsHandler(rw http.ResponseWriter, request *http.Request) {
 		fsLocker.RUnlock()
 		return
 	}
-
-	b, err := vfs.ReadFile(assetsFS, request.RequestURI)
+	b, err := vfs.ReadFile(assetsFS, strings.TrimPrefix(request.RequestURI, "/assets"))
 	fsLocker.RUnlock()
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
