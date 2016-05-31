@@ -6,6 +6,16 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+func Get() map[string]Store {
+	mutex.RLock()
+	defer mutex.RUnlock()
+	res := map[string]Store{}
+	for k, v := range config {
+		res[k] = v
+	}
+	return res
+}
+
 func GetStoreObject(store string) (Store, bool) {
 	mutex.RLock()
 	defer mutex.RUnlock()

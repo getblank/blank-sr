@@ -264,6 +264,7 @@ func postLibHandler(fileName string, rw http.ResponseWriter, request *http.Reque
 		return errLibCreateError
 	}
 	log.Infof("new %s file created. Written %v bytes", fileName, written)
+	wamp.Publish("config", config.Get())
 	return nil
 }
 
