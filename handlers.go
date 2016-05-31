@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/getblank/blank-sr/config"
+	"github.com/getblank/blank-sr/localstorage"
 	"github.com/getblank/blank-sr/mutex"
 	"github.com/getblank/blank-sr/registry"
 	"github.com/getblank/blank-sr/sessionstore"
@@ -249,5 +250,50 @@ func mutexUnlockHandler(c *wango.Conn, uri string, args ...interface{}) (interfa
 		return nil, ErrInvalidArguments
 	}
 	mutex.Unlock(c.ID(), id)
+	return nil, nil
+}
+
+func localStorageGetItemHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, ErrInvalidArguments
+	}
+	id, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+
+	return localstorage.GetItem(id), nil
+}
+
+func localStorageSetItemHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if len(args) < 2 {
+		return nil, ErrInvalidArguments
+	}
+	id, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+	item, ok := args[1].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+
+	return localstorage.SetItem(id, item), nil
+}
+
+func localStorageRemoveItemHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, ErrInvalidArguments
+	}
+	id, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+	localstorage.RemoveItem(id)
+	return nil, nil
+}
+
+func localStorageClearHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	localstorage.Clear()
 	return nil, nil
 }
