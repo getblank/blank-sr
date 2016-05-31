@@ -19,6 +19,7 @@ import (
 	"golang.org/x/tools/godoc/vfs/zipfs"
 
 	"github.com/getblank/blank-sr/config"
+	"github.com/getblank/blank-sr/mutex"
 	"github.com/getblank/blank-sr/registry"
 	"github.com/getblank/blank-sr/sessionstore"
 	"github.com/getblank/wango"
@@ -75,6 +76,9 @@ func main() {
 	wamp.RegisterRPCHandler("session.unsubscribed", sessionUnsubscribedHandler)
 	wamp.RegisterRPCHandler("session.delete-connection", sessionDeleteConnectionHandler)
 
+	wamp.RegisterRPCHandler("mutex.lock", mutexLockHandler)
+	wamp.RegisterRPCHandler("mutex.unlock", mutexUnlockHandler)
+
 	registry.OnCreate(func() {
 		services := registry.GetAll()
 		wamp.Publish("registry", services)
@@ -115,6 +119,7 @@ func main() {
 func onSessionClose(c *wango.Conn) {
 	println("Disconnected", c.ID())
 	registry.Unregister(c.ID())
+	mutex.UnlockForOwner(c.ID())
 }
 
 func onSessionOpen(c *wango.Conn) {

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/getblank/blank-sr/config"
+	"github.com/getblank/blank-sr/mutex"
 	"github.com/getblank/blank-sr/registry"
 	"github.com/getblank/blank-sr/sessionstore"
 	"github.com/getblank/wango"
@@ -225,4 +226,28 @@ func sessionDeleteConnectionHandler(c *wango.Conn, uri string, args ...interface
 func subSessionsHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
 	all := sessionstore.GetAll()
 	return map[string]interface{}{"event": "init", "data": all}, nil
+}
+
+func mutexLockHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, ErrInvalidArguments
+	}
+	id, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+	mutex.Lock(c.ID(), id)
+	return nil, nil
+}
+
+func mutexUnlockHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, ErrInvalidArguments
+	}
+	id, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+	mutex.Unlock(c.ID(), id)
+	return nil, nil
 }
