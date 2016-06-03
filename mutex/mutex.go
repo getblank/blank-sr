@@ -1,8 +1,6 @@
 package mutex
 
-import (
-	"sync"
-)
+import "sync"
 
 var (
 	lockers         = map[string]*sync.Mutex{}
@@ -43,7 +41,8 @@ func Unlock(owner, id string) {
 		delete(lockers, id)
 		delete(lockersCounters, id)
 	}
-	for i, _id := range owners2Lockers[owner] {
+	for i := len(owners2Lockers[owner]) - 1; i >= 0; i-- {
+		_id := owners2Lockers[owner][i]
 		if id == _id {
 			owners2Lockers[owner] = append(owners2Lockers[owner][:i], owners2Lockers[owner][i+1:]...)
 		}
