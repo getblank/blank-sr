@@ -3,18 +3,23 @@ package mutex
 import "sync"
 
 var (
-	lockers         = map[string]*sync.Mutex{}
+	lockers         = map[string]*locker{}
 	owners2Lockers  = map[string][]string{}
 	lockersCounters = map[string]int{}
 	mainLocker      sync.Mutex
 )
+
+type locker struct {
+	ch chan struct{}
+}
 
 // Lock create new locker for provided id if it is not exists or takes existing, then locks it
 func Lock(owner, id string) {
 	mainLocker.Lock()
 	m, ok := lockers[id]
 	if !ok {
-		m = new(sync.Mutex)
+		m = new(locker)
+		m.ch = make(chan struct{}, 1)
 		lockers[id] = m
 	}
 	if _, ok := owners2Lockers[owner]; !ok {
@@ -24,7 +29,7 @@ func Lock(owner, id string) {
 	lockersCounters[id]++
 	mainLocker.Unlock()
 
-	m.Lock()
+	m.lock()
 }
 
 // Unlock takes existing locker from map and unlocks it
@@ -35,7 +40,7 @@ func Unlock(owner, id string) {
 	if !ok {
 		return
 	}
-	m.Unlock()
+	m.unlock()
 	lockersCounters[id]--
 	if lockersCounters[id] == 0 {
 		delete(lockers, id)
@@ -58,9 +63,20 @@ func UnlockForOwner(owner string) {
 	defer mainLocker.Unlock()
 	if locks, ok := owners2Lockers[owner]; ok {
 		for _, id := range locks {
-			lockers[id].Unlock()
+			lockers[id].unlock()
 			lockersCounters[id]--
 		}
 		delete(owners2Lockers, owner)
 	}
+}
+
+func (l *locker) lock() {
+	l.ch <- struct{}{}
+}
+
+func (l *locker) unlock() {
+	if len(l.ch) == 0 {
+		panic("attempt to unlock no locked locker")
+	}
+	<-l.ch
 }
