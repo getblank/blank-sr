@@ -79,6 +79,11 @@ func main() {
 	wamp.RegisterRPCHandler("mutex.lock", mutexLockHandler)
 	wamp.RegisterRPCHandler("mutex.unlock", mutexUnlockHandler)
 
+	wamp.RegisterRPCHandler("localStorage.getItem", localStorageGetItemHandler)
+	wamp.RegisterRPCHandler("localStorage.setItem", localStorageSetItemHandler)
+	wamp.RegisterRPCHandler("localStorage.removeItem", localStorageRemoveItemHandler)
+	wamp.RegisterRPCHandler("localStorage.clear", localStorageClearHandler)
+
 	registry.OnCreate(func() {
 		services := registry.GetAll()
 		wamp.Publish("registry", services)
