@@ -7,8 +7,8 @@ import (
 )
 
 func Get() map[string]Store {
-	mutex.RLock()
-	defer mutex.RUnlock()
+	confLocker.RLock()
+	defer confLocker.RUnlock()
 	res := map[string]Store{}
 	for k, v := range config {
 		res[k] = v
@@ -17,8 +17,8 @@ func Get() map[string]Store {
 }
 
 func GetStoreObject(store string) (Store, bool) {
-	mutex.RLock()
-	defer mutex.RUnlock()
+	confLocker.RLock()
+	defer confLocker.RUnlock()
 	o, ok := config[store]
 	return o, ok
 }

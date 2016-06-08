@@ -121,8 +121,8 @@ var (
 
 	concurrentChannels = map[string]chan struct{}{}
 
-	mutex  = &sync.RWMutex{}
-	config = map[string]Store{}
+	confLocker = &sync.RWMutex{}
+	config     = map[string]Store{}
 
 	HttpApiEnabledStores = []Store{}
 	DB                   = bdb.DB{}

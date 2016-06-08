@@ -126,8 +126,8 @@ func loadServerSettings(conf map[string]Store) {
 }
 
 func validateConfig(conf map[string]Store) {
-	mutex.Lock()
-	defer mutex.Unlock()
+	confLocker.Lock()
+	defer confLocker.Unlock()
 	_conf := map[string]Store{}
 	var err error
 
@@ -225,6 +225,7 @@ func validateConfig(conf map[string]Store) {
 
 	// Place to save conf in DB
 	DB.DeleteBucket(bucket)
+	config = map[string]Store{}
 ConfLoop:
 	for storeName := range _conf {
 		store := _conf[storeName]
