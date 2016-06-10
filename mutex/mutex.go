@@ -1,6 +1,10 @@
 package mutex
 
-import "sync"
+import (
+	"sync"
+
+	log "github.com/Sirupsen/logrus"
+)
 
 var (
 	lockers         = map[string]*locker{}
@@ -76,7 +80,7 @@ func (l *locker) lock() {
 
 func (l *locker) unlock() {
 	if len(l.ch) == 0 {
-		panic("attempt to unlock no locked locker")
+		log.Warn("attempt to unlock no locked locker")
 	}
 	<-l.ch
 }
