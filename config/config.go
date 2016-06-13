@@ -238,25 +238,25 @@ type Prop struct {
 	DisableRefSync     bool            `json:"disableRefSync,omitempty"`              // Флаг, запрещающий обновление соответствующего ref поля в противоположной сторе
 	TableLink          bool            `json:"tableLink,omitempty" ws:"yes"`          // Флаг обозначающий, что эта пропертя в таблице будет ссылкой
 	Actions            interface{}     `json:"actions,omitempty" ws:"yes"`            // Action identifier or array of identifiers
-	WidgetId           string          `json:"widgetId,omitempty" ws:"yes"`           // Widget identifier
+	WidgetID           string          `json:"widgetId,omitempty" ws:"yes"`           // Widget identifier
 	Utc                bool            `json:"utc,omitempty" ws:"yes"`                // Работа с датами в utc - игнорирует локальное время. Только для типа date
 	Format             string          `json:"format,omitempty" ws:"yes"`             // Формат отображения. Только для типа date
 }
 
 type Filter struct {
-	Label       string                 `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
-	Display     string                 `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
-	Placeholder string                 `json:"placeholder,omitempty" ws:"yes"` // Применимо для display:textInput
-	Conditions  []Condition            `json:"conditions,omitempty" ws:"yes"`  // Свойства, для которых будет применен фильтр
-	SearchBy    []string               `json:"searchBy,omitempty"`             // display:searchBox Поля для поиска для элемента searchBox // TODO: сделать валидацию
-	Store       string                 `json:"store,omitempty"`                // display:searchBox Имя сторы
-	FilterBy    string                 `json:"filterBy,omitempty"`             // display:searchBox Имя сторы для поля типа ref
-	Options     []Value                `json:"options,omitempty"`              // display:select Перечень для селектов и прочего  // TODO: валидация
-	Mask        string                 `json:"mask,omitempty" ws:"yes"`        // display:masked Применимо только для строк
-	Multi       bool                   `json:"multi" ws:"yes"`                 // display:searchBox Возможность выбора нескольких элементов
-	FormOrder   int                    `json:"formOrder,omitempty"`            // Порядок отображения на форме
-	Style       bdb.M                  `json:"style,omitempty" ws:"yes"`       // CSS
-	Query       map[string]interface{} `json:"query,omitempty"`                // Запрос для монги
+	Label       string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
+	Display     string      `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
+	Placeholder string      `json:"placeholder,omitempty" ws:"yes"` // Применимо для display:textInput
+	Conditions  []Condition `json:"conditions,omitempty" ws:"yes"`  // Свойства, для которых будет применен фильтр
+	SearchBy    []string    `json:"searchBy,omitempty"`             // display:searchBox Поля для поиска для элемента searchBox // TODO: сделать валидацию
+	Store       string      `json:"store,omitempty"`                // display:searchBox Имя сторы
+	FilterBy    string      `json:"filterBy,omitempty"`             // display:searchBox Имя сторы для поля типа ref
+	Options     []Value     `json:"options,omitempty"`              // display:select Перечень для селектов и прочего  // TODO: валидация
+	Mask        string      `json:"mask,omitempty" ws:"yes"`        // display:masked Применимо только для строк
+	Multi       bool        `json:"multi" ws:"yes"`                 // display:searchBox Возможность выбора нескольких элементов
+	FormOrder   int         `json:"formOrder,omitempty"`            // Порядок отображения на форме
+	Style       bdb.M       `json:"style,omitempty" ws:"yes"`       // CSS
+	Query       interface{} `json:"query,omitempty"`                // Запрос для монги
 }
 
 type HttpHook struct {
