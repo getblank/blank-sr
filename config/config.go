@@ -268,8 +268,9 @@ type HttpHook struct {
 }
 
 type Access struct {
-	Role        string `json:"role"`        // Роль, для которой определяется доступ
-	Permissions string `json:"permissions"` // Права на доступ ГРУППА|ВЛАДЕЛЕЦ (crud|rud в любом сочетании), если для группы стоит знак "-", то прав на стору нет вообще. Перед каждой буквой тоже может стоять "-".
+	Role        string      `json:"role"`        // Роль, для которой определяется доступ
+	Permissions string      `json:"permissions"` // Права на доступ ГРУППА|ВЛАДЕЛЕЦ (crud|rud в любом сочетании), если для группы стоит знак "-", то прав на стору нет вообще. Перед каждой буквой тоже может стоять "-".
+	Condition   interface{} `json:"condition"`
 }
 
 // Action – struct for JavaScript scenarios that can be performed by users
