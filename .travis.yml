@@ -1,7 +1,6 @@
 language: go
 os:
   - linux
-  - osx
 go:
   - 1.6.2
 script:
@@ -10,3 +9,6 @@ script:
 after_success:
   - curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-$TRAVIS_OS_NAME/blank-sr
   - curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$TRAVIS_OS_NAME/blank-sr
+  - GOOS=darwin GOARCH=amd64 go build
+  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-osx/blank-sr
+  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/osx/blank-sr
