@@ -75,6 +75,7 @@ func main() {
 	wamp.RegisterRPCHandler("session.subscribed", sessionSubscribedHandler)
 	wamp.RegisterRPCHandler("session.unsubscribed", sessionUnsubscribedHandler)
 	wamp.RegisterRPCHandler("session.delete-connection", sessionDeleteConnectionHandler)
+	wamp.RegisterRPCHandler("session.user-update", sessionUserUpdateHandler)
 
 	wamp.RegisterRPCHandler("mutex.lock", mutexLockHandler)
 	wamp.RegisterRPCHandler("mutex.unlock", mutexUnlockHandler)

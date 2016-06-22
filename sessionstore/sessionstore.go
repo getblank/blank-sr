@@ -23,12 +23,13 @@ var (
 
 // Session represents user session in Blank
 type Session struct {
-	APIKey            string    `json:"apiKey"`
-	UserID            string    `json:"userId"`
-	Connections       []*Conn   `json:"connections"`
-	LastRequest       time.Time `json:"lastRequest"`
-	connectionsLocker sync.RWMutex
-	ttl               time.Duration
+	APIKey      string      `json:"apiKey"`
+	UserID      string      `json:"userId"`
+	Connections []*Conn     `json:"connections"`
+	LastRequest time.Time   `json:"lastRequest"`
+	User        interface{} `json:"user"`
+	ttl         time.Duration
+	sync.RWMutex
 }
 
 // Conn represents WAMP connection in session
@@ -44,22 +45,24 @@ func Init() {
 }
 
 // New created new user session. Optional bool param for creating session with 1 minute ttl
-func New(userID string, tmp ...bool) *Session {
+func New(userID string, user interface{}, tmp ...bool) *Session {
 	s := &Session{
 		uuid.NewV4(),
 		userID,
 		[]*Conn{},
 		time.Now(),
-		sync.RWMutex{},
+		user,
 		0,
+		sync.RWMutex{},
 	}
 	if len(tmp) > 0 && tmp[0] {
 		s.ttl = time.Minute
 	}
+	s.LastRequest = time.Now()
 	locker.Lock()
 	defer locker.Unlock()
 	sessions[s.APIKey] = s
-	go sessionUpdated(s)
+	go sessionUpdated(s, true)
 	return s
 }
 
@@ -67,6 +70,8 @@ func New(userID string, tmp ...bool) *Session {
 func GetAll() []*Session {
 	result := make([]*Session, len(sessions))
 	var i int
+	locker.RLock()
+	defer locker.RUnlock()
 	for _, s := range sessions {
 		result[i] = s
 		i++
@@ -95,10 +100,32 @@ func Delete(APIKey string) {
 	delete(sessions, APIKey)
 }
 
+// Delete removes
+func DeleteAllForUser(userID string) {
+	locker.RLock()
+	defer locker.RUnlock()
+	for _, s := range sessions {
+		if s.UserID == userID {
+			s.Delete()
+		}
+	}
+}
+
+func UpdateUser(userID string, user interface{}) {
+	locker.RLock()
+	defer locker.RUnlock()
+	for _, s := range sessions {
+		if s.UserID == userID {
+			s.User = user
+			sessionUpdated(s, true)
+		}
+	}
+}
+
 // AddSubscription adds subscription URI with provided params to user session
 func (s *Session) AddSubscription(connID, uri string, extra interface{}) {
-	s.connectionsLocker.Lock()
-	defer s.connectionsLocker.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	var c *Conn
 	for _, _c := range s.Connections {
 		if _c.ConnID == connID {
@@ -117,8 +144,8 @@ func (s *Session) AddSubscription(connID, uri string, extra interface{}) {
 
 // DeleteConnection deletes WAMP connection from user session
 func (s *Session) DeleteConnection(connID string) {
-	s.connectionsLocker.Lock()
-	defer s.connectionsLocker.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	for i, _c := range s.Connections {
 		if _c.ConnID == connID {
 			s.Connections = append(s.Connections[:i], s.Connections[i+1:]...)
@@ -129,8 +156,8 @@ func (s *Session) DeleteConnection(connID string) {
 
 // DeleteSubscription deletes subscription from connection of user session
 func (s *Session) DeleteSubscription(connID, uri string) {
-	s.connectionsLocker.Lock()
-	defer s.connectionsLocker.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	var c *Conn
 	for _, _c := range s.Connections {
 		if _c.ConnID == connID {
@@ -157,10 +184,12 @@ func (s *Session) Delete() {
 }
 
 // Save saves session in store and update LastRequest prop in it.
-func (s *Session) Save() {
+func (s *Session) Save(noLastRequestUpdate bool) {
 	locker.Lock()
 	defer locker.Unlock()
-	s.LastRequest = time.Now()
+	if !noLastRequestUpdate {
+		s.LastRequest = time.Now()
+	}
 	err := db.Save(bucket, s.APIKey, s)
 	if err != nil {
 		log.Error("Can't save session", s, err.Error())
@@ -264,10 +293,18 @@ func ttlWatcher() {
 	}
 }
 
-func sessionUpdated(s *Session) {
-	s.Save()
+func sessionUpdated(s *Session, userUpdated ...bool) {
+	var b bool
+	if userUpdated != nil {
+		b = userUpdated[0]
+	}
+	s.Save(b)
 	for _, handler := range sessionUpdateHandlers {
-		go handler(s)
+		_s := *s
+		if !b {
+			_s.User = nil
+		}
+		go handler(&_s)
 	}
 }
 

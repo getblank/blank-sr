@@ -92,8 +92,12 @@ func newSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interfac
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
+	var user interface{}
+	if len(args) > 1 {
+		user = args[1]
+	}
 
-	return sessionstore.New(userId).APIKey, nil
+	return sessionstore.New(userId, user).APIKey, nil
 }
 
 func checkSessionByAPIKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
@@ -220,6 +224,25 @@ func sessionDeleteConnectionHandler(c *wango.Conn, uri string, args ...interface
 	}
 	s.DeleteConnection(connID)
 	publishSession(s)
+
+	return nil, nil
+}
+
+// args must have 1 or 2 members
+// userID string, user interface{} (optional)
+func sessionUserUpdateHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, ErrInvalidArguments
+	}
+	userID, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+	if len(args) == 1 {
+		sessionstore.DeleteAllForUser(userID)
+		return nil, nil
+	}
+	sessionstore.UpdateUser(userID, args[1])
 
 	return nil, nil
 }
