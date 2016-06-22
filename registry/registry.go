@@ -20,6 +20,7 @@ const (
 	TypeTaskQueue = "taskQueue"
 	TypeCron      = "cron"
 	TypeFileStore = "fileStore"
+	TypeQueue     = "queue"
 
 	PortWorker    = "1234"
 	PortPBX       = "1234"
