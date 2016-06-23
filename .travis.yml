@@ -7,8 +7,10 @@ script:
   - go test -v github.com/getblank/blank-sr/sessionstore
   - go test -v github.com/getblank/blank-sr/registry
 after_success:
-  - curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-$TRAVIS_OS_NAME/blank-sr
-  - curl --ftp-create-dirs --data-binary -k -T $HOME/gopath/bin/blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$TRAVIS_OS_NAME/blank-sr
-  - GOOS=darwin GOARCH=amd64 go build
+  - go build -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
+  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-linux/blank-sr
+  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/linux/blank-sr
+
+  - GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
   - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-osx/blank-sr
   - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/osx/blank-sr

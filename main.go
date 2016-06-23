@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"golang.org/x/net/websocket"
 	"golang.org/x/tools/godoc/vfs"
 	"golang.org/x/tools/godoc/vfs/zipfs"
@@ -31,6 +33,12 @@ const (
 )
 
 var (
+	buildTime string
+	gitHash   string
+	version   = "0.0.9"
+)
+
+var (
 	ErrInvalidArguments = errors.New("Invalid arguments")
 	wamp                = wango.New()
 	libFS               vfs.FileSystem
@@ -41,6 +49,39 @@ var (
 )
 
 func main() {
+	if os.Getenv("BLANK_DEBUG") != "" {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	var verFlag *bool
+	rootCmd := &cobra.Command{
+		Use:   "blank-sr",
+		Short: "Service registry for Blank platform",
+		Long:  "Service Registry/Discovery, Config server, Session store and Mutex service for Blank",
+		Run: func(cmd *cobra.Command, args []string) {
+			if *verFlag {
+				printVersion()
+				return
+			}
+			start()
+		},
+	}
+	verFlag = rootCmd.PersistentFlags().BoolP("version", "v", false, "Prints version and exit")
+
+	if err := rootCmd.Execute(); err != nil {
+		println(err.Error())
+		os.Exit(-1)
+	}
+
+}
+
+func printVersion() {
+	fmt.Printf("Build time:  		%s\n", buildTime)
+	fmt.Printf("Commit hash: 		%s\n", gitHash)
+	fmt.Printf("Version:     		%s\n", version)
+}
+
+func start() {
 	config.Init("./config.json")
 	sessionstore.Init()
 
