@@ -299,11 +299,21 @@ func sessionUpdated(s *Session, userUpdated ...bool) {
 		b = userUpdated[0]
 	}
 	s.Save(b)
-	for _, handler := range sessionUpdateHandlers {
-		_s := *s
-		if !b {
-			_s.User = nil
+	_s := *s
+	if !b {
+		_s.User = nil
+	}
+	// We need to make a copy of connections to prevent concurrent map read and map write when Marshaling to JSON
+	for i := range _s.Connections {
+		c := *_s.Connections[i]
+		subs := map[string]interface{}{}
+		for k, v := range c.Subscriptions {
+			subs[k] = v
 		}
+		c.Subscriptions = subs
+		_s.Connections[i] = &c
+	}
+	for _, handler := range sessionUpdateHandlers {
 		go handler(&_s)
 	}
 }
