@@ -186,6 +186,7 @@ type Prop struct {
 	Name               string          `json:"name"`                        // Название проперти
 	Label              string          `json:"label,omitempty" ws:"yes"`    // Вариации названий в браузере
 	Type               string          `json:"type"`                        // Допустимые варианты: int, float, bool, string, date, ref, virtual
+	OppositeProp       string          `json:"oppositeProp"`                // Для type = ref, соответствующая поле в противоположной сторе
 	FormTab            string          `json:"formTab" ws:"yes"`            // Определяет страницу на форме, в которой будет отрисовано поле
 	FormGroup          string          `json:"formGroup" ws:"yes"`          // Определяет группу на форме, в которой будет отрисовано поле
 	FormOrder          int             `json:"formOrder" ws:"yes"`          // Определяет порядок отрисовки на форме. Если поле в группе, определяет порядок отрисовки именно в этой группе.
@@ -197,8 +198,8 @@ type Prop struct {
 	Style              bdb.M           `json:"style,omitempty" ws:"yes"`    // Внезапно: пока не определим нужный набор свойств отображения, прокину как я CSS
 	ClassName          string          `json:"сlassName,omitempty"`         // CSS класс для контейнера на форме
 	LabelClassName     string          `json:"labelClassName,omitempty"`    // CSS класс для лейбла
-	Html               string          `json:"html,omitempty" ws:"yes"`     // Html for display=html
-	HtmlFile           string          `json:"htmlFile,omitempty" ws:"yes"` // Файл с шаблоном Html for display=html
+	HTML               string          `json:"html,omitempty" ws:"yes"`     // Html for display=html
+	HTMLFile           string          `json:"htmlFile,omitempty" ws:"yes"` // Файл с шаблоном Html for display=html
 	SearchBy           []string        `json:"searchBy,omitempty"`          // Поля для поиска для элемента searchBox // TODO: сделать валидацию
 	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`  // Шаблон выбранного элемента для searchBox
 	SortBy             string          `json:"sortBy,omitempty"`            // Поля для сортировки, если пропа virtual // TODO: сделать валидацию

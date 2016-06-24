@@ -365,8 +365,8 @@ func (m *Store) PrepareConfigForUser(u User) {
 		m.Access = nil
 	}
 	for k, v := range m.Props {
-		if v.Html != "" && !v.NoSanitize {
-			v.Html = san.Sanitize(v.Html)
+		if v.HTML != "" && !v.NoSanitize {
+			v.HTML = san.Sanitize(v.HTML)
 		}
 		if v.Tooltip != "" {
 			v.Tooltip = san.Sanitize(string(blackfriday.MarkdownCommon([]byte(v.Tooltip))))
@@ -390,8 +390,8 @@ func (m *Store) PrepareConfigForUser(u User) {
 		v.Access = nil
 		if v.Type == PropObject || v.Type == PropObjectList {
 			for key, val := range v.Props {
-				if val.Html != "" && !val.NoSanitize {
-					val.Html = san.Sanitize(val.Html)
+				if val.HTML != "" && !val.NoSanitize {
+					val.HTML = san.Sanitize(val.HTML)
 				}
 				if val.Tooltip != "" {
 					val.Tooltip = san.Sanitize(string(blackfriday.MarkdownCommon([]byte(val.Tooltip))))

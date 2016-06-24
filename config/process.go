@@ -748,6 +748,7 @@ func (p *Prop) clearObjectParams() {
 func (p *Prop) clearRefParams() {
 	p.Store = ""
 	p.PopulateIn = ""
+	p.OppositeProp = ""
 }
 
 func (p *Prop) clearStringParams() {
@@ -996,8 +997,8 @@ func mergeProps(from, to *Prop) {
 	if from.Display != "" {
 		to.Display = from.Display
 	}
-	if from.Html != "" {
-		to.Html = from.Html
+	if from.HTML != "" {
+		to.HTML = from.HTML
 	}
 	if from.DisplayWidth != 0 {
 		to.DisplayWidth = from.DisplayWidth
