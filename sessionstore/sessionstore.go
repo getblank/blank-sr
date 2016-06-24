@@ -62,7 +62,7 @@ func New(userID string, user interface{}, tmp ...bool) *Session {
 	locker.Lock()
 	defer locker.Unlock()
 	sessions[s.APIKey] = s
-	go sessionUpdated(s, true)
+	sessionUpdated(s, true)
 	return s
 }
 
@@ -185,8 +185,6 @@ func (s *Session) Delete() {
 
 // Save saves session in store and update LastRequest prop in it.
 func (s *Session) Save(noLastRequestUpdate bool) {
-	locker.Lock()
-	defer locker.Unlock()
 	if !noLastRequestUpdate {
 		s.LastRequest = time.Now()
 	}
@@ -230,7 +228,7 @@ func getByApiKey(APIKey string) (s *Session, err error) {
 		sessions[s.APIKey] = s
 		delete(sessions, APIKey)
 	}
-	go sessionUpdated(s)
+	sessionUpdated(s)
 	return s, err
 }
 
