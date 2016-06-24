@@ -190,6 +190,7 @@ func (s *Session) Save(noLastRequestUpdate bool) {
 	if !noLastRequestUpdate {
 		s.LastRequest = time.Now()
 	}
+	s = copySession(s)
 	err := db.Save(bucket, s.APIKey, s)
 	if err != nil {
 		log.Error("Can't save session", s, err.Error())
@@ -299,11 +300,24 @@ func sessionUpdated(s *Session, userUpdated ...bool) {
 		b = userUpdated[0]
 	}
 	s.Save(b)
-	_s := *s
+	_s := copySession(s)
 	if !b {
 		_s.User = nil
 	}
-	// We need to make a copy of connections to prevent concurrent map read and map write when Marshaling to JSON
+
+	for _, handler := range sessionUpdateHandlers {
+		go handler(_s)
+	}
+}
+
+func sessionDeleted(s *Session) {
+	for _, handler := range sessionDeleteHandlers {
+		go handler(s)
+	}
+}
+
+func copySession(s *Session) *Session {
+	_s := *s
 	for i := range _s.Connections {
 		c := *_s.Connections[i]
 		subs := map[string]interface{}{}
@@ -313,13 +327,5 @@ func sessionUpdated(s *Session, userUpdated ...bool) {
 		c.Subscriptions = subs
 		_s.Connections[i] = &c
 	}
-	for _, handler := range sessionUpdateHandlers {
-		go handler(&_s)
-	}
-}
-
-func sessionDeleted(s *Session) {
-	for _, handler := range sessionDeleteHandlers {
-		go handler(s)
-	}
+	return &_s
 }

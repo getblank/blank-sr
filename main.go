@@ -39,6 +39,7 @@ var (
 )
 
 var (
+	// ErrInvalidArguments is an exported error
 	ErrInvalidArguments = errors.New("Invalid arguments")
 	wamp                = wango.New()
 	libFS               vfs.FileSystem
