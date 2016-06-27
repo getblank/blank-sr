@@ -79,9 +79,9 @@ func GetAll() []*Session {
 	return result
 }
 
-// GetByApiKey returns point to Session or error if it is not exists.
-func GetByApiKey(APIKey string) (s *Session, err error) {
-	return getByApiKey(APIKey)
+// GetByAPIKey returns point to Session or error if it is not exists.
+func GetByAPIKey(APIKey string) (s *Session, err error) {
+	return getByAPIKey(APIKey)
 }
 
 // GetByUserID returns point to Session or error if it is not exists.
@@ -104,7 +104,7 @@ func Delete(APIKey string) {
 	}
 }
 
-// Delete removes
+// DeleteAllForUser removes all sessions for user from store
 func DeleteAllForUser(userID string) {
 	locker.RLock()
 	defer locker.RUnlock()
@@ -115,6 +115,7 @@ func DeleteAllForUser(userID string) {
 	}
 }
 
+// UpdateUser updates user info in store
 func UpdateUser(userID string, user interface{}) {
 	locker.RLock()
 	defer locker.RUnlock()
@@ -144,6 +145,7 @@ func (s *Session) AddSubscription(connID, uri string, extra interface{}) {
 		s.Connections = append(s.Connections, c)
 	}
 	c.Subscriptions[uri] = extra
+	sessionUpdated(s)
 }
 
 // DeleteConnection deletes WAMP connection from user session
@@ -156,6 +158,7 @@ func (s *Session) DeleteConnection(connID string) {
 			break
 		}
 	}
+	sessionUpdated(s)
 }
 
 // DeleteSubscription deletes subscription from connection of user session
@@ -173,6 +176,7 @@ func (s *Session) DeleteSubscription(connID, uri string) {
 		return
 	}
 	delete(c.Subscriptions, uri)
+	sessionUpdated(s)
 }
 
 // Delete removes Session from store
@@ -204,22 +208,24 @@ func (s *Session) GetUserID() string {
 	return s.UserID
 }
 
-// GetUserID returns apiKey of session
+// GetAPIKey returns apiKey of session
 func (s *Session) GetAPIKey() string {
 	return s.APIKey
 }
 
+// OnSessionUpdate registers callback that will called when session updated
 func OnSessionUpdate(handler func(*Session)) {
 	sessionUpdateHandlers = append(sessionUpdateHandlers, handler)
 	return
 }
 
+// OnSessionDelete registers callback that will called when session deleted
 func OnSessionDelete(handler func(*Session)) {
 	sessionDeleteHandlers = append(sessionDeleteHandlers, handler)
 	return
 }
 
-func getByApiKey(APIKey string) (s *Session, err error) {
+func getByAPIKey(APIKey string) (s *Session, err error) {
 	locker.Lock()
 	defer locker.Unlock()
 	s, ok := sessions[APIKey]

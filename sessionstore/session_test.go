@@ -30,7 +30,7 @@ func TestSession(t *testing.T) {
 			var userID = "345"
 			g.It("Should return session", func() {
 				newS := New(userID, nil)
-				s, err := GetByApiKey(newS.GetAPIKey())
+				s, err := GetByAPIKey(newS.GetAPIKey())
 				g.Assert(err).Equal(nil)
 				g.Assert(s.GetUserID()).Equal(userID)
 			})

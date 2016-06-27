@@ -109,7 +109,7 @@ func checkSessionByAPIKeyHandler(c *wango.Conn, uri string, args ...interface{})
 		return nil, ErrInvalidArguments
 	}
 
-	s, err := sessionstore.GetByApiKey(apiKey)
+	s, err := sessionstore.GetByAPIKey(apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func deleteSessionHandler(c *wango.Conn, uri string, args ...interface{}) (inter
 		return nil, ErrInvalidArguments
 	}
 
-	s, err := sessionstore.GetByApiKey(apiKey)
+	s, err := sessionstore.GetByAPIKey(apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func sessionSubscribedHandler(c *wango.Conn, _uri string, args ...interface{}) (
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
-	s, err := sessionstore.GetByApiKey(apiKey)
+	s, err := sessionstore.GetByAPIKey(apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func sessionUnsubscribedHandler(c *wango.Conn, _uri string, args ...interface{})
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
-	s, err := sessionstore.GetByApiKey(apiKey)
+	s, err := sessionstore.GetByAPIKey(apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func sessionDeleteConnectionHandler(c *wango.Conn, uri string, args ...interface
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
-	s, err := sessionstore.GetByApiKey(apiKey)
+	s, err := sessionstore.GetByAPIKey(apiKey)
 	if err != nil {
 		return nil, err
 	}
