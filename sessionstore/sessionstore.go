@@ -84,12 +84,12 @@ func GetByApiKey(APIKey string) (s *Session, err error) {
 	return getByApiKey(APIKey)
 }
 
-// GetByApiKey returns point to Session or error if it is not exists.
+// GetByUserID returns point to Session or error if it is not exists.
 func GetByUserID(id string) (s *Session, err error) {
 	return getByUserId(id)
 }
 
-// Delete removes
+// Delete removes session by the APIKey provided from store
 func Delete(APIKey string) {
 	err := db.Delete(bucket, APIKey)
 	if err != nil {
@@ -97,7 +97,11 @@ func Delete(APIKey string) {
 	}
 	locker.Lock()
 	defer locker.Unlock()
+	s := sessions[APIKey]
 	delete(sessions, APIKey)
+	if s != nil {
+		sessionDeleted(s)
+	}
 }
 
 // Delete removes
