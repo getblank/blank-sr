@@ -10,6 +10,7 @@ import (
 	"github.com/getblank/blank-sr/registry"
 	"github.com/getblank/blank-sr/sessionstore"
 	"github.com/getblank/wango"
+	"github.com/labstack/gommon/log"
 )
 
 func registryHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
@@ -129,6 +130,7 @@ func getSessionByUserIDHandler(c *wango.Conn, uri string, args ...interface{}) (
 }
 
 func deleteSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	log.Debug("Session delete request", args)
 	if args == nil {
 		return nil, ErrInvalidArguments
 	}
@@ -149,6 +151,7 @@ func deleteSessionHandler(c *wango.Conn, uri string, args ...interface{}) (inter
 // args must have 4 members
 // apiKey, connID, uri string, extra interface{}
 func sessionSubscribedHandler(c *wango.Conn, _uri string, args ...interface{}) (interface{}, error) {
+	log.Debug("Session subscribe request", args)
 	if len(args) < 4 {
 		return nil, ErrInvalidArguments
 	}
@@ -179,6 +182,7 @@ func sessionSubscribedHandler(c *wango.Conn, _uri string, args ...interface{}) (
 // args must have 3 members
 // apiKey, connID, uri string
 func sessionUnsubscribedHandler(c *wango.Conn, _uri string, args ...interface{}) (interface{}, error) {
+	log.Debug("Session unsubscribe request", args)
 	if len(args) < 3 {
 		return nil, ErrInvalidArguments
 	}
@@ -207,6 +211,7 @@ func sessionUnsubscribedHandler(c *wango.Conn, _uri string, args ...interface{})
 // args must have 2 members
 // apiKey, connID string
 func sessionDeleteConnectionHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	log.Debug("Session delete connection request", args)
 	if len(args) < 2 {
 		return nil, ErrInvalidArguments
 	}
@@ -231,6 +236,7 @@ func sessionDeleteConnectionHandler(c *wango.Conn, uri string, args ...interface
 // args must have 1 or 2 members
 // userID string, user interface{} (optional)
 func sessionUserUpdateHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	log.Debug("Session update request", args)
 	if len(args) == 0 {
 		return nil, ErrInvalidArguments
 	}
