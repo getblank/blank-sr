@@ -14,7 +14,6 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/ivahaev/go-logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/websocket"
@@ -146,7 +145,6 @@ func start() {
 	})
 
 	sessionstore.OnSessionDelete(func(s *sessionstore.Session) {
-		logger.Debug("Session deleted")
 		wamp.Publish("sessions", map[string]interface{}{"event": "deleted", "data": s.APIKey})
 	})
 
