@@ -109,7 +109,7 @@ func checkSessionByAPIKeyHandler(c *wango.Conn, uri string, args ...interface{})
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
-
+	log.Debugf("Will check session by APIKey: %s", apiKey)
 	s, err := sessionstore.GetByAPIKey(apiKey)
 	if err != nil {
 		return nil, err
