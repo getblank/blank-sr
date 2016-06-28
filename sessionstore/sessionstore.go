@@ -86,7 +86,7 @@ func GetByAPIKey(APIKey string) (s *Session, err error) {
 
 // GetByUserID returns point to Session or error if it is not exists.
 func GetByUserID(id string) (s *Session, err error) {
-	return getByUserId(id)
+	return getByUserID(id)
 }
 
 // Delete removes session by the APIKey provided from store
@@ -110,7 +110,7 @@ func DeleteAllForUser(userID string) {
 	defer locker.RUnlock()
 	for _, s := range sessions {
 		if s.UserID == userID {
-			s.Delete()
+			go s.Delete()
 		}
 	}
 }
@@ -238,16 +238,20 @@ func getByAPIKey(APIKey string) (s *Session, err error) {
 		sessions[s.APIKey] = s
 		delete(sessions, APIKey)
 	}
+	s.Lock()
+	defer s.Unlock()
 	sessionUpdated(s)
 	return s, err
 }
 
-func getByUserId(id string) (s *Session, err error) {
+func getByUserID(id string) (s *Session, err error) {
 	locker.RLock()
 	defer locker.RUnlock()
 	for _, v := range sessions {
 		if v.UserID == id {
-			return v, nil
+			v.Lock()
+			defer v.Unlock()
+			return copySession(v), nil
 		}
 	}
 	return nil, berror.DbNotFound
