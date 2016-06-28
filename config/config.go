@@ -183,28 +183,28 @@ type Store struct {
 }
 
 type Prop struct {
-	Name               string          `json:"name"`                        // Название проперти
-	Label              string          `json:"label,omitempty" ws:"yes"`    // Вариации названий в браузере
-	Type               string          `json:"type"`                        // Допустимые варианты: int, float, bool, string, date, ref, virtual
-	OppositeProp       string          `json:"oppositeProp"`                // Для type = ref, соответствующая поле в противоположной сторе
-	FormTab            string          `json:"formTab" ws:"yes"`            // Определяет страницу на форме, в которой будет отрисовано поле
-	FormGroup          string          `json:"formGroup" ws:"yes"`          // Определяет группу на форме, в которой будет отрисовано поле
-	FormOrder          int             `json:"formOrder" ws:"yes"`          // Определяет порядок отрисовки на форме. Если поле в группе, определяет порядок отрисовки именно в этой группе.
-	Access             []Access        `json:"access"`                      // Разрешения для работы с полем
-	GroupAccess        string          `json:"groupAccess"`                 // Разрешения для работы с полем в виде вычисленной для конкретного юзера строки (crud)
-	OwnerAccess        string          `json:"ownerAccess"`                 // Разрешения для работы с полем в виде вычисленной для конкретного владельца строки (crud)
-	Display            string          `json:"display" ws:"yes"`            // text, textArea, datePicker, timePicker, dateTimePicker, masked, none
-	DisplayWidth       int             `json:"displayWidth" ws:"yes"`       // Ширина инпута в процентах для вложенных объектов с шагом в 5
-	Style              bdb.M           `json:"style,omitempty" ws:"yes"`    // Внезапно: пока не определим нужный набор свойств отображения, прокину как я CSS
-	ClassName          string          `json:"сlassName,omitempty"`         // CSS класс для контейнера на форме
-	LabelClassName     string          `json:"labelClassName,omitempty"`    // CSS класс для лейбла
-	HTML               string          `json:"html,omitempty" ws:"yes"`     // Html for display=html
-	HTMLFile           string          `json:"htmlFile,omitempty" ws:"yes"` // Файл с шаблоном Html for display=html
-	SearchBy           []string        `json:"searchBy,omitempty"`          // Поля для поиска для элемента searchBox // TODO: сделать валидацию
-	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`  // Шаблон выбранного элемента для searchBox
-	SortBy             string          `json:"sortBy,omitempty"`            // Поля для сортировки, если пропа virtual // TODO: сделать валидацию
-	ReadOnly           bool            `json:"readOnly"`                    // Поле только для чтения
-	Required           interface{}     `json:"required,omitempty" ws:"yes"` // Поле является обязательным
+	Name               string          `json:"name"`                            // Название проперти
+	Label              string          `json:"label,omitempty" ws:"yes"`        // Вариации названий в браузере
+	Type               string          `json:"type"`                            // Допустимые варианты: int, float, bool, string, date, ref, virtual
+	OppositeProp       string          `json:"oppositeProp,omitempty"`          // Для type = ref, соответствующая поле в противоположной сторе
+	FormTab            string          `json:"formTab,omitempty" ws:"yes"`      // Определяет страницу на форме, в которой будет отрисовано поле
+	FormGroup          string          `json:"formGroup,omitempty" ws:"yes"`    // Определяет группу на форме, в которой будет отрисовано поле
+	FormOrder          int             `json:"formOrder" ws:"yes"`              // Определяет порядок отрисовки на форме. Если поле в группе, определяет порядок отрисовки именно в этой группе.
+	Access             []Access        `json:"access,omitempty"`                // Разрешения для работы с полем
+	GroupAccess        string          `json:"groupAccess"`                     // Разрешения для работы с полем в виде вычисленной для конкретного юзера строки (crud)
+	OwnerAccess        string          `json:"ownerAccess"`                     // Разрешения для работы с полем в виде вычисленной для конкретного владельца строки (crud)
+	Display            string          `json:"display" ws:"yes"`                // text, textArea, datePicker, timePicker, dateTimePicker, masked, none
+	DisplayWidth       int             `json:"displayWidth,omitempty" ws:"yes"` // Ширина инпута в процентах для вложенных объектов с шагом в 5
+	Style              bdb.M           `json:"style,omitempty" ws:"yes"`        // Внезапно: пока не определим нужный набор свойств отображения, прокину как я CSS
+	ClassName          string          `json:"сlassName,omitempty"`             // CSS класс для контейнера на форме
+	LabelClassName     string          `json:"labelClassName,omitempty"`        // CSS класс для лейбла
+	HTML               string          `json:"html,omitempty" ws:"yes"`         // Html for display=html
+	HTMLFile           string          `json:"htmlFile,omitempty" ws:"yes"`     // Файл с шаблоном Html for display=html
+	SearchBy           []string        `json:"searchBy,omitempty"`              // Поля для поиска для элемента searchBox // TODO: сделать валидацию
+	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`      // Шаблон выбранного элемента для searchBox
+	SortBy             string          `json:"sortBy,omitempty"`                // Поля для сортировки, если пропа virtual // TODO: сделать валидацию
+	ReadOnly           bool            `json:"readOnly,omitempty"`              // Поле только для чтения
+	Required           interface{}     `json:"required,omitempty" ws:"yes"`     // Поле является обязательным
 	requiredBool       bool            // Вычисленное значение из булевого Required
 	requiredConditions []*Condition    // Преобразованные кондишены из структурного поля Required
 	Default            interface{}     `json:"default,omitempty" ws:"yes"`      // Значение по умолчанию
