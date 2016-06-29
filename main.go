@@ -146,7 +146,7 @@ func start() {
 	})
 
 	sessionstore.OnSessionDelete(func(s *sessionstore.Session) {
-		wamp.Publish("sessions", map[string]interface{}{"event": "deleted", "data": s.APIKey})
+		wamp.Publish("sessions", map[string]interface{}{"event": "deleted", "data": s})
 	})
 
 	config.OnUpdate(func(c map[string]config.Store) {

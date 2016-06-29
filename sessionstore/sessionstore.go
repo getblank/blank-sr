@@ -28,6 +28,7 @@ type Session struct {
 	Connections []*Conn     `json:"connections"`
 	LastRequest time.Time   `json:"lastRequest"`
 	User        interface{} `json:"user"`
+	V           int         `json:"__v"`
 	ttl         time.Duration
 	sync.RWMutex
 }
@@ -52,6 +53,7 @@ func New(userID string, user interface{}, tmp ...bool) *Session {
 		[]*Conn{},
 		time.Now(),
 		user,
+		0,
 		0,
 		sync.RWMutex{},
 	}
@@ -316,6 +318,7 @@ func sessionUpdated(s *Session, userUpdated ...bool) {
 	if !b {
 		_s.User = nil
 	}
+	s.V++
 
 	for _, handler := range sessionUpdateHandlers {
 		go handler(_s)
@@ -323,6 +326,7 @@ func sessionUpdated(s *Session, userUpdated ...bool) {
 }
 
 func sessionDeleted(s *Session) {
+	s.V++
 	for _, handler := range sessionDeleteHandlers {
 		go handler(s)
 	}
