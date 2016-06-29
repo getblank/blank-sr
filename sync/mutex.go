@@ -1,4 +1,4 @@
-package mutex
+package sync
 
 import (
 	"sync"
@@ -8,9 +8,9 @@ import (
 
 var (
 	lockers         = map[string]*locker{}
+	mutexLocker     sync.Mutex
 	owners2Lockers  = map[string][]string{}
 	lockersCounters = map[string]int{}
-	mainLocker      sync.Mutex
 )
 
 type locker struct {
@@ -19,7 +19,7 @@ type locker struct {
 
 // Lock create new locker for provided id if it is not exists or takes existing, then locks it
 func Lock(owner, id string) {
-	mainLocker.Lock()
+	mutexLocker.Lock()
 	m, ok := lockers[id]
 	if !ok {
 		m = new(locker)
@@ -31,15 +31,15 @@ func Lock(owner, id string) {
 	}
 	owners2Lockers[owner] = append(owners2Lockers[owner], id)
 	lockersCounters[id]++
-	mainLocker.Unlock()
+	mutexLocker.Unlock()
 
 	m.lock()
 }
 
 // Unlock takes existing locker from map and unlocks it
 func Unlock(owner, id string) {
-	mainLocker.Lock()
-	defer mainLocker.Unlock()
+	mutexLocker.Lock()
+	defer mutexLocker.Unlock()
 	m, ok := lockers[id]
 	if !ok {
 		return
@@ -63,8 +63,8 @@ func Unlock(owner, id string) {
 
 // UnlockForOwner unlocks all lockers locked by owner
 func UnlockForOwner(owner string) {
-	mainLocker.Lock()
-	defer mainLocker.Unlock()
+	mutexLocker.Lock()
+	defer mutexLocker.Unlock()
 	if locks, ok := owners2Lockers[owner]; ok {
 		for _, id := range locks {
 			lockers[id].unlock()

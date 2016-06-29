@@ -6,9 +6,9 @@ import (
 
 	"github.com/getblank/blank-sr/config"
 	"github.com/getblank/blank-sr/localstorage"
-	"github.com/getblank/blank-sr/mutex"
 	"github.com/getblank/blank-sr/registry"
 	"github.com/getblank/blank-sr/sessionstore"
+	"github.com/getblank/blank-sr/sync"
 	"github.com/getblank/wango"
 	"github.com/labstack/gommon/log"
 )
@@ -258,7 +258,7 @@ func subSessionsHandler(c *wango.Conn, uri string, args ...interface{}) (interfa
 	return map[string]interface{}{"event": "init", "data": all}, nil
 }
 
-func mutexLockHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+func syncLockHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
 	if len(args) == 0 {
 		return nil, ErrInvalidArguments
 	}
@@ -266,11 +266,11 @@ func mutexLockHandler(c *wango.Conn, uri string, args ...interface{}) (interface
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
-	mutex.Lock(c.ID(), id)
+	sync.Lock(c.ID(), id)
 	return nil, nil
 }
 
-func mutexUnlockHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+func syncUnlockHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
 	if len(args) == 0 {
 		return nil, ErrInvalidArguments
 	}
@@ -278,8 +278,20 @@ func mutexUnlockHandler(c *wango.Conn, uri string, args ...interface{}) (interfa
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
-	mutex.Unlock(c.ID(), id)
+	sync.Unlock(c.ID(), id)
 	return nil, nil
+}
+
+func syncOnceHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, ErrInvalidArguments
+	}
+	id, ok := args[0].(string)
+	if !ok {
+		return nil, ErrInvalidArguments
+	}
+
+	return nil, sync.Once(id)
 }
 
 func localStorageGetItemHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {

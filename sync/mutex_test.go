@@ -1,4 +1,4 @@
-package mutex
+package sync
 
 import (
 	"testing"
