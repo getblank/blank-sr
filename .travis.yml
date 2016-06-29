@@ -6,6 +6,7 @@ go:
 script:
   - go test -v github.com/getblank/blank-sr/sessionstore
   - go test -v github.com/getblank/blank-sr/registry
+  - go test -v github.com/getblank/blank-sr/sync
 after_success:
   - go build -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
   - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-linux/blank-sr
