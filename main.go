@@ -119,7 +119,7 @@ func start() {
 
 	wamp.RegisterRPCHandler("sync.lock", syncLockHandler)
 	wamp.RegisterRPCHandler("sync.unlock", syncUnlockHandler)
-	wamp.RegisterRPCHandler("sync.once", syncUnlockHandler)
+	wamp.RegisterRPCHandler("sync.once", syncOnceHandler)
 
 	wamp.RegisterRPCHandler("localStorage.getItem", localStorageGetItemHandler)
 	wamp.RegisterRPCHandler("localStorage.setItem", localStorageSetItemHandler)
