@@ -235,14 +235,14 @@ func getByAPIKey(APIKey string) (s *Session, err error) {
 		return s, berror.DbNotFound
 	}
 	if s.ttl > 0 {
+		s.Lock()
+		defer s.Unlock()
 		s.ttl = 0
 		s.APIKey = uuid.NewV4()
 		sessions[s.APIKey] = s
 		delete(sessions, APIKey)
+		sessionUpdated(s)
 	}
-	s.Lock()
-	defer s.Unlock()
-	sessionUpdated(s)
 	return s, err
 }
 
