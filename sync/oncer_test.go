@@ -19,7 +19,7 @@ func TestOnce(t *testing.T) {
 		})
 		g.It("should return nil again after ttl reached", func() {
 			var id = "2"
-			ttl = time.Second
+			ttl = time.Millisecond * 500
 			g.Assert(Once(id) == nil).IsTrue()
 			g.Assert(Once(id) == nil).IsFalse()
 			g.Assert(Once(id) == nil).IsFalse()
