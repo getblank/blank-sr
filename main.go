@@ -173,10 +173,6 @@ func onSessionOpen(c *wango.Conn) {
 	println("New client", c.ID())
 }
 
-func publishSession(s *sessionstore.Session) {
-	wamp.Publish("sessions", s)
-}
-
 func publishDeleteSession(s *sessionstore.Session) {
 	wamp.Publish("sessions", map[string]interface{}{"apiKey": s.APIKey, "deleted": true})
 }

@@ -174,8 +174,6 @@ func sessionSubscribedHandler(c *wango.Conn, _uri string, args ...interface{}) (
 	extra := args[3]
 	s.AddSubscription(connID, uri, extra)
 
-	publishSession(s)
-
 	return nil, nil
 }
 
@@ -203,7 +201,6 @@ func sessionUnsubscribedHandler(c *wango.Conn, _uri string, args ...interface{})
 		return nil, ErrInvalidArguments
 	}
 	s.DeleteSubscription(connID, uri)
-	publishSession(s)
 
 	return nil, nil
 }
@@ -228,7 +225,6 @@ func sessionDeleteConnectionHandler(c *wango.Conn, uri string, args ...interface
 		return nil, ErrInvalidArguments
 	}
 	s.DeleteConnection(connID)
-	publishSession(s)
 
 	return nil, nil
 }
