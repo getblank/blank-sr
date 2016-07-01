@@ -122,10 +122,12 @@ func UpdateUser(userID string, user interface{}) {
 	locker.RLock()
 	defer locker.RUnlock()
 	for _, s := range sessions {
+		s.Lock()
 		if s.UserID == userID {
 			s.User = user
 			sessionUpdated(s, true)
 		}
+		s.Unlock()
 	}
 }
 
