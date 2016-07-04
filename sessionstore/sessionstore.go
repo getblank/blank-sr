@@ -68,6 +68,15 @@ func New(userID string, user interface{}, tmp ...bool) *Session {
 	return s
 }
 
+func DeleteAllConnections() {
+	locker.Lock()
+	defer locker.Unlock()
+	for _, s := range sessions {
+		s.Connections = []*Conn{}
+		s.Save(true)
+	}
+}
+
 // GetAll returns all stored sessions
 func GetAll() []*Session {
 	result := make([]*Session, len(sessions))
@@ -298,6 +307,8 @@ func loadSessions() {
 			}
 			continue
 		}
+		s.Connections = []*Conn{}
+		s.Save(true)
 		sessions[s.APIKey] = &s
 	}
 }

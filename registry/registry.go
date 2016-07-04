@@ -9,9 +9,9 @@ import (
 var (
 	services       = map[string][]Service{}
 	locker         sync.RWMutex
-	createHandlers = []func(){}
-	updateHandlers = []func(){}
-	deleteHandlers = []func(){}
+	createHandlers = []func(Service){}
+	updateHandlers = []func(Service){}
+	deleteHandlers = []func(Service){}
 )
 
 const (
@@ -54,17 +54,17 @@ func GetAll() map[string][]Service {
 }
 
 // OnCreate pass handler func, that will call when new service will created
-func OnCreate(fn func()) {
+func OnCreate(fn func(Service)) {
 	createHandlers = append(createHandlers, fn)
 }
 
 // OnUpdate pass handler func, that will call when existing service will created
-func OnUpdate(fn func()) {
+func OnUpdate(fn func(Service)) {
 	updateHandlers = append(updateHandlers, fn)
 }
 
 // OnDelete pass handler func, that will call when existing service will deleted
-func OnDelete(fn func()) {
+func OnDelete(fn func(Service)) {
 	deleteHandlers = append(deleteHandlers, fn)
 }
 
@@ -90,7 +90,7 @@ func Register(typ, remoteAddr, port, connID, commonJS string) (interface{}, erro
 	register(s)
 
 	for _, h := range createHandlers {
-		h()
+		h(s)
 	}
 	log.Infof(`Registered "%s" service at address: "%s" and port: "%s"`, typ, remoteAddr, port)
 
@@ -120,7 +120,7 @@ func unregister(id string) {
 			if _ss.connID == id {
 				services[typ] = append(ss[:i], ss[i+1:]...)
 				for _, h := range deleteHandlers {
-					go h()
+					go h(_ss)
 				}
 				return
 			}

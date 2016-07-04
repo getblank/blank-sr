@@ -126,17 +126,20 @@ func start() {
 	wamp.RegisterRPCHandler("localStorage.removeItem", localStorageRemoveItemHandler)
 	wamp.RegisterRPCHandler("localStorage.clear", localStorageClearHandler)
 
-	registry.OnCreate(func() {
+	registry.OnCreate(func(_ registry.Service) {
 		services := registry.GetAll()
 		wamp.Publish("registry", services)
 	})
 
-	registry.OnUpdate(func() {
+	registry.OnUpdate(func(_ registry.Service) {
 		services := registry.GetAll()
 		wamp.Publish("registry", services)
 	})
 
-	registry.OnDelete(func() {
+	registry.OnDelete(func(s registry.Service) {
+		if s.Type == "taskQueue" { // router restarted?
+			sessionstore.DeleteAllConnections()
+		}
 		services := registry.GetAll()
 		wamp.Publish("registry", services)
 	})
