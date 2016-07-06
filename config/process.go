@@ -837,6 +837,9 @@ func (m *Store) LoadDefaultIntoProp(name string, p Prop) {
 	if prop.Disabled != "" {
 		p.Disabled = prop.Disabled
 	}
+	if len(prop.SearchBy) != 0 {
+		p.SearchBy = prop.SearchBy
+	}
 
 	m.Props[name] = p
 }
