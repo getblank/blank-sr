@@ -137,9 +137,9 @@ func validateConfig(conf map[string]Store) {
 		if o.Props == nil {
 			o.Props = map[string]Prop{}
 		}
-		if o.HeaderProperty == "" {
-			o.HeaderProperty = "name"
-		}
+		// if o.HeaderProperty == "" {
+		// 	o.HeaderProperty = "name"
+		// }
 
 		// Checking object type
 		switch o.Type {
