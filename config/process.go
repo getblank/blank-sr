@@ -840,6 +840,9 @@ func (m *Store) LoadDefaultIntoProp(name string, p Prop) {
 	if len(prop.SearchBy) != 0 {
 		p.SearchBy = prop.SearchBy
 	}
+	if prop.OppositeProp != "" {
+		p.OppositeProp = prop.OppositeProp
+	}
 
 	m.Props[name] = p
 }
