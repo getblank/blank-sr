@@ -105,6 +105,7 @@ func start() {
 	wamp.RegisterSubHandler("config", configHandler, nil, nil)
 	wamp.RegisterSubHandler("sessions", subSessionsHandler, nil, nil)
 	wamp.RegisterSubHandler("events", nil, nil, nil)
+	wamp.RegisterSubHandler("users", nil, nil, nil)
 
 	wamp.RegisterRPCHandler("register", registerHandler)
 	wamp.RegisterRPCHandler("publish", publishHandler)

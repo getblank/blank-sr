@@ -93,12 +93,8 @@ func newSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interfac
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
-	var user interface{}
-	if len(args) > 1 {
-		user = args[1]
-	}
 
-	return sessionstore.New(userId, user).APIKey, nil
+	return sessionstore.New(userId).APIKey, nil
 }
 
 func checkSessionByAPIKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
@@ -240,11 +236,13 @@ func sessionUserUpdateHandler(c *wango.Conn, uri string, args ...interface{}) (i
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
+
+	wamp.Publish("users", userID)
+
 	if len(args) == 1 {
 		sessionstore.DeleteAllForUser(userID)
 		return nil, nil
 	}
-	sessionstore.UpdateUser(userID, args[1])
 
 	return nil, nil
 }

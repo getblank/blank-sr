@@ -23,12 +23,11 @@ var (
 
 // Session represents user session in Blank
 type Session struct {
-	APIKey      string      `json:"apiKey"`
-	UserID      string      `json:"userId"`
-	Connections []*Conn     `json:"connections"`
-	LastRequest time.Time   `json:"lastRequest"`
-	User        interface{} `json:"user"`
-	V           int         `json:"__v"`
+	APIKey      string    `json:"apiKey"`
+	UserID      string    `json:"userId"`
+	Connections []*Conn   `json:"connections"`
+	LastRequest time.Time `json:"lastRequest"`
+	V           int       `json:"__v"`
 	ttl         time.Duration
 	sync.RWMutex
 }
@@ -46,13 +45,12 @@ func Init() {
 }
 
 // New created new user session. Optional bool param for creating session with 1 minute ttl
-func New(userID string, user interface{}, tmp ...bool) *Session {
+func New(userID string, tmp ...bool) *Session {
 	s := &Session{
 		uuid.NewV4(),
 		userID,
 		[]*Conn{},
 		time.Now(),
-		user,
 		0,
 		0,
 		sync.RWMutex{},
@@ -123,20 +121,6 @@ func DeleteAllForUser(userID string) {
 		if s.UserID == userID {
 			go s.Delete()
 		}
-	}
-}
-
-// UpdateUser updates user info in store
-func UpdateUser(userID string, user interface{}) {
-	locker.RLock()
-	defer locker.RUnlock()
-	for _, s := range sessions {
-		s.Lock()
-		if s.UserID == userID {
-			s.User = user
-			sessionUpdated(s, true)
-		}
-		s.Unlock()
 	}
 }
 
@@ -329,7 +313,6 @@ func sessionUpdated(s *Session, userUpdated ...bool) {
 	s.Save(b)
 	_s := copySession(s)
 	if !b {
-		_s.User = nil
 	}
 	s.V++
 
