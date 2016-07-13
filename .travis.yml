@@ -4,14 +4,17 @@ os:
 go:
   - 1.6.2
 script:
+  - sudo apt-get install -qq upx
   - go test -v github.com/getblank/blank-sr/sessionstore
   - go test -v github.com/getblank/blank-sr/registry
   - go test -v github.com/getblank/blank-sr/sync
 after_success:
   - go build -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
+  - upx --best blank-sr
   - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-linux/blank-sr
   - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/linux/blank-sr
 
   - GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
+  - upx --best blank-sr
   - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-osx/blank-sr
   - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/osx/blank-sr
