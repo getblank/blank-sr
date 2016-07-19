@@ -363,9 +363,10 @@ type Task struct {
 }
 
 type Widget struct {
-	Id          string   `json:"_id"`
+	ID          string   `json:"_id"`
 	Type        string   `json:"type,omitempty"`
 	Label       string   `json:"label" ws:"yes"`           // Лейбла в браузере
+	Load        string   `json:"load" ws:"yes"`            // Серверный скрипт подготовки данных
 	Render      string   `json:"render,omitempty"`         // Скрипт на JS для отрисовки
 	Access      []Access `json:"access,omitempty"`         // Разрешения для работы с виджетом. Если не заполнено, то доступ разрешён всем
 	GroupAccess string   `json:"groupAccess"`              // Разрешения для работы с виджетом в виде вычисленной для конкретного юзера строки (crud)
