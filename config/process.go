@@ -213,7 +213,7 @@ func validateConfig(conf map[string]Store) {
 		o.checkPropsRequiredConditions()
 
 		// checking for httpApi enabled
-		if o.HttpApi {
+		if o.HTTPApi {
 			apiPropsStoreOptions = append(apiPropsStoreOptions, bdb.M{"label": o.Store, "value": o.Store})
 		}
 	}
@@ -289,8 +289,8 @@ ConfLoop:
 		}
 
 		config[store.Store] = store
-		if store.HttpApi {
-			HttpApiEnabledStores = append(HttpApiEnabledStores, store)
+		if store.HTTPApi {
+			HTTPApiEnabledStores = append(HTTPApiEnabledStores, store)
 		}
 	}
 
@@ -939,8 +939,8 @@ func mergeModels(from, to *Store) {
 	if from.OrderBy != "" {
 		to.OrderBy = from.OrderBy
 	}
-	if from.Html != "" {
-		to.Html = from.Html
+	if from.HTML != "" {
+		to.HTML = from.HTML
 	}
 	if from.Label != "" {
 		to.Label = from.Label
@@ -1113,7 +1113,7 @@ func (m *Store) preparePartialFlags() {
 			}
 		}
 	}
-	if match := mustacheRgx.FindAllStringSubmatch(m.Html, -1); len(match) > 0 {
+	if match := mustacheRgx.FindAllStringSubmatch(m.HTML, -1); len(match) > 0 {
 		for _, str := range match {
 			if subMatch := handleBarseRgx.FindAllStringSubmatch(str[1], -1); len(subMatch) > 0 && len(subMatch[0]) > 2 {
 				var prop string

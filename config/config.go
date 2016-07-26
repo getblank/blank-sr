@@ -124,7 +124,7 @@ var (
 	confLocker = &sync.RWMutex{}
 	config     = map[string]Store{}
 
-	HttpApiEnabledStores = []Store{}
+	HTTPApiEnabledStores = []Store{}
 	DB                   = bdb.DB{}
 )
 
@@ -152,7 +152,7 @@ type Store struct {
 	Entries            map[string]interface{} `json:"entries,omitempty"`                     // Значения для type == 'map'
 	NavOrder           int                    `json:"navOrder" ws:"yes"`                     // Порядок размещения в навигации
 	Display            string                 `json:"display" ws:"yes"`                      // Вид отображения
-	Html               string                 `json:"html" ws:"yes"`                         // Шаблон для display:html
+	HTML               string                 `json:"html" ws:"yes"`                         // Шаблон для display:html
 	Label              string                 `json:"label,omitempty"`                       // Заголовок сторы
 	NavLabel           string                 `json:"navLabel,omitempty"`                    // Название в навигации
 	Labels             []Label                `json:"labels,omitempty"`                      // Лейблы
@@ -163,8 +163,8 @@ type Store struct {
 	ListViewOnly       bool                   `json:"listViewOnly,omitempty" ws:"yes"`       // Параметр, определяющий отображение сторы.
 	FullWidth          bool                   `json:"fullWidth,omitempty" ws:"yes"`          // Параметр отображения контента во всю ширину, когда не используется боковая панель.
 	DisablePartialLoad bool                   `json:"disablePartialLoad,omitempty" ws:"yes"` // TODO: Если true, то выдавать при запросе всех объектов, все поля сразу.
-	HttpApi            bool                   `json:"httpApi,omitempty"`                     // Флаг формирования HTTP REST API для сторы
-	HttpHooks          []HttpHook             `json:"httpHooks,omitempty"`                   // Http хуки (HTTP API).
+	HTTPApi            bool                   `json:"httpApi,omitempty"`                     // Флаг формирования HTTP REST API для сторы
+	HTTPHooks          []HttpHook             `json:"httpHooks,omitempty"`                   // Http хуки (HTTP API).
 	NavLinkStyle       bdb.M                  `json:"navLinkStyle,omitempty" ws:"yes"`       // Стили кнопки в навигации
 	NavLinkActiveStyle bdb.M                  `json:"navLinkActiveStyle,omitempty" ws:"yes"` // Стили кнопки в навигации
 	NavLinkHoverStyle  bdb.M                  `json:"navLinkHoverStyle,omitempty" ws:"yes"`  // Стили кнопки в навигации
@@ -239,6 +239,7 @@ type Prop struct {
 	DisableRefSync     bool            `json:"disableRefSync,omitempty"`              // Флаг, запрещающий обновление соответствующего ref поля в противоположной сторе
 	TableLink          bool            `json:"tableLink,omitempty" ws:"yes"`          // Флаг обозначающий, что эта пропертя в таблице будет ссылкой
 	Actions            interface{}     `json:"actions,omitempty" ws:"yes"`            // Action identifier or array of identifiers
+	Widgets            interface{}     `json:"widgets,omitempty" ws:"yes"`            // Widget identifier or array of identifiers
 	WidgetID           string          `json:"widgetId,omitempty" ws:"yes"`           // Widget identifier
 	Utc                bool            `json:"utc,omitempty" ws:"yes"`                // Работа с датами в utc - игнорирует локальное время. Только для типа date
 	Format             string          `json:"format,omitempty" ws:"yes"`             // Формат отображения. Только для типа date

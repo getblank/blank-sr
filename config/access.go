@@ -273,7 +273,7 @@ func (m *Store) calcPermissions(access []Access, u User) (groupAccess, ownerAcce
 
 func (m *Store) prepareTemplate() {
 	if m.Template != "" {
-		m.Html = m.Template
+		m.HTML = m.Template
 		m.Template = ""
 	}
 	if m.TemplateFile != "" {
@@ -287,7 +287,7 @@ func (m *Store) prepareTemplate() {
 			return
 		}
 		m.TemplateFile = ""
-		m.Html = string(template)
+		m.HTML = string(template)
 	}
 }
 
@@ -295,8 +295,8 @@ func (m *Store) PrepareConfigForUser(u User) {
 	san := bluemonday.UGCPolicy()
 	san.AllowElements(svgElems...)
 	san.AllowAttrs(svgAttrs...).OnElements(svgElems...)
-	if m.Html != "" {
-		m.Html = san.Sanitize(m.Html)
+	if m.HTML != "" {
+		m.HTML = san.Sanitize(m.HTML)
 	}
 	m.prepareHooks(false)
 	m.ObjectLifeCycle.WillCreate = ""
