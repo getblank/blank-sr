@@ -13,18 +13,19 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/getblank/blank-sr/config"
+	"github.com/getblank/blank-sr/registry"
+	"github.com/getblank/blank-sr/sessionstore"
+	blankSync "github.com/getblank/blank-sr/sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/getblank/wango"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/websocket"
 	"golang.org/x/tools/godoc/vfs"
 	"golang.org/x/tools/godoc/vfs/zipfs"
-
-	"github.com/getblank/blank-sr/config"
-	"github.com/getblank/blank-sr/registry"
-	"github.com/getblank/blank-sr/sessionstore"
-	blankSync "github.com/getblank/blank-sr/sync"
-	"github.com/getblank/wango"
+	"gopkg.in/gemnasium/logrus-graylog-hook.v1"
 )
 
 const (
@@ -52,6 +53,24 @@ var (
 func main() {
 	if os.Getenv("BLANK_DEBUG") != "" {
 		log.SetLevel(log.DebugLevel)
+	}
+	log.SetFormatter(&log.JSONFormatter{})
+	if os.Getenv("GRAYLOG2_HOST") != "" {
+		host := os.Getenv("GRAYLOG2_HOST")
+		port := os.Getenv("GRAYLOG2_PORT")
+		if port == "" {
+			port = "12201"
+		}
+		source := os.Getenv("GRAYLOG2_SOURCE")
+		if source == "" {
+			source = "blank-sr"
+		}
+		facility := os.Getenv("GRAYLOG2_FACILITY")
+		if facility == "" {
+			facility = "BLANK"
+		}
+		hook := graylog.NewGraylogHook(host+":"+port, facility, map[string]interface{}{"source-app": source})
+		log.AddHook(hook)
 	}
 
 	var verFlag *bool
