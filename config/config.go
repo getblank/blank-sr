@@ -243,6 +243,7 @@ type Prop struct {
 	WidgetID           string          `json:"widgetId,omitempty" ws:"yes"`           // Widget identifier
 	Utc                bool            `json:"utc,omitempty" ws:"yes"`                // Работа с датами в utc - игнорирует локальное время. Только для типа date
 	Format             string          `json:"format,omitempty" ws:"yes"`             // Формат отображения. Только для типа date
+	ExtraQuery         interface{}     `json:"extraQuery,omitempty"`                  // Запрос для монги
 }
 
 type Filter struct {
@@ -277,7 +278,7 @@ type Access struct {
 
 // Action – struct for JavaScript scenarios that can be performed by users
 type Action struct {
-	Id                    string      `json:"_id"`
+	ID                    string      `json:"_id"`
 	ClassName             string      `json:"className,omitempty"`           // CSS class
 	ClientPreScript       string      `json:"clientPreScript,omitempty"`     // JavaScript scenario that will run in browser before request to server
 	ClientPostScript      string      `json:"clientPostScript,omitempty"`    // JavaScript scenario that will run in browser after server response

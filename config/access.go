@@ -322,7 +322,7 @@ func (m *Store) PrepareConfigForUser(u User) {
 		}
 		a.Access = nil
 		if a.Script != "" {
-			a.ScriptId = m.Store + "_action_" + a.Id
+			a.ScriptId = m.Store + "_action_" + a.ID
 		}
 		if a.Type != "client" {
 			a.Script = ""
@@ -346,7 +346,7 @@ func (m *Store) PrepareConfigForUser(u User) {
 		}
 		a.Access = nil
 		if a.Script != "" {
-			a.ScriptId = m.Store + "_storeAction_" + a.Id
+			a.ScriptId = m.Store + "_storeAction_" + a.ID
 		}
 		a.Script = ""
 		m.StoreActions[i-1] = a

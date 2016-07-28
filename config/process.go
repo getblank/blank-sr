@@ -362,13 +362,13 @@ func (m *Store) compileActions() (err error) {
 	var actionIds = []string{}
 	if m.Actions != nil && len(m.Actions) > 0 {
 		for i, a := range m.Actions {
-			if !actionIdRgx.MatchString(a.Id) {
+			if !actionIdRgx.MatchString(a.ID) {
 				return errors.New("Invalid action name. Must start with a letter or underscore and contains only letters, digits or underscores")
 			}
 			if a.Type == "client" {
 				continue
 			}
-			actionIds = append(actionIds, a.Id)
+			actionIds = append(actionIds, a.ID)
 			if a.Script != "" {
 				script := a.Script
 				if a.Disabled != nil {
@@ -383,7 +383,7 @@ func (m *Store) compileActions() (err error) {
 							script = `console.error("Action is disabled"); return "Action is disabled"`
 						}
 					default:
-						return errors.New("Invalid action " + a.Id + ". Invalid Disabled property")
+						return errors.New("Invalid action " + a.ID + ". Invalid Disabled property")
 					}
 				}
 				if a.Hidden != nil {
@@ -398,7 +398,7 @@ func (m *Store) compileActions() (err error) {
 							script = `console.error("Action is hidden"); return "Action is hidden"`
 						}
 					default:
-						return errors.New("Invalid action " + a.Id + ". Invalid hidden property")
+						return errors.New("Invalid action " + a.ID + ". Invalid hidden property")
 					}
 				}
 			}
@@ -409,7 +409,7 @@ func (m *Store) compileActions() (err error) {
 				m.Actions[i].Props[k] = v
 			}
 			if a.ConcurentCallsLimit > 0 {
-				id := m.Store + "actions" + a.Id
+				id := m.Store + "actions" + a.ID
 				concurrentChannels[id] = make(chan struct{}, a.ConcurentCallsLimit)
 			}
 		}
@@ -417,11 +417,11 @@ func (m *Store) compileActions() (err error) {
 	sort.Strings(actionIds)
 	if m.StoreActions != nil && len(m.StoreActions) > 0 {
 		for _, a := range m.StoreActions {
-			if !actionIdRgx.MatchString(a.Id) {
+			if !actionIdRgx.MatchString(a.ID) {
 				return errors.New("Invalid action name. Must start with a letter or underscore and contains only letters, digits or underscores")
 			}
-			if len(actionIds) > 0 && array.IndexOfSortedStrings(actionIds, a.Id) != -1 {
-				return errors.New("Can't create store action with _id " + a.Id + " for store " + m.Store + " because action is present with the same _id")
+			if len(actionIds) > 0 && array.IndexOfSortedStrings(actionIds, a.ID) != -1 {
+				return errors.New("Can't create store action with _id " + a.ID + " for store " + m.Store + " because action is present with the same _id")
 			}
 			if a.Script != "" {
 				script := a.Script
@@ -437,7 +437,7 @@ func (m *Store) compileActions() (err error) {
 							script = `console.error("Action is disabled"); return "Action is disabled"`
 						}
 					default:
-						return errors.New("Invalid action " + a.Id + ". Invalid disabled property")
+						return errors.New("Invalid action " + a.ID + ". Invalid disabled property")
 					}
 				}
 				if a.Hidden != nil {
@@ -452,11 +452,11 @@ func (m *Store) compileActions() (err error) {
 							script = `console.error("Action is hidden"); return "Action is hidden"`
 						}
 					default:
-						return errors.New("Invalid action " + a.Id + ". Invalid hidden property")
+						return errors.New("Invalid action " + a.ID + ". Invalid hidden property")
 					}
 				}
 				if a.ConcurentCallsLimit > 0 {
-					id := m.Store + "actions" + a.Id
+					id := m.Store + "actions" + a.ID
 					concurrentChannels[id] = make(chan struct{}, a.ConcurentCallsLimit)
 				}
 			}
@@ -749,6 +749,7 @@ func (p *Prop) clearRefParams() {
 	p.Store = ""
 	p.PopulateIn = ""
 	p.OppositeProp = ""
+	p.ExtraQuery = nil
 }
 
 func (p *Prop) clearStringParams() {
@@ -964,7 +965,7 @@ func mergeModels(from, to *Store) {
 	FromActionsLoop:
 		for _, v := range from.Actions {
 			for tk, tv := range to.Actions {
-				if v.Id == tv.Id {
+				if v.ID == tv.ID {
 					if v.Label != "" {
 						tv.Label = v.Label
 					}
