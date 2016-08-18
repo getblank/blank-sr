@@ -172,7 +172,7 @@ type Store struct {
 	PrepareItemsScript string                 `json:"prepareItemsScript,omitempty"`          // Скрипт для подготовки данных до передачи в рендер свойства html
 	Template           string                 `json:"template,omitempty"`                    // Шаблон для передачи в свойство html
 	TemplateFile       string                 `json:"templateFile,omitempty"`                // Фвйл с шаблоном для передачи в свойство html
-	Indexed            bool                   `json:"indexed,omitempty"`                     // Флаг использования индекса elasticSearch для сторы
+	Indexes            []interface{}          `json:"indexes,omitempty"`                     // MongoDB indexes
 	PartialProps       []string               `json:"-"`                                     // Массив с полями, которые нужно выдать при запросе всех объектов. Заполняется из labels
 	PartialVirtual     bool                   `json:"-"`                                     // Флаг, означающий, что нужно заполнять виртуальные поля при выдаче всех объектов
 	PartialPopulate    bool                   `json:"-"`                                     // Флаг, означающий, что нужно  провести популяцию при выдаче всех объектов
