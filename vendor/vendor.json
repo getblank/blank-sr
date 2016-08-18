@@ -158,6 +158,12 @@
 			"path": "gopkg.in/bluesuncorp/validator.v5",
 			"revision": "98121ac23ff3d764f525d18d8de944d150e3c0fe",
 			"revisionTime": "2015-08-04T01:33:32Z"
+		},
+		{
+			"checksumSHA1": "IGIFlkt6uJzZp1Y8BHCzdg3H7Zk=",
+			"path": "gopkg.in/gemnasium/logrus-graylog-hook.v2",
+			"revision": "705f0fbde624bc4cfec1eb9a8701e6003f2d0bcd",
+			"revisionTime": "2016-08-17T13:02:15Z"
 		}
 	],
 	"rootPath": "github.com/getblank/blank-sr"
