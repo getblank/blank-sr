@@ -21,8 +21,8 @@ type CommonSettingsStructure struct {
 }
 
 type ServerSettingsStructure struct {
-	RegisterTokenExpiration           int     `json:"registerTokenExpiration,omitempty"`
-	PasswordResetTokenExpiration      int     `json:"passwordResetTokenExpiration,omitempty"`
+	RegisterTokenExpiration           string  `json:"registerTokenExpiration,omitempty"`
+	PasswordResetTokenExpiration      string  `json:"passwordResetTokenExpiration,omitempty"`
 	ActivationEmailTemplate           string  `json:"activationEmailTemplate,omitempty"`
 	PasswordResetEmailTemplate        string  `json:"passwordResetEmailTemplate,omitempty"`
 	PasswordResetSuccessEmailTemplate string  `json:"passwordResetSuccessEmailTemplate,omitempty"`
@@ -46,8 +46,8 @@ func makeDefaultSettings() {
 		LessVars:      map[string]interface{}{},
 	}
 	ServerSettings = &ServerSettingsStructure{
-		RegisterTokenExpiration:           60,
-		PasswordResetTokenExpiration:      60,
+		RegisterTokenExpiration:           "0:60",
+		PasswordResetTokenExpiration:      "0:60",
 		ActivationEmailTemplate:           "./templates/activation-email.html",
 		ActivationSuccessPage:             "./templates/activation-success.html",
 		ActivationErrorPage:               "./templates/activation-error.html",
