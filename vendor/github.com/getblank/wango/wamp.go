@@ -142,7 +142,9 @@ func (w *Wango) Call(uri string, data ...interface{}) (interface{}, error) {
 func (w *Wango) Disconnect() {
 	w.connectionsLocker.RLock()
 	for _, c := range w.connections {
-		c.breakChan <- struct{}{}
+		go func(ch chan struct{}) {
+			ch <- struct{}{}
+		}(c.breakChan)
 	}
 	w.connectionsLocker.RUnlock()
 }
@@ -377,6 +379,7 @@ func (w *Wango) receive(c *Conn) {
 		for {
 			err := websocket.Message.Receive(c.connection, &data)
 			if err != nil {
+				logger("Message receiving error: ", err)
 				if err != io.EOF {
 					// Error receiving message
 				}
@@ -390,6 +393,7 @@ MessageLoop:
 	for {
 		select {
 		case <-c.breakChan:
+			logger("breakChan signal received, will close connection.")
 			break MessageLoop
 		case data := <-dataChan:
 			msgType, msg, err := parseMessage(data)
@@ -716,16 +720,16 @@ func (w *Wango) addConnection(ws *websocket.Conn, extra interface{}) *Conn {
 	cn.callResultsLocker = new(sync.Mutex)
 	cn.eventHandlersLocker = new(sync.RWMutex)
 	w.connectionsLocker.Lock()
-	defer w.connectionsLocker.Unlock()
 	w.connections[cn.id] = cn
+	w.connectionsLocker.Unlock()
 
 	return cn
 }
 
 func (w *Wango) getConnection(id string) (*Conn, error) {
 	w.connectionsLocker.RLock()
-	defer w.connectionsLocker.RUnlock()
 	cn, ok := w.connections[id]
+	w.connectionsLocker.RUnlock()
 	if !ok {
 		return nil, errors.New("NOT FOUND")
 	}
@@ -743,7 +747,7 @@ func (w *Wango) deleteConnection(c *Conn) {
 	delete(w.connections, c.id)
 	w.connectionsLocker.Unlock()
 
-	c.subRequests.closeRequests()
+	go c.subRequests.closeRequests()
 
 	w.subscribersLocker.Lock()
 	for _, subscribers := range w.subscribers {
