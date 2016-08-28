@@ -580,11 +580,6 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			if prop.Store == "" {
 				return errors.New("Store not provided for ref type in prop: '" + pName + "'")
 			}
-			if prop.PopulateIn != "" {
-				if _, ok := m.Props[prop.PopulateIn]; ok {
-					return errors.New("PopulateIn points to existing prop in ref prop: '" + pName + "'")
-				}
-			}
 			props[pName] = prop
 		case PropRefList:
 			prop.clearStringParams()
@@ -597,11 +592,6 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			}
 			if prop.Store == "" {
 				return errors.New("Store not provided for refList type in prop: '" + pName + "'")
-			}
-			if prop.PopulateIn != "" {
-				if _, ok := m.Props[prop.PopulateIn]; ok {
-					return errors.New("PopulateIn points to existing prop in refList prop: '" + pName + "'")
-				}
 			}
 			props[pName] = prop
 		case PropVirtual:
