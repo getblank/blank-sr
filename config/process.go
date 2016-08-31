@@ -5,13 +5,10 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"reflect"
 	"regexp"
 	"sort"
-	"strings"
 	"time"
 
-	"github.com/getblank/blank-sr/bdb"
 	"github.com/getblank/blank-sr/utils/array"
 
 	log "github.com/Sirupsen/logrus"
@@ -209,22 +206,8 @@ func validateConfig(conf map[string]Store) {
 		} else {
 			log.Error("Invalid Store", store, o)
 		}
-
-		o.checkPropsRequiredConditions()
-
-		// checking for httpApi enabled
-		if o.HTTPApi {
-			apiPropsStoreOptions = append(apiPropsStoreOptions, bdb.M{"label": o.Store, "value": o.Store})
-		}
-	}
-	if len(apiPropsStoreOptions) > 0 {
-		apiPropsStoreProp.Options = apiPropsStoreOptions
-		apiConfig.Props["keys"].Props["store"] = apiPropsStoreProp
-		_conf[ApiKeysBucket] = apiConfig
 	}
 
-	// Place to save conf in DB
-	DB.DeleteBucket(bucket)
 	config = map[string]Store{}
 ConfLoop:
 	for storeName := range _conf {
@@ -280,11 +263,6 @@ ConfLoop:
 						store.LoadDefaultIntoProp(_pName, _prop)
 					}
 				}
-			}
-
-			err := DB.Save(bucket, storeName, store)
-			if err != nil {
-				log.Error("Error when saving store in conf", err.Error())
 			}
 		}
 
@@ -651,39 +629,6 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 	return nil
 }
 
-func (m *Store) checkPropsRequiredConditions() {
-	for k, v := range m.Props {
-		v.createRequired()
-		m.Props[k] = v
-	}
-}
-
-func (p *Prop) createRequired() {
-	if p.Required == nil {
-		return
-	}
-
-	if r, ok := p.Required.(bool); ok {
-		p.requiredBool = r
-		return
-	}
-
-	return
-
-	encoded, err := json.Marshal(p.Required)
-	if err != nil {
-		log.Error("Can't marshal required", p.Required, err.Error())
-		return
-	}
-	var required []*Condition
-	err = json.Unmarshal(encoded, &required)
-	if err != nil {
-		log.Error("Can't unmarshal required", string(encoded), err.Error())
-		return
-	}
-	p.requiredConditions = required
-}
-
 func (p *Prop) checkDefaultFloat() (float64, bool) {
 	_def, ok := p.Default.(float64)
 	if !ok {
@@ -1040,163 +985,6 @@ func mergeProps(from, to *Prop) {
 		if vTo, ok := to.Props[k]; ok {
 			mergeProps(&vFrom, &vTo)
 			to.Props[k] = vTo
-		}
-	}
-}
-
-func (m *Store) LoadDefaultValues(data bdb.M) {
-	for k, v := range m.Props {
-		if v.Default == nil {
-			continue
-		}
-		_v, ok := data[k]
-		if !ok || _v == nil {
-			data[k] = v.Default
-		} else {
-			kind := reflect.TypeOf(_v).Kind()
-			switch kind {
-			case reflect.Array, reflect.Slice, reflect.Map, reflect.Interface:
-				if reflect.ValueOf(_v).IsNil() {
-					data[k] = v.Default
-				}
-			}
-		}
-	}
-}
-
-func (m *Store) preparePartialFlags() {
-	m.PartialProps = []string{}
-	if len(m.TableColumns) > 0 {
-		for _, v := range m.TableColumns {
-			switch v.(type) {
-			case string:
-				prop := v.(string)
-				if _, ok := m.Props[prop]; ok || strings.Contains(prop, ".") {
-					m.PartialProps = append(m.PartialProps, prop)
-				}
-			default:
-				columnDesc, ok := v.(map[string]interface{})
-				if ok {
-					prop, ok := columnDesc["prop"].(string)
-					if ok {
-						if _, ok := m.Props[prop]; ok || strings.Contains(prop, ".") {
-							m.PartialProps = append(m.PartialProps, prop)
-						}
-					}
-				}
-			}
-		}
-	}
-	if m.Type == ObjProcess {
-		if array.InArrayString(m.PartialProps, "_state") == -1 {
-			m.PartialProps = append(m.PartialProps, "_state")
-		}
-	}
-	if m.OrderBy != "" {
-		if array.InArrayString(m.PartialProps, m.OrderBy) == -1 {
-			m.PartialProps = append(m.PartialProps, m.OrderBy)
-		}
-	}
-	if m.Type == ObjNotification {
-		for k := range m.Props {
-			if array.InArrayString(m.PartialProps, k) == -1 {
-				m.PartialProps = append(m.PartialProps, k)
-			}
-		}
-	}
-	if match := mustacheRgx.FindAllStringSubmatch(m.HTML, -1); len(match) > 0 {
-		for _, str := range match {
-			if subMatch := handleBarseRgx.FindAllStringSubmatch(str[1], -1); len(subMatch) > 0 && len(subMatch[0]) > 2 {
-				var prop string
-				if subMatch[0][2] == "" {
-					prop = subMatch[0][1]
-				} else {
-					prop = subMatch[0][2]
-				}
-				if array.InArrayString(m.PartialProps, prop) == -1 {
-					if _, ok := m.Props[prop]; ok || strings.Contains(prop, ".") {
-						m.PartialProps = append(m.PartialProps, prop)
-					}
-				}
-			}
-		}
-	}
-	headerTemplateProps := itemPropsRgx.FindAllStringSubmatch(m.HeaderTemplate, -1)
-	for _, prop := range headerTemplateProps {
-		if array.InArrayString(m.PartialProps, prop[1]) == -1 {
-			m.PartialProps = append(m.PartialProps, prop[1])
-		}
-	}
-	if array.InArrayString(m.PartialProps, m.HeaderProperty) == -1 {
-		m.PartialProps = append(m.PartialProps, m.HeaderProperty)
-	}
-	for _, v := range m.Labels {
-		if v.ShowInList > 0 {
-			labelProps := itemPropsRgx.FindAllStringSubmatch(v.Text, -1)
-			for _, prop := range labelProps {
-				if array.InArrayString(m.PartialProps, prop[1]) == -1 {
-					m.PartialProps = append(m.PartialProps, prop[1])
-				}
-			}
-			labelProps = itemPropsRgx.FindAllStringSubmatch(v.Icon, -1)
-			for _, prop := range labelProps {
-				if array.InArrayString(m.PartialProps, prop[1]) == -1 {
-					m.PartialProps = append(m.PartialProps, prop[1])
-				}
-			}
-			labelProps = itemPropsRgx.FindAllStringSubmatch(v.Color, -1)
-			for _, prop := range labelProps {
-				if array.InArrayString(m.PartialProps, prop[1]) == -1 {
-					m.PartialProps = append(m.PartialProps, prop[1])
-				}
-			}
-			labelProps = itemPropsRgx.FindAllStringSubmatch(v.Hidden, -1)
-			for _, prop := range labelProps {
-				if array.InArrayString(m.PartialProps, prop[1]) == -1 {
-					m.PartialProps = append(m.PartialProps, prop[1])
-				}
-			}
-		}
-	}
-	for _, v := range m.PartialProps {
-		if p, ok := m.Props[v]; ok {
-			if p.Type == PropVirtual {
-				m.PartialVirtual = true
-				if !m.PartialPopulate {
-					virtualScriptProps := itemPropsRgx.FindAllStringSubmatch(p.load, -1)
-					for _, prop := range virtualScriptProps {
-						if _, ok := m.Props[prop[1]]; !ok {
-							m.PartialPopulate = true
-							break
-						}
-					}
-				}
-			}
-		} else {
-			m.PartialPopulate = true
-		}
-	}
-}
-
-func (m *Store) prepareI18nForUser(u User) {
-	if u.GetLanguage() != "" {
-		if _locale, ok := m.I18n[u.GetLanguage()]; ok {
-			if locale, ok := _locale.(map[string]interface{}); ok {
-				m.I18n = locale
-				return
-			}
-		}
-	}
-	if _locale, ok := m.I18n[CommonSettings.DefaultLocale]; ok {
-		if locale, ok := _locale.(map[string]interface{}); ok {
-			m.I18n = locale
-			return
-		}
-	}
-	if _locale, ok := m.I18n["en"]; ok {
-		if locale, ok := _locale.(map[string]interface{}); ok {
-			m.I18n = locale
-			return
 		}
 	}
 }

@@ -19,7 +19,7 @@ func registryHandler(c *wango.Conn, uri string, args ...interface{}) (interface{
 }
 
 func configHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	conf := config.GetAllStoreObjectsFromDb()
+	conf := config.Get()
 	return conf, nil
 }
 
