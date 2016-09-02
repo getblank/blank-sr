@@ -252,6 +252,7 @@ ConfLoop:
 				}
 			case ObjNotification:
 				if defaultNotification, ok := _conf[DefaultNotification]; ok {
+					store.mergeAccess(&defaultNotification)
 					for _pName, _prop := range defaultNotification.Props {
 						store.LoadDefaultIntoProp(_pName, _prop)
 					}
@@ -784,7 +785,7 @@ func (m *Store) LoadDefaultIntoProp(name string, p Prop) {
 }
 
 func (m *Store) mergeAccess(defaultStore *Store) {
-	if m.Access == nil {
+	if len(m.Access) == 0 && len(defaultStore.Access) > 0 {
 		for i := range defaultStore.Access {
 			m.Access = append(m.Access, defaultStore.Access[i])
 		}
