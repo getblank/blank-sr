@@ -143,7 +143,7 @@ type Store struct {
 	Filters            map[string]Filter      `json:"filters" ws:"yes"`                      // Перечень фильтров сторы
 	ObjectLifeCycle    Hooks                  `json:"objectLifeCycle,omitempty"`             // Хуки на события жизненного цикла объекта
 	StoreLifeCycle     Hooks                  `json:"storeLifeCycle,omitempty"`              // Хуки на события жизненного цикла сторы
-	FormGroupsOrder    []string               `json:"formGroupsOrder,omitempty" ws:"yes"`    // Порядок групп свойств на форме по-умолчанию
+	FormGroups         []string               `json:"formGroups,omitempty" ws:"yes"`         // Порядок групп свойств на форме по-умолчанию
 	FormTabs           []interface{}          `json:"formTabs" ws:"yes"`                     // Описание и порядок страниц на форме
 	States             map[string]State       `json:"states,omitempty"`                      // Только для типа "process". Список возможных состояний
 	Actions            []Action               `json:"actions,omitempty"`                     // Перечень действий над объектом

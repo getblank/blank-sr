@@ -846,8 +846,8 @@ func mergeModels(from, to *Store) {
 	if from.NavGroup != "" {
 		to.NavGroup = from.NavGroup
 	}
-	if from.FormGroupsOrder != nil {
-		to.FormGroupsOrder = from.FormGroupsOrder
+	if from.FormGroups != nil {
+		to.FormGroups = from.FormGroups
 	}
 	if len(from.I18n) > 0 {
 		mergo.MergeWithOverwrite(&to.I18n, from.I18n)
