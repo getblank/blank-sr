@@ -49,7 +49,7 @@ const (
 	PropObjectList     = "objectList"
 	PropVirtualRefList = "virtualRefList"
 	PropComments       = "comments"
-	PropDynamic        = "dynamic"
+	PropAny            = "any"
 	PropAction         = "action"
 	PropWidget         = "widget"
 	PropFile           = "file"

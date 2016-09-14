@@ -465,7 +465,7 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 		switch prop.Type {
 		case PropWidget, PropAction, PropFile, PropFileList, PropPassword:
 			continue
-		case PropDynamic:
+		case PropAny:
 			continue
 		case PropInt:
 			prop.clearStringParams()
