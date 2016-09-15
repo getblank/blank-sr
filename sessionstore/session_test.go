@@ -11,6 +11,7 @@ func TestSession(t *testing.T) {
 	g.Describe("Session Store", func() {
 		g.Before(func() {
 			db.DeleteBucket(bucket)
+			Init()
 		})
 		g.Describe("#New", func() {
 			g.It("User id must equals provided", func() {
