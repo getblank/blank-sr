@@ -115,6 +115,7 @@ func start() {
 	mux.HandleFunc("/config", postConfigHandler)
 	mux.HandleFunc("/lib/", libHandler)
 	mux.HandleFunc("/assets/", assetsHandler)
+	mux.HandleFunc("/public-key", publicKeyHandler)
 
 	wamp.RegisterSubHandler("registry", registryHandler, nil, nil)
 	wamp.RegisterSubHandler("config", configHandler, nil, nil)
@@ -333,6 +334,16 @@ func postLibHandler(fileName string, rw http.ResponseWriter, request *http.Reque
 	log.Infof("new %s file created. Written %v bytes", fileName, written)
 	wamp.Publish("config", config.Get())
 	return nil
+}
+
+func publicKeyHandler(rw http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("Only GET request is allowed"))
+		return
+	}
+	rw.WriteHeader(http.StatusOK)
+	rw.Write(sessionstore.PublicKeyBytes)
 }
 
 func assetsHandler(rw http.ResponseWriter, request *http.Request) {

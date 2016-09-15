@@ -1,11 +1,18 @@
 package sessionstore
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
+	"io/ioutil"
+	"os"
 	"sync"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/getblank/blank-sr/bdb"
 	"github.com/getblank/blank-sr/berror"
 	"github.com/getblank/uuid"
@@ -19,16 +26,25 @@ var (
 	sessionUpdateHandlers = []func(*Session){}
 	sessionDeleteHandlers = []func(*Session){}
 	db                    = bdb.DB{}
+
+	publicKey  *rsa.PublicKey
+	privateKey *rsa.PrivateKey
 )
+
+// PublicKeyBytes holds PEM RSA Key
+var PublicKeyBytes []byte
+
+const keysDir = "keys"
 
 // Session represents user session in Blank
 type Session struct {
 	APIKey      string    `json:"apiKey"`
+	AccessToken string    `json:"access_token,omitempty"`
 	UserID      string    `json:"userId"`
 	Connections []*Conn   `json:"connections"`
 	LastRequest time.Time `json:"lastRequest"`
+	TTL         time.Time `json:"ttl"`
 	V           int       `json:"__v"`
-	ttl         time.Duration
 	sync.RWMutex
 }
 
@@ -40,38 +56,51 @@ type Conn struct {
 
 // Init is the entrypoint of sessionstore
 func Init() {
+	initRSAKeys()
+
 	loadSessions()
 	go ttlWatcher()
 }
 
 // New created new user session. Optional bool param for creating session with 1 minute ttl
-func New(userID string, tmp ...bool) *Session {
+func New(userID string) *Session {
+	sessionID := uuid.NewV4()
+	now := time.Now()
+	ttl := now.Add(ttl)
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss":       "Blank ltd",
+		"iat":       now.Unix(),
+		"exp":       ttl.Unix(),
+		"userId":    userID,
+		"sessionId": sessionID,
+	})
+
+	tokenString, err := token.SignedString(privateKey)
+	if err != nil {
+		log.Fatal("Can't sign JWT")
+	}
+
 	s := &Session{
-		uuid.NewV4(),
-		userID,
-		[]*Conn{},
-		time.Now(),
-		0,
-		0,
-		sync.RWMutex{},
+		APIKey:      sessionID,
+		AccessToken: tokenString,
+		UserID:      userID,
+		Connections: []*Conn{},
+		TTL:         ttl,
 	}
-	if len(tmp) > 0 && tmp[0] {
-		s.ttl = time.Minute
-	}
-	s.LastRequest = time.Now()
 	locker.Lock()
 	defer locker.Unlock()
 	sessions[s.APIKey] = s
-	sessionUpdated(s, true)
+	sessionUpdated(s)
 	return s
 }
 
+// DeleteAllConnections deletes all connections from all sessions
 func DeleteAllConnections() {
 	locker.Lock()
 	defer locker.Unlock()
 	for _, s := range sessions {
 		s.Connections = []*Conn{}
-		s.Save(true)
+		s.Save()
 	}
 }
 
@@ -188,11 +217,8 @@ func (s *Session) Delete() {
 	sessionDeleted(s)
 }
 
-// Save saves session in store and update LastRequest prop in it.
-func (s *Session) Save(noLastRequestUpdate bool) {
-	if !noLastRequestUpdate {
-		s.LastRequest = time.Now()
-	}
+// Save saves session in store
+func (s *Session) Save() {
 	s = copySession(s)
 	err := db.Save(bucket, s.APIKey, s)
 	if err != nil {
@@ -229,15 +255,6 @@ func getByAPIKey(APIKey string) (s *Session, err error) {
 	if !ok {
 		return s, berror.DbNotFound
 	}
-	if s.ttl > 0 {
-		s.Lock()
-		defer s.Unlock()
-		s.ttl = 0
-		s.APIKey = uuid.NewV4()
-		sessions[s.APIKey] = s
-		delete(sessions, APIKey)
-		sessionUpdated(s)
-	}
 	return s, err
 }
 
@@ -248,6 +265,8 @@ func getByUserID(id string) (s *Session, err error) {
 		if v.UserID == id {
 			v.Lock()
 			defer v.Unlock()
+			s := copySession(v)
+			s.AccessToken = ""
 			return copySession(v), nil
 		}
 	}
@@ -259,7 +278,7 @@ func clearRottenSessions() {
 	defer locker.Unlock()
 	now := time.Now()
 	for _, s := range sessions {
-		if now.Sub(s.LastRequest) > ttl || (s.ttl > 0 && now.Sub(s.LastRequest) > s.ttl) {
+		if s.TTL.Before(now) {
 			err := db.Delete(bucket, s.APIKey)
 			if err != nil {
 				log.Error("Can't delete session", s, err.Error())
@@ -284,7 +303,7 @@ func loadSessions() {
 			log.Error("Can't unmarshal session", _s, err.Error())
 			continue
 		}
-		if now.Sub(s.LastRequest) > ttl {
+		if s.TTL.Before(now) {
 			err := db.Delete(bucket, s.APIKey)
 			if err != nil {
 				log.Error("Can't delete session when Init()", s, err.Error())
@@ -292,7 +311,7 @@ func loadSessions() {
 			continue
 		}
 		s.Connections = []*Conn{}
-		s.Save(true)
+		s.Save()
 		sessions[s.APIKey] = &s
 	}
 }
@@ -310,7 +329,7 @@ func sessionUpdated(s *Session, userUpdated ...bool) {
 	if userUpdated != nil {
 		b = userUpdated[0]
 	}
-	s.Save(b)
+	s.Save()
 	_s := copySession(s)
 	if !b {
 	}
@@ -340,4 +359,81 @@ func copySession(s *Session) *Session {
 		_s.Connections[i] = &c
 	}
 	return &_s
+}
+
+func initRSAKeys() {
+	if public, private, err := loadRSAKeys(); err == nil {
+		PublicKeyBytes = public
+		var err error
+		publicKey, err = jwt.ParseRSAPublicKeyFromPEM(public)
+		if err != nil {
+			log.Fatal("Invalid public RSA key", err)
+			panic(err)
+		}
+		privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(private)
+		if err != nil {
+			log.Fatal("Invalid private RSA key", err)
+			panic(err)
+		}
+		return
+	}
+	stat, err := os.Stat(keysDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			os.Mkdir(keysDir, 0744)
+		} else {
+			log.Fatal("Can't access keys dir", err)
+			panic(err)
+		}
+	} else {
+		if !stat.IsDir() {
+			log.Fatal("keys dir is not a dir")
+			panic("keys dir is not a dir")
+		}
+	}
+	generateRSAKeys()
+}
+
+func loadRSAKeys() (public, private []byte, err error) {
+	public, err = ioutil.ReadFile(keysDir + "/jwt.pub")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	private, err = ioutil.ReadFile(keysDir + "/jwt.key")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return
+}
+
+func generateRSAKeys() {
+	k, err := rsa.GenerateKey(rand.Reader, 2048)
+	pub, err := x509.MarshalPKIXPublicKey(k.Public())
+	pemPrivate := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(k),
+		},
+	)
+	pemPublic := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: pub,
+	})
+
+	err = ioutil.WriteFile(keysDir+"/jwt.pub", pemPublic, 0644)
+	if err != nil {
+		log.Fatal("Can't save public RSA key", err)
+		panic(err)
+
+	}
+	err = ioutil.WriteFile(keysDir+"/jwt.key", pemPrivate, 0644)
+	if err != nil {
+		log.Fatal("Can't save private RSA key", err)
+		panic(err)
+
+	}
+
+	PublicKeyBytes = pemPublic
 }

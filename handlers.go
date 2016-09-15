@@ -89,12 +89,12 @@ func newSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interfac
 	if args == nil {
 		return nil, ErrInvalidArguments
 	}
-	userId, ok := args[0].(string)
+	userID, ok := args[0].(string)
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
 
-	return sessionstore.New(userId).APIKey, nil
+	return sessionstore.New(userID).AccessToken, nil
 }
 
 func checkSessionByAPIKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
