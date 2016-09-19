@@ -243,7 +243,8 @@ type Prop struct {
 	WidgetID           string          `json:"widgetId,omitempty" ws:"yes"`           // Widget identifier
 	Utc                bool            `json:"utc,omitempty" ws:"yes"`                // Работа с датами в utc - игнорирует локальное время. Только для типа date
 	Format             string          `json:"format,omitempty" ws:"yes"`             // Формат отображения. Только для типа date
-	ExtraQuery         interface{}     `json:"extraQuery,omitempty"`                  // Запрос для монги
+	ExtraQuery         interface{}     `json:"extraQuery,omitempty"`                  // Доп Запрос для монги
+	Query              interface{}     `json:"query,omitempty"`                       // Запрос для монги
 }
 
 type Filter struct {

@@ -612,10 +612,10 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearObjectParams()
 			prop.Default = nil
 			if prop.Store == "" {
-				return errors.New("Store not provided for virtualRefList type in prop: '" + pName + "'")
+				return errors.New("Store is not provided for virtualRefList type in prop: '" + pName + "'")
 			}
-			if prop.ForeignKey == "" {
-				return errors.New("Foregn key not provided for virtualRefList type in prop: '" + pName + "'")
+			if prop.ForeignKey == "" && prop.Query == nil {
+				return errors.New("Foregn key or query is not provided for virtualRefList type in prop: '" + pName + "'")
 			}
 			props[pName] = prop
 		case PropComments:
@@ -686,6 +686,7 @@ func (p *Prop) clearRefParams() {
 	p.PopulateIn = ""
 	p.OppositeProp = ""
 	p.ExtraQuery = nil
+	p.Query = nil
 }
 
 func (p *Prop) clearStringParams() {
