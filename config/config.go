@@ -226,7 +226,7 @@ type Prop struct {
 	load               string          // Копия скрипта лоада
 	Store              string          `json:"store,omitempty"`                       // Имя сторы для поля типа ref
 	ForeignKey         string          `json:"foreignKey,omitempty"`                  // Имя пропы в референсной сторе для поля типа virtualRefList
-	PopulateIn         string          `json:"populateIn,omitempty"`                  // Куда складывать популизованные данные. Если значения нет, то популяция не требуется
+	PopulateIn         interface{}     `json:"populateIn,omitempty"`                  // Куда складывать популизованные данные. Если значения нет, то популяция не требуется
 	Configurable       bool            `json:"configurable,omitempty"`                // Только для объекта _default. Если true, то админ может переопределить настроки поля
 	Hidden             interface{}     `json:"hidden,omitempty" ws:"yes"`             // Hidden conditions, JavaScript expression
 	Disabled           interface{}     `json:"disabled,omitempty" ws:"yes"`           // Disabled conditions, JavaScript expression
