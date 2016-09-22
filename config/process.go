@@ -472,9 +472,12 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearRefParams()
 			prop.clearObjectParams()
 			if prop.Default != nil {
-				_, ok := prop.checkDefaultInt()
-				if !ok {
-					return errors.New("Wrong default int value in prop: '" + pName + "'")
+				if d, ok := prop.Default.(map[string]interface{}); ok {
+					if d["$expression"] == nil {
+						return errors.New("Invalid default int value in prop: '" + pName + "'")
+					}
+				} else if _, ok := prop.checkDefaultInt(); !ok {
+					return errors.New("Invalid default int value in prop: '" + pName + "'")
 				}
 			}
 			_, _, ok := prop.checkMinMaxParams()
@@ -494,9 +497,12 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearRefParams()
 			prop.clearObjectParams()
 			if prop.Default != nil {
-				_, ok := prop.checkDefaultFloat()
-				if !ok {
-					return errors.New("Wrong default float value in prop: '" + pName + "'")
+				if d, ok := prop.Default.(map[string]interface{}); ok {
+					if d["$expression"] == nil {
+						return errors.New("Invalid default float value in prop: '" + pName + "'")
+					}
+				} else if _, ok := prop.checkDefaultFloat(); !ok {
+					return errors.New("Invalid default float value in prop: '" + pName + "'")
 				}
 			}
 			_, _, ok := prop.checkMinMaxParams()
@@ -510,9 +516,12 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearNumberParams()
 			prop.clearObjectParams()
 			if prop.Default != nil {
-				_, ok := prop.Default.(bool)
-				if !ok {
-					return errors.New("Wrong default bool value in prop: '" + pName + "'")
+				if d, ok := prop.Default.(map[string]interface{}); ok {
+					if d["$expression"] == nil {
+						return errors.New("Invalid default bool value in prop: '" + pName + "'")
+					}
+				} else if _, ok := prop.Default.(bool); !ok {
+					return errors.New("Invalid default bool value in prop: '" + pName + "'")
 				}
 			}
 			props[pName] = prop
@@ -521,9 +530,12 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearRefParams()
 			prop.clearObjectParams()
 			if prop.Default != nil {
-				_, ok := prop.Default.(string)
-				if !ok {
-					return errors.New("Wrong default string value in prop: '" + pName + "'")
+				if d, ok := prop.Default.(map[string]interface{}); ok {
+					if d["$expression"] == nil {
+						return errors.New("Invalid default string value in prop: '" + pName + "'")
+					}
+				} else if _, ok := prop.Default.(string); !ok {
+					return errors.New("Invalid default string value in prop: '" + pName + "'")
 				}
 			}
 			if prop.MinLength < 0 || prop.MaxLength < 0 {
@@ -540,9 +552,12 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearRefParams()
 			prop.clearObjectParams()
 			if prop.Default != nil {
-				_, ok := prop.Default.(time.Time)
-				if !ok {
-					return errors.New("Wrong default date in prop: '" + pName + "'")
+				if d, ok := prop.Default.(map[string]interface{}); ok {
+					if d["$expression"] == nil {
+						return errors.New("Invalid default date value in prop: '" + pName + "'")
+					}
+				} else if _, ok := prop.Default.(time.Time); !ok {
+					return errors.New("Invalid default date in prop: '" + pName + "'")
 				}
 			}
 			props[pName] = prop
@@ -551,8 +566,12 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearNumberParams()
 			prop.clearObjectParams()
 			if prop.Default != nil {
-				if _, ok := prop.Default.(string); !ok {
-					return errors.New("Wrong default value for ref type in prop: '" + pName + "'")
+				if d, ok := prop.Default.(map[string]interface{}); ok {
+					if d["$expression"] == nil {
+						return errors.New("Invalid default ref value in prop: '" + pName + "'")
+					}
+				} else if _, ok := prop.Default.(string); !ok {
+					return errors.New("Invalid default value for ref type in prop: '" + pName + "'")
 				}
 			}
 			prop.Default = nil
@@ -565,8 +584,12 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearNumberParams()
 			prop.clearObjectParams()
 			if prop.Default != nil {
-				if _, ok := prop.Default.([]interface{}); !ok {
-					return errors.New("Wrong default value for refList type in prop: '" + pName + "'")
+				if d, ok := prop.Default.(map[string]interface{}); ok {
+					if d["$expression"] == nil {
+						return errors.New("Invalid default refList value in prop: '" + pName + "'")
+					}
+				} else if _, ok := prop.Default.([]interface{}); !ok {
+					return errors.New("Invalid default value for refList type in prop: '" + pName + "'")
 				}
 			}
 			if prop.Store == "" {
