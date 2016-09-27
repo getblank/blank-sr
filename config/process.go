@@ -19,7 +19,7 @@ var (
 	mustacheRgx    = regexp.MustCompile(`(?U)({{.+}})`)
 	handleBarseRgx = regexp.MustCompile(`{?{{\s*(\w*)\s?(\w*)?\s?.*}}`)
 	itemPropsRgx   = regexp.MustCompile(`\$item.([A-Za-z][A-Za-z0-9]*)`)
-	actionIdRgx    = regexp.MustCompile(`^[A-Za-z_]+[A-Za-z0-9_]*$`)
+	actionIDRgx    = regexp.MustCompile(`^[A-Za-z_]+[A-Za-z0-9_]*$`)
 
 	storeUpdateHandlers = []func(map[string]Store){}
 )
@@ -341,7 +341,7 @@ func (m *Store) compileActions() (err error) {
 	var actionIds = []string{}
 	if m.Actions != nil && len(m.Actions) > 0 {
 		for i, a := range m.Actions {
-			if !actionIdRgx.MatchString(a.ID) {
+			if !actionIDRgx.MatchString(a.ID) {
 				return errors.New("Invalid action name. Must start with a letter or underscore and contains only letters, digits or underscores")
 			}
 			if a.Type == "client" {
@@ -396,7 +396,7 @@ func (m *Store) compileActions() (err error) {
 	sort.Strings(actionIds)
 	if m.StoreActions != nil && len(m.StoreActions) > 0 {
 		for _, a := range m.StoreActions {
-			if !actionIdRgx.MatchString(a.ID) {
+			if !actionIDRgx.MatchString(a.ID) {
 				return errors.New("Invalid action name. Must start with a letter or underscore and contains only letters, digits or underscores")
 			}
 			if len(actionIds) > 0 && array.IndexOfSortedStrings(actionIds, a.ID) != -1 {
