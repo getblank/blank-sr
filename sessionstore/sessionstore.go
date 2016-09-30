@@ -15,12 +15,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/getblank/blank-sr/bdb"
 	"github.com/getblank/blank-sr/berror"
+	"github.com/getblank/blank-sr/config"
 	"github.com/getblank/uuid"
 )
 
 var (
 	bucket                = "__sessions"
-	ttl                   = time.Hour * 24
 	sessions              = map[string]*Session{}
 	locker                sync.RWMutex
 	sessionUpdateHandlers = []func(*Session){}
@@ -62,11 +62,16 @@ func Init() {
 	go ttlWatcher()
 }
 
-// New created new user session. Optional bool param for creating session with 1 minute ttl
+// New created new user session.
 func New(userID string) *Session {
 	sessionID := uuid.NewV4()
 	now := time.Now()
-	ttl := now.Add(ttl)
+	jwtTTL, err := config.JWTTTL()
+	if err != nil {
+		log.WithError(err).Error("Can't get JWT TTL. Will setup 24 hours")
+		jwtTTL = time.Hour * 24
+	}
+	ttl := now.Add(jwtTTL)
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"iss":       "Blank ltd",
 		"iat":       now.Unix(),

@@ -80,6 +80,8 @@ func readConfig(confFile string) {
 }
 
 func loadCommonSettings(conf map[string]Store) {
+	confLocker.Lock()
+	defer confLocker.Unlock()
 	cs, ok := conf[ObjCommonSettings]
 	if !ok {
 		log.Warn("No common settings in config")
@@ -89,7 +91,7 @@ func loadCommonSettings(conf map[string]Store) {
 	if err != nil {
 		log.Error("Can't marshal common settings", cs.Entries, err.Error())
 	} else {
-		err = json.Unmarshal(encoded, CommonSettings)
+		err = json.Unmarshal(encoded, commonSettings)
 		if err != nil {
 			log.Error("Can't unmarshal common settings", string(encoded), err.Error())
 		}
@@ -99,13 +101,15 @@ func loadCommonSettings(conf map[string]Store) {
 		log.Error("Can't marshal common i18n", cs.I18n, err.Error())
 		return
 	}
-	err = json.Unmarshal(encoded, &CommonSettings.I18n)
+	err = json.Unmarshal(encoded, &commonSettings.I18n)
 	if err != nil {
 		log.Error("Can't unmarshal common i18n", string(encoded), err.Error())
 	}
 }
 
 func loadServerSettings(conf map[string]Store) {
+	confLocker.Lock()
+	defer confLocker.Unlock()
 	ss, ok := conf[ObjServerSettings]
 	if !ok {
 		log.Warn("No server settings in config")
@@ -116,10 +120,11 @@ func loadServerSettings(conf map[string]Store) {
 		log.Error("Can't marshal server settings", ss.Entries, err.Error())
 		return
 	}
-	err = json.Unmarshal(encoded, ServerSettings)
+	err = json.Unmarshal(encoded, serverSettings)
 	if err != nil {
 		log.Error("Can't unmarshal server settings", string(encoded), err.Error())
 	}
+	serverSettings.jwtTTL = nil
 }
 
 func validateConfig(conf map[string]Store) {

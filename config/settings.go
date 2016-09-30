@@ -1,14 +1,51 @@
 package config
 
-import "github.com/getblank/blank-sr/bdb"
+import (
+	"errors"
+	"strconv"
+	"strings"
+	"time"
 
-var (
-	CommonSettings *CommonSettingsStructure
-	ServerSettings *ServerSettingsStructure
-	ClientSettings bdb.M
+	"github.com/getblank/blank-sr/bdb"
 )
 
-type CommonSettingsStructure struct {
+var (
+	commonSettings *commonSettingsStruct
+	serverSettings *serverSettingsStruct
+	clientSettings bdb.M
+
+	// ErrInvalidTTLFormat represents ttl format error
+	ErrInvalidTTLFormat = errors.New("invalid ttl in config")
+)
+
+// JWTTTL returns TTL for JWT tokens
+func JWTTTL() (time.Duration, error) {
+	confLocker.RLock()
+	defer confLocker.RUnlock()
+	if serverSettings.jwtTTL != nil {
+		return *serverSettings.jwtTTL, nil
+	}
+	ttlStrings := strings.Split(serverSettings.JWTTTL, ":")
+	if len(ttlStrings) == 0 {
+		return 0, ErrInvalidTTLFormat
+	}
+	hours, err := strconv.Atoi(ttlStrings[0])
+	if err != nil {
+		return 0, err
+	}
+	res := time.Hour * time.Duration(hours)
+	var minutes int
+	if len(ttlStrings) > 1 {
+		minutes, err = strconv.Atoi(ttlStrings[1])
+		if err != nil {
+			return 0, err
+		}
+		res = res + time.Minute*time.Duration(minutes)
+	}
+	return res, nil
+}
+
+type commonSettingsStruct struct {
 	UserActivation bool                   `json:"userActivation,omitempty"`
 	BaseURL        string                 `json:"baseUrl,omitempty"`
 	DefaultLocale  string                 `json:"defaultLocale,omitempty"`
@@ -16,7 +53,7 @@ type CommonSettingsStructure struct {
 	LessVars       map[string]interface{} `json:"lessVars,omitempty"`
 }
 
-type ServerSettingsStructure struct {
+type serverSettingsStruct struct {
 	RegisterTokenExpiration           string   `json:"registerTokenExpiration,omitempty"`
 	PasswordResetTokenExpiration      string   `json:"passwordResetTokenExpiration,omitempty"`
 	ActivationEmailTemplate           string   `json:"activationEmailTemplate,omitempty"`
@@ -28,15 +65,17 @@ type ServerSettingsStructure struct {
 	MaxLogSize                        int      `json:"maxLogSize,omitempty"`
 	Port                              string   `json:"port,omitempty"`
 	SSOOrigins                        []string `json:"ssoOrigins,omitempty"`
+	JWTTTL                            string   `json:"jwtTtl,omitempty"`
+	jwtTTL                            *time.Duration
 }
 
 func makeDefaultSettings() {
-	CommonSettings = &CommonSettingsStructure{
+	commonSettings = &commonSettingsStruct{
 		BaseURL:       "http://localhost:8080",
 		DefaultLocale: "en",
 		LessVars:      map[string]interface{}{},
 	}
-	ServerSettings = &ServerSettingsStructure{
+	serverSettings = &serverSettingsStruct{
 		RegisterTokenExpiration:           "0:60",
 		PasswordResetTokenExpiration:      "0:60",
 		ActivationEmailTemplate:           "./templates/activation-email.html",
@@ -47,5 +86,6 @@ func makeDefaultSettings() {
 		RegistrationSuccessEmailTemplate:  "./templates/registration-success-email.html",
 		MaxLogSize:                        1000,
 		Port:                              "3001",
+		JWTTTL:                            "24:00",
 	}
 }
