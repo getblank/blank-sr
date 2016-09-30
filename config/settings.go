@@ -22,6 +22,10 @@ var (
 func JWTTTL() (time.Duration, error) {
 	confLocker.RLock()
 	defer confLocker.RUnlock()
+	// For testing purpose
+	if serverSettings == nil {
+		return time.Hour * 24, nil
+	}
 	if serverSettings.jwtTTL != nil {
 		return *serverSettings.jwtTTL, nil
 	}
@@ -42,6 +46,7 @@ func JWTTTL() (time.Duration, error) {
 		}
 		res = res + time.Minute*time.Duration(minutes)
 	}
+	serverSettings.jwtTTL = &res
 	return res, nil
 }
 
