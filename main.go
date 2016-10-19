@@ -184,7 +184,7 @@ func start() {
 }
 
 func onSessionClose(c *wango.Conn) {
-	println("Disconnected", c.ID())
+	println("Disconnected client from SR", c.ID())
 	registry.Unregister(c.ID())
 	blankSync.UnlockForOwner(c.ID())
 }
