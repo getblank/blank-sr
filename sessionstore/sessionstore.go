@@ -353,17 +353,24 @@ func sessionDeleted(s *Session) {
 }
 
 func copySession(s *Session) *Session {
-	_s := *s
-	for i := range _s.Connections {
-		c := *_s.Connections[i]
-		subs := map[string]interface{}{}
-		for k, v := range c.Subscriptions {
-			subs[k] = v
-		}
-		c.Subscriptions = subs
-		_s.Connections[i] = &c
+	_s := &Session{
+		APIKey:      s.APIKey,
+		AccessToken: s.AccessToken,
+		UserID:      s.UserID,
+		Connections: make([]*Conn, len(s.Connections)),
+		LastRequest: s.LastRequest,
+		TTL:         s.TTL,
+		V:           s.V,
 	}
-	return &_s
+	for i := range _s.Connections {
+		c := &Conn{ConnID: s.Connections[i].ConnID}
+		c.Subscriptions = map[string]interface{}{}
+		for k, v := range s.Connections[i].Subscriptions {
+			c.Subscriptions[k] = v
+		}
+		_s.Connections[i] = c
+	}
+	return _s
 }
 
 func initRSAKeys() {
