@@ -2,19 +2,32 @@ language: go
 os:
   - linux
 go:
-  - 1.7
+  - 1.7.3
 script:
   - sudo apt-get install -qq upx
   - go test -v github.com/getblank/blank-sr/sessionstore
   - go test -v github.com/getblank/blank-sr/registry
   - go test -v github.com/getblank/blank-sr/sync
 after_success:
-  - go build -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
-  - upx --best blank-sr
-  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-linux/blank-sr
-  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/linux/blank-sr
+  - go build -o blank-sr-linux-amd64 -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
+  - upx --best blank-sr-linux-amd64
+  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr-linux-amd64 -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/linux/blank-sr
+  - if [[ ${TRAVIS_TAG} ]]; then
+    curl --ftp-create-dirs --data-binary -k -T ./blank-sr-linux-amd64 -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/${TRAVIS_TAG}/blank-sr-linux-amd64;
+    fi
 
-  - GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
-  # - upx --best blank-sr
-  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/$(date +%Y-%m-%d_%H:%M)-osx/blank-sr
-  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/osx/blank-sr
+  - GOOS=darwin GOARCH=amd64 go build -o blank-sr-darwin-amd64 -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
+  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr-darwin-amd64 -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/osx/blank-sr
+  - if [[ ${TRAVIS_TAG} ]]; then
+      curl --ftp-create-dirs --data-binary -k -T ./blank-sr-darwin-amd64 -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/${TRAVIS_TAG}/blank-sr-darwin-amd64;
+    fi
+
+deploy:
+  provider: releases
+  api_key: "$GITHUB_OAUTH_TOKEN"
+  file:
+    - blank-sr-linux-amd64
+    - blank-sr-darwin-amd64
+  skip_cleanup: true
+  on:
+    tags: true
