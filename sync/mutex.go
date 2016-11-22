@@ -19,6 +19,7 @@ type locker struct {
 
 // Lock create new locker for provided id if it is not exists or takes existing, then locks it
 func Lock(owner, id string) {
+	log.Debugf("mutex.Lock id: %s REQUEST for owner %s", id, owner)
 	mutexLocker.Lock()
 	m, ok := lockers[id]
 	if !ok {
@@ -34,14 +35,17 @@ func Lock(owner, id string) {
 	mutexLocker.Unlock()
 
 	m.lock()
+	log.Debugf("mutex.Lock id: %s LOCKED for owner %s", id, owner)
 }
 
 // Unlock takes existing locker from map and unlocks it
 func Unlock(owner, id string) {
+	log.Debugf("mutex.Unlock id: %s REQUEST for owner %s", id, owner)
 	mutexLocker.Lock()
 	defer mutexLocker.Unlock()
 	m, ok := lockers[id]
 	if !ok {
+		log.Debugf("mutex.Unlock id: %s NOT FOUND for owner %s", id, owner)
 		return
 	}
 	m.unlock()
@@ -59,10 +63,12 @@ func Unlock(owner, id string) {
 			delete(owners2Lockers, owner)
 		}
 	}
+	log.Debugf("mutex.Unlock id: %s UNLOCKED for owner %s", id, owner)
 }
 
 // UnlockForOwner unlocks all lockers locked by owner
 func UnlockForOwner(owner string) {
+	log.Debugf("mutex.UnlockForOwner REQUEST for owner %s", owner)
 	mutexLocker.Lock()
 	defer mutexLocker.Unlock()
 	if locks, ok := owners2Lockers[owner]; ok {
@@ -72,6 +78,7 @@ func UnlockForOwner(owner string) {
 		}
 		delete(owners2Lockers, owner)
 	}
+	log.Debugf("mutex.UnlockForOwner UNLOCKED ALL for owner %s", owner)
 }
 
 func (l *locker) lock() {
