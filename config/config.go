@@ -360,9 +360,10 @@ type Value struct {
 }
 
 type Task struct {
-	Schedule string `json:"schedule"`
-	Script   string `json:"script"`
-	ScriptId string `json:"-"`
+	AllowConcurrent bool   `json:"allowConcurrent,omitempty"`
+	Schedule        string `json:"schedule"`
+	Script          string `json:"script"`
+	ScriptId        string `json:"-"`
 }
 
 type Widget struct {
