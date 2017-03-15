@@ -289,6 +289,7 @@ type Action struct {
 	DynamicLabel          bool        `json:"dynamicLabel,omitempty"`        // If true, action lable renders on every item or user change
 	Hidden                interface{} `json:"hidden,omitempty"`              // Hidden conditions, JavaScript expression
 	HideInHeader          bool        `json:"hideInHeader"`                  // Hides action in item header
+	ShowInList            bool        `json:"showInList"`                    // Show action in items in list view
 	Icon                  string      `json:"icon" ws:"yes"`                 // Icon for label
 	Label                 string      `json:"label" ws:"yes"`                // Text for label, HandleBars template
 	Multi                 bool        `json:"multi"`                         // Enables action for multiple items !!!NOT IMPLEMENTED!!!
