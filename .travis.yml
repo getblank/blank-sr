@@ -2,7 +2,7 @@ language: go
 os:
   - linux
 go:
-  - 1.8
+  - 1.8.1
 script:
   - sudo apt-get install -qq upx
   - go test -v github.com/getblank/blank-sr/sessionstore
