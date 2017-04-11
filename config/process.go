@@ -9,7 +9,6 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/imdario/mergo"
 )
 
 var (
@@ -630,9 +629,6 @@ func (m *Store) mergeFilters(defaultStore *Store) {
 		if f.Placeholder == "" {
 			f.Placeholder = v.Placeholder
 		}
-		if len(f.Conditions) == 0 {
-			f.Conditions = v.Conditions
-		}
 		if len(f.SearchBy) == 0 {
 			f.SearchBy = v.SearchBy
 		}
@@ -652,156 +648,5 @@ func (m *Store) mergeFilters(defaultStore *Store) {
 			f.Multi = v.Multi
 		}
 		m.Filters[k] = f
-	}
-}
-
-func mergeModels(from, to *Store) {
-	if from.Filters != nil {
-		to.Filters = from.Filters
-	}
-	if from.NavGroup != "" {
-		to.NavGroup = from.NavGroup
-	}
-	if from.FormGroups != nil {
-		to.FormGroups = from.FormGroups
-	}
-	if len(from.I18n) > 0 {
-		mergo.MergeWithOverwrite(&to.I18n, from.I18n)
-	}
-	if len(from.Entries) > 0 {
-		mergo.MergeWithOverwrite(&to.Entries, from.Entries)
-	}
-	if from.NavOrder != 0 {
-		to.NavOrder = from.NavOrder
-	}
-	if from.Display != "" {
-		to.Display = from.Display
-	}
-	if from.Icon != "" {
-		to.Icon = from.Icon
-	}
-	if from.PrepareItemsScript != "" {
-		to.PrepareItemsScript = from.PrepareItemsScript
-	}
-	if len(from.Labels) > 0 {
-		to.Labels = from.Labels
-	}
-	if len(from.TableColumns) > 0 {
-		to.TableColumns = from.TableColumns
-	}
-	if from.OrderBy != "" {
-		to.OrderBy = from.OrderBy
-	}
-	if from.HTML != "" {
-		to.HTML = from.HTML
-	}
-	if from.Label != "" {
-		to.Label = from.Label
-	}
-	if from.NavLabel != "" {
-		to.NavLabel = from.NavLabel
-	}
-	if from.Template != "" {
-		to.Template = from.Template
-	}
-	if from.TemplateFile != "" {
-		to.TemplateFile = from.TemplateFile
-	}
-	if from.ListViewOnly != false {
-		to.ListViewOnly = from.ListViewOnly
-	}
-	if len(from.TableColumns) > 0 {
-		to.TableColumns = from.TableColumns
-	}
-	if len(from.Actions) > 0 {
-	FromActionsLoop:
-		for _, v := range from.Actions {
-			for tk, tv := range to.Actions {
-				if v.ID == tv.ID {
-					if v.Label != "" {
-						tv.Label = v.Label
-					}
-					to.Actions[tk] = tv
-					continue FromActionsLoop
-				}
-			}
-			to.Actions = append(to.Actions, v)
-		}
-	}
-	for k, vFrom := range from.Props {
-		if vTo, ok := to.Props[k]; ok {
-			mergeProps(&vFrom, &vTo)
-			to.Props[k] = vTo
-			continue
-		}
-		if to.Store == "_profile" {
-			switch vFrom.Type {
-			case PropVirtual, PropVirtualClient, PropAction:
-				to.Props[k] = vFrom
-			}
-		}
-	}
-}
-
-func mergeProps(from, to *Prop) {
-	if from.TableLink {
-		to.TableLink = from.TableLink
-	}
-	if from.FormGroup != "" {
-		to.FormGroup = from.FormGroup
-	}
-	if from.FormOrder != 0 {
-		to.FormOrder = from.FormOrder
-	}
-	if from.Display != "" {
-		to.Display = from.Display
-	}
-	if from.HTML != "" {
-		to.HTML = from.HTML
-	}
-	if from.DisplayWidth != 0 {
-		to.DisplayWidth = from.DisplayWidth
-	}
-	if from.Style != nil {
-		to.Style = from.Style
-	}
-	if from.Default != nil {
-		to.Default = from.Default
-	}
-	if from.Pattern != "" { //TODO: Must be compile
-		to.Pattern = from.Pattern
-	}
-	if from.Mask != "" {
-		to.Mask = from.Mask
-	}
-	if from.Placeholder != "" {
-		to.Placeholder = from.Placeholder
-	}
-	if from.MaxLength != 0 {
-		to.MaxLength = from.MaxLength
-	}
-	if from.MinLength != 0 {
-		to.MinLength = from.MinLength
-	}
-	if len(from.Options) > 0 {
-		to.Options = from.Options
-	}
-	if from.Hidden != nil {
-		to.Hidden = from.Hidden
-	}
-	if from.Disabled != nil {
-		to.Disabled = from.Disabled
-	}
-	if from.Required != nil {
-		to.Required = from.Required
-	}
-	if from.FormTab != "" {
-		to.FormTab = from.FormTab
-	}
-	for k, vFrom := range from.Props {
-		if vTo, ok := to.Props[k]; ok {
-			mergeProps(&vFrom, &vTo)
-			to.Props[k] = vTo
-		}
 	}
 }

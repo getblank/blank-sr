@@ -3,7 +3,6 @@
 package config
 
 import (
-	"regexp"
 	"sync"
 
 	"github.com/getblank/blank-sr/bdb"
@@ -173,57 +172,49 @@ type Store struct {
 	Template           string                 `json:"template,omitempty"`                    // Шаблон для передачи в свойство html
 	TemplateFile       string                 `json:"templateFile,omitempty"`                // Фвйл с шаблоном для передачи в свойство html
 	Indexes            []interface{}          `json:"indexes,omitempty"`                     // MongoDB indexes
-	PartialProps       []string               `json:"-"`                                     // Массив с полями, которые нужно выдать при запросе всех объектов. Заполняется из labels
-	PartialVirtual     bool                   `json:"-"`                                     // Флаг, означающий, что нужно заполнять виртуальные поля при выдаче всех объектов
-	PartialPopulate    bool                   `json:"-"`                                     // Флаг, означающий, что нужно  провести популяцию при выдаче всех объектов
 	Store              string                 `json:"store"`                                 // Имя сторы для хранения. Берётся из ключа мапы
 	Logging            bool                   `json:"logging,omitempty"`                     // Флаг указывающий на необходимость ведения журнала действий
 	HasVirtualProps    bool                   `json:"hasVirtualProps,omitempty"`             // Флаг указывающий наличие виртуальных полей в сторе
-	Proxies            []string               `json:"-"`                                     // Список прокси стор для базовой сторы, если имеются
 }
 
 type Prop struct {
-	Name               string          `json:"name"`                            // Название проперти
-	Label              string          `json:"label,omitempty" ws:"yes"`        // Вариации названий в браузере
-	Type               string          `json:"type"`                            // Допустимые варианты: int, float, bool, string, date, ref, virtual
-	OppositeProp       string          `json:"oppositeProp,omitempty"`          // Для type = ref, соответствующая поле в противоположной сторе
-	FormTab            string          `json:"formTab,omitempty" ws:"yes"`      // Определяет страницу на форме, в которой будет отрисовано поле
-	FormGroup          string          `json:"formGroup,omitempty" ws:"yes"`    // Определяет группу на форме, в которой будет отрисовано поле
-	FormOrder          int             `json:"formOrder" ws:"yes"`              // Определяет порядок отрисовки на форме. Если поле в группе, определяет порядок отрисовки именно в этой группе.
-	Access             []Access        `json:"access,omitempty"`                // Разрешения для работы с полем
-	GroupAccess        string          `json:"groupAccess"`                     // Разрешения для работы с полем в виде вычисленной для конкретного юзера строки (crud)
-	OwnerAccess        string          `json:"ownerAccess"`                     // Разрешения для работы с полем в виде вычисленной для конкретного владельца строки (crud)
-	Display            string          `json:"display" ws:"yes"`                // text, textArea, datePicker, timePicker, dateTimePicker, masked, none
-	DisplayWidth       int             `json:"displayWidth,omitempty" ws:"yes"` // Ширина инпута в процентах для вложенных объектов с шагом в 5
-	Style              bdb.M           `json:"style,omitempty" ws:"yes"`        // Внезапно: пока не определим нужный набор свойств отображения, прокину как я CSS
-	ClassName          string          `json:"сlassName,omitempty"`             // CSS класс для контейнера на форме
-	LabelClassName     string          `json:"labelClassName,omitempty"`        // CSS класс для лейбла
-	HTML               string          `json:"html,omitempty" ws:"yes"`         // Html for display=html
-	HTMLFile           string          `json:"htmlFile,omitempty" ws:"yes"`     // Файл с шаблоном Html for display=html
-	SearchBy           []string        `json:"searchBy,omitempty"`              // Поля для поиска для элемента searchBox // TODO: сделать валидацию
-	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`      // Шаблон выбранного элемента для searchBox
-	SortBy             string          `json:"sortBy,omitempty"`                // Поля для сортировки, если пропа virtual // TODO: сделать валидацию
-	ReadOnly           bool            `json:"readOnly,omitempty"`              // Поле только для чтения
-	Required           interface{}     `json:"required,omitempty" ws:"yes"`     // Поле является обязательным
-	requiredBool       bool            // Вычисленное значение из булевого Required
-	requiredConditions []*Condition    // Преобразованные кондишены из структурного поля Required
-	Default            interface{}     `json:"default,omitempty" ws:"yes"`      // Значение по умолчанию
-	MinLength          int             `json:"minLength,omitempty" ws:"yes"`    // Применимо только для строк
-	MaxLength          int             `json:"maxLength,omitempty" ws:"yes"`    // Применимо только для строк
-	Min                interface{}     `json:"min,omitempty"`                   // Применимо только для числовых типов
-	Max                interface{}     `json:"max,omitempty"`                   // Применимо только для числовых типов
-	Pattern            interface{}     `json:"pattern,omitempty" ws:"yes"`      // Применимо только для строк
-	PatternError       string          `json:"patternError,omitempty" ws:"yes"` // Применимо только для строк. Ошибка которая отобразится, если введенное значение не соответствует паттерну
-	PatternCompiled    *regexp.Regexp  `json:"-"`                               // Применимо только для строк
-	Mask               interface{}     `json:"mask,omitempty" ws:"yes"`         // Применимо только для строк
-	Accept             string          `json:"accept,omitempty" ws:"yes"`       // Применимо только для файлов
-	AddLabel           string          `json:"addLabel,omitempty" ws:"yes"`     // Применимо только для ObjectList
-	Sortable           bool            `json:"sortable,omitempty" ws:"yes"`     // Применимо только для ObjectList, перетаскивание
-	TableColumns       []interface{}   `json:"tableColumns,omitempty" ws:"yes"` // Применимо только для VirtualRefList
-	Placeholder        string          `json:"placeholder,omitempty" ws:"yes"`  // Применимо для строк и числовых типов
-	Load               string          `json:"load,omitempty"`                  // Функция на JS, применима к типу virtual
-	LoadComponent      string          `json:"loadComponent,omitempty"`         // Функция на JS для display==='react'
-	load               string          // Копия скрипта лоада
+	Name               string          `json:"name"`                                  // Название проперти
+	Label              string          `json:"label,omitempty" ws:"yes"`              // Вариации названий в браузере
+	Type               string          `json:"type"`                                  // Допустимые варианты: int, float, bool, string, date, ref, virtual
+	OppositeProp       string          `json:"oppositeProp,omitempty"`                // Для type = ref, соответствующая поле в противоположной сторе
+	FormTab            string          `json:"formTab,omitempty" ws:"yes"`            // Определяет страницу на форме, в которой будет отрисовано поле
+	FormGroup          string          `json:"formGroup,omitempty" ws:"yes"`          // Определяет группу на форме, в которой будет отрисовано поле
+	FormOrder          int             `json:"formOrder" ws:"yes"`                    // Определяет порядок отрисовки на форме. Если поле в группе, определяет порядок отрисовки именно в этой группе.
+	Access             []Access        `json:"access,omitempty"`                      // Разрешения для работы с полем
+	GroupAccess        string          `json:"groupAccess"`                           // Разрешения для работы с полем в виде вычисленной для конкретного юзера строки (crud)
+	OwnerAccess        string          `json:"ownerAccess"`                           // Разрешения для работы с полем в виде вычисленной для конкретного владельца строки (crud)
+	Display            string          `json:"display" ws:"yes"`                      // text, textArea, datePicker, timePicker, dateTimePicker, masked, none
+	DisplayWidth       int             `json:"displayWidth,omitempty" ws:"yes"`       // Ширина инпута в процентах для вложенных объектов с шагом в 5
+	Style              bdb.M           `json:"style,omitempty" ws:"yes"`              // Внезапно: пока не определим нужный набор свойств отображения, прокину как я CSS
+	ClassName          string          `json:"сlassName,omitempty"`                   // CSS класс для контейнера на форме
+	LabelClassName     string          `json:"labelClassName,omitempty"`              // CSS класс для лейбла
+	HTML               string          `json:"html,omitempty" ws:"yes"`               // Html for display=html
+	HTMLFile           string          `json:"htmlFile,omitempty" ws:"yes"`           // Файл с шаблоном Html for display=html
+	SearchBy           []string        `json:"searchBy,omitempty"`                    // Поля для поиска для элемента searchBox // TODO: сделать валидацию
+	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`            // Шаблон выбранного элемента для searchBox
+	SortBy             string          `json:"sortBy,omitempty"`                      // Поля для сортировки, если пропа virtual // TODO: сделать валидацию
+	ReadOnly           bool            `json:"readOnly,omitempty"`                    // Поле только для чтения
+	Required           interface{}     `json:"required,omitempty" ws:"yes"`           // Поле является обязательным
+	Default            interface{}     `json:"default,omitempty" ws:"yes"`            // Значение по умолчанию
+	MinLength          int             `json:"minLength,omitempty" ws:"yes"`          // Применимо только для строк
+	MaxLength          int             `json:"maxLength,omitempty" ws:"yes"`          // Применимо только для строк
+	Min                interface{}     `json:"min,omitempty"`                         // Применимо только для числовых типов
+	Max                interface{}     `json:"max,omitempty"`                         // Применимо только для числовых типов
+	Pattern            interface{}     `json:"pattern,omitempty" ws:"yes"`            // Применимо только для строк
+	PatternError       string          `json:"patternError,omitempty" ws:"yes"`       // Применимо только для строк. Ошибка которая отобразится, если введенное значение не соответствует паттерну
+	Mask               interface{}     `json:"mask,omitempty" ws:"yes"`               // Применимо только для строк
+	Accept             string          `json:"accept,omitempty" ws:"yes"`             // Применимо только для файлов
+	AddLabel           string          `json:"addLabel,omitempty" ws:"yes"`           // Применимо только для ObjectList
+	Sortable           bool            `json:"sortable,omitempty" ws:"yes"`           // Применимо только для ObjectList, перетаскивание
+	TableColumns       []interface{}   `json:"tableColumns,omitempty" ws:"yes"`       // Применимо только для VirtualRefList
+	Placeholder        string          `json:"placeholder,omitempty" ws:"yes"`        // Применимо для строк и числовых типов
+	Load               string          `json:"load,omitempty"`                        // Функция на JS, применима к типу virtual
+	LoadComponent      string          `json:"loadComponent,omitempty"`               // Функция на JS для display==='react'
 	Store              string          `json:"store,omitempty"`                       // Имя сторы для поля типа ref
 	ForeignKey         string          `json:"foreignKey,omitempty"`                  // Имя пропы в референсной сторе для поля типа virtualRefList
 	PopulateIn         interface{}     `json:"populateIn,omitempty"`                  // Куда складывать популизованные данные. Если значения нет, то популяция не требуется
@@ -251,7 +242,6 @@ type Filter struct {
 	Label       string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
 	Display     string      `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
 	Placeholder string      `json:"placeholder,omitempty" ws:"yes"` // Применимо для display:textInput
-	Conditions  []Condition `json:"conditions,omitempty" ws:"yes"`  // Свойства, для которых будет применен фильтр
 	SearchBy    []string    `json:"searchBy,omitempty"`             // display:searchBox Поля для поиска для элемента searchBox // TODO: сделать валидацию
 	Store       string      `json:"store,omitempty"`                // display:searchBox Имя сторы
 	FilterBy    string      `json:"filterBy,omitempty"`             // display:searchBox Имя сторы для поля типа ref
@@ -267,7 +257,6 @@ type HttpHook struct {
 	Uri                 string `json:"uri"`                           // URI, по которому будет доступен хук. Например, если uri=users, то хук будет http://server-address/hooks/users
 	Method              string `json:"method"`                        // HTTP method (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS)
 	Script              string `json:"script"`                        // Javascript code of hook
-	ScriptId            string `json:"-"`                             // Script Id to call in worker
 	ConcurentCallsLimit int    `json:"concurentCallsLimit,omitempty"` // Max concurrent calls of http hook
 }
 
@@ -294,8 +283,6 @@ type Action struct {
 	Label                 string      `json:"label" ws:"yes"`                // Text for label, HandleBars template
 	Multi                 bool        `json:"multi"`                         // Enables action for multiple items !!!NOT IMPLEMENTED!!!
 	Script                string      `json:"script,omitempty"`              // Action JavaScript scenario
-	ScriptLineOffset      int         `json:"-"`                             // LineOffset when load script to v8
-	ScriptId              string      `json:"-"`                             // Script Id to call in worker
 	Type                  string      `json:"type,omitempty"`
 
 	//Access
@@ -310,35 +297,16 @@ type Action struct {
 	Props       map[string]Prop `json:"props" ws:"yes"`               // Form properties
 }
 
-type Condition struct {
-	Property  string      `json:"property"` // Свойство объекта, которое нужно проверять
-	Value     interface{} `json:"value"`    // Сравниваемое значение
-	Operator  string      `json:"operator"` // Оператор для сравнения. =|!=|contain|contains|<|>|<=|>=
-	ValString string      `json:"-"`        // Строка из Value для строковых пропертей, проп типа date, ref
-	ValInt    int         `json:"-"`        // Int из Value для проперти типа int
-	ValFloat  float64     `json:"-"`        // Float из Value для проперти типа float
-	ValBool   bool        `json:"-"`        // True или false из Value для проперти типа bool
-	PropType  string      `json:"-"`        // Тип проперти для дальнейшей работы
-}
-
 // Содержит в себе исполняемые скрипты на JavaScript
 type Hooks struct {
-	WillCreate         string `json:"willCreate,omitempty"` // Вызывается перед сохранением нового объекта/сторы
-	WillCreateScriptId string `json:"-"`                    // Script Id to call in worker
-	DidCreate          string `json:"didCreate,omitempty"`  // Вызывается после сохранения нового объекта/сторы
-	DidCreateScriptId  string `json:"-"`                    // Script Id to call in worker
-	WillSave           string `json:"willSave,omitempty"`   // Вызывается перед сохранением существующего объекта/сторы
-	WillSaveScriptId   string `json:"-"`                    // Script Id to call in worker
-	DidSave            string `json:"didSave,omitempty"`    // Вызывается после сохранения существующего объекта/сторы
-	DidSaveScriptId    string `json:"-"`                    // Script Id to call in worker
-	WillRemove         string `json:"willRemove,omitempty"` // Вызывается перед удалением объекта/сторы
-	WillRemoveScriptId string `json:"-"`                    // Script Id to call in worker
-	DidRemove          string `json:"didRemove,omitempty"`  // Вызывается после удаления объекта/сторы
-	DidRemoveScriptId  string `json:"-"`                    // Script Id to call in worker
-	DidRead            string `json:"didRead,omitempty"`    // Вызывается при запрашивании конкретного объекта из сторы. Для сторы не применимо
-	DidReadScriptId    string `json:"-"`                    // Script Id to call in worker
-	DidStart           string `json:"didStart,omitempty"`   // Вызывается после старта хранилища
-	DidStartScriptId   string `json:"-"`                    // Script Id to call in worker
+	WillCreate string `json:"willCreate,omitempty"` // Вызывается перед сохранением нового объекта/сторы
+	DidCreate  string `json:"didCreate,omitempty"`  // Вызывается после сохранения нового объекта/сторы
+	WillSave   string `json:"willSave,omitempty"`   // Вызывается перед сохранением существующего объекта/сторы
+	DidSave    string `json:"didSave,omitempty"`    // Вызывается после сохранения существующего объекта/сторы
+	WillRemove string `json:"willRemove,omitempty"` // Вызывается перед удалением объекта/сторы
+	DidRemove  string `json:"didRemove,omitempty"`  // Вызывается после удаления объекта/сторы
+	DidRead    string `json:"didRead,omitempty"`    // Вызывается при запрашивании конкретного объекта из сторы. Для сторы не применимо
+	DidStart   string `json:"didStart,omitempty"`   // Вызывается после старта хранилища
 }
 
 type Label struct {
@@ -364,7 +332,6 @@ type Task struct {
 	AllowConcurrent bool   `json:"allowConcurrent,omitempty"`
 	Schedule        string `json:"schedule"`
 	Script          string `json:"script"`
-	ScriptId        string `json:"-"`
 }
 
 type Widget struct {
