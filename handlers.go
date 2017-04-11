@@ -4,13 +4,13 @@ import (
 	"errors"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/getblank/blank-sr/config"
 	"github.com/getblank/blank-sr/localstorage"
 	"github.com/getblank/blank-sr/registry"
 	"github.com/getblank/blank-sr/sessionstore"
 	"github.com/getblank/blank-sr/sync"
 	"github.com/getblank/wango"
-	"github.com/labstack/gommon/log"
 )
 
 func registryHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
@@ -89,12 +89,13 @@ func newSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interfac
 	if args == nil {
 		return nil, ErrInvalidArguments
 	}
-	userID, ok := args[0].(string)
+
+	user, ok := args[0].(map[string]interface{})
 	if !ok {
 		return nil, ErrInvalidArguments
 	}
 
-	return sessionstore.New(userID).AccessToken, nil
+	return sessionstore.New(user).AccessToken, nil
 }
 
 func checkSessionByAPIKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
@@ -126,7 +127,7 @@ func getSessionByUserIDHandler(c *wango.Conn, uri string, args ...interface{}) (
 }
 
 func deleteSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
-	log.Debug("Session delete request", args)
+	log.Info("Session delete request", args)
 	if args == nil {
 		return nil, ErrInvalidArguments
 	}

@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,19 +14,18 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/getblank/blank-sr/config"
-	"github.com/getblank/blank-sr/registry"
-	"github.com/getblank/blank-sr/sessionstore"
-	blankSync "github.com/getblank/blank-sr/sync"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/getblank/wango"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"golang.org/x/net/websocket"
 	"golang.org/x/tools/godoc/vfs"
 	"golang.org/x/tools/godoc/vfs/zipfs"
 	"gopkg.in/gemnasium/logrus-graylog-hook.v2"
+
+	"github.com/getblank/blank-sr/config"
+	"github.com/getblank/blank-sr/registry"
+	"github.com/getblank/blank-sr/sessionstore"
+	blankSync "github.com/getblank/blank-sr/sync"
 )
 
 const (
@@ -69,26 +69,14 @@ func main() {
 		log.AddHook(hook)
 	}
 
-	var verFlag *bool
-	rootCmd := &cobra.Command{
-		Use:   "blank-sr",
-		Short: "Service registry for Blank platform",
-		Long:  "Service Registry/Discovery, Config server, Session store and Mutex service for Blank",
-		Run: func(cmd *cobra.Command, args []string) {
-			if *verFlag {
-				printVersion()
-				return
-			}
-			start()
-		},
-	}
-	verFlag = rootCmd.PersistentFlags().BoolP("version", "v", false, "Prints version and exit")
-
-	if err := rootCmd.Execute(); err != nil {
-		println(err.Error())
-		os.Exit(-1)
+	showVer := flag.Bool("v", false, "show version")
+	flag.Parse()
+	if *showVer {
+		printVersion()
+		return
 	}
 
+	start()
 }
 
 func printVersion() {

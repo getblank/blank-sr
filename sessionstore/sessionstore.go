@@ -38,13 +38,13 @@ const keysDir = "keys"
 
 // Session represents user session in Blank
 type Session struct {
-	APIKey      string    `json:"apiKey"`
-	AccessToken string    `json:"access_token,omitempty"`
-	UserID      string    `json:"userId"`
-	Connections []*Conn   `json:"connections"`
-	LastRequest time.Time `json:"lastRequest"`
-	TTL         time.Time `json:"ttl"`
-	V           int       `json:"__v"`
+	APIKey      string      `json:"apiKey"`
+	AccessToken string      `json:"access_token,omitempty"`
+	UserID      interface{} `json:"userId"`
+	Connections []*Conn     `json:"connections"`
+	LastRequest time.Time   `json:"lastRequest"`
+	TTL         time.Time   `json:"ttl"`
+	V           int         `json:"__v"`
 	sync.RWMutex
 }
 
@@ -63,7 +63,8 @@ func Init() {
 }
 
 // New created new user session.
-func New(userID string) *Session {
+func New(user map[string]interface{}) *Session {
+	userID := user["_id"]
 	sessionID := uuid.NewV4()
 	now := time.Now()
 	jwtTTL, err := config.JWTTTL()
@@ -72,14 +73,21 @@ func New(userID string) *Session {
 		jwtTTL = time.Hour * 24
 	}
 	ttl := now.Add(jwtTTL)
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+	claims := jwt.MapClaims{
 		"iss":       "Blank ltd",
 		"iat":       now.Unix(),
 		"exp":       ttl.Unix(),
 		"userId":    userID,
 		"sessionId": sessionID,
-	})
+	}
 
+	for _, k := range config.JWTExtraProps() {
+		if user[k] != nil {
+			claims[k] = user[k]
+		}
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	tokenString, err := token.SignedString(privateKey)
 	if err != nil {
 		log.Fatal("Can't sign JWT")
@@ -128,7 +136,7 @@ func GetByAPIKey(APIKey string) (s *Session, err error) {
 }
 
 // GetByUserID returns point to Session or error if it is not exists.
-func GetByUserID(id string) (s *Session, err error) {
+func GetByUserID(id interface{}) (s *Session, err error) {
 	return getByUserID(id)
 }
 
@@ -232,7 +240,7 @@ func (s *Session) Save() {
 }
 
 // GetUserID returns userID stored in session
-func (s *Session) GetUserID() string {
+func (s *Session) GetUserID() interface{} {
 	return s.UserID
 }
 
@@ -263,7 +271,7 @@ func getByAPIKey(APIKey string) (s *Session, err error) {
 	return s, err
 }
 
-func getByUserID(id string) (s *Session, err error) {
+func getByUserID(id interface{}) (s *Session, err error) {
 	locker.RLock()
 	defer locker.RUnlock()
 	for _, v := range sessions {

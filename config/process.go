@@ -6,10 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
-	"sort"
 	"time"
-
-	"github.com/getblank/blank-sr/utils/array"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/imdario/mergo"
@@ -139,9 +136,6 @@ func validateConfig(conf map[string]Store) {
 		if o.Props == nil {
 			o.Props = map[string]Prop{}
 		}
-		// if o.HeaderProperty == "" {
-		// 	o.HeaderProperty = "name"
-		// }
 
 		// Checking object type
 		switch o.Type {
@@ -174,34 +168,6 @@ func validateConfig(conf map[string]Store) {
 		err = o.validateProps(o.Props, true)
 		if err != nil {
 			log.Error("Validating props failed:", err)
-			allPropsValid = false
-			continue
-		}
-
-		// prepare HtmlFile for props
-		if err = o.preparePropHtmlTemplates(); err != nil {
-			log.Error("Preparing HTML templates failed:", err)
-			allPropsValid = false
-			continue
-		}
-
-		//compile actions
-		if err = o.compileActions(); err != nil {
-			log.Error("Compiling actions failed:", err)
-			allPropsValid = false
-			continue
-		}
-
-		//compile hooks
-		if err = o.prepareHooks(true); err != nil {
-			log.Error("Preparing hooks failed:", err)
-			allPropsValid = false
-			continue
-		}
-
-		//create tasks
-		if err = o.createTasks(); err != nil {
-			log.Error("Creating tasks failed:", err)
 			allPropsValid = false
 			continue
 		}
@@ -278,186 +244,7 @@ ConfLoop:
 		}
 	}
 
-	for storeName, _store := range config {
-		if _store.Type == ObjProxy {
-
-			baseStore, ok := config[_store.BaseStore]
-			if !ok {
-				log.Error("Can't find baseStore " + _store.BaseStore + " for proxy store " + _store.Store)
-				delete(config, _store.Store)
-				continue
-			}
-			if baseStore.Proxies == nil {
-				baseStore.Proxies = []string{}
-			}
-			baseStore.Proxies = append(baseStore.Proxies, _store.Store)
-			config[baseStore.Store] = baseStore
-
-			// cloning base store
-			encoded, _ := json.Marshal(baseStore)
-			var store Store
-			json.Unmarshal(encoded, &store)
-
-			store.Store = storeName
-			store.BaseStore = _store.BaseStore
-			store.Type = ObjProxy
-
-			if _store.Access != nil {
-				store.Access = _store.Access
-			}
-			store.Actions = _store.Actions
-			if _store.NavOrder != 0 {
-				store.NavOrder = _store.NavOrder
-			}
-			if _store.NavGroup != "" {
-				store.NavGroup = _store.NavGroup
-			}
-			if _store.Display != "" {
-				store.Display = _store.Display
-			}
-			if _store.HeaderTemplate != "" {
-				store.HeaderTemplate = _store.HeaderTemplate
-			}
-			if _store.HeaderProperty != "" {
-				store.HeaderProperty = _store.HeaderProperty
-			}
-			if _store.Filters != nil {
-				store.Filters = _store.Filters
-			}
-			if _store.Labels != nil {
-				store.Labels = _store.Labels
-			}
-
-			err := DB.Save(bucket, store.Store, store)
-			if err != nil {
-				log.Error("Error when saving object in conf", err.Error())
-			}
-			_store = store
-		}
-	}
 	updated(config)
-}
-
-func (m *Store) preparePropHtmlTemplates() (err error) {
-	return nil
-}
-
-func (m *Store) compileActions() (err error) {
-	var actionIds = []string{}
-	if m.Actions != nil && len(m.Actions) > 0 {
-		for i, a := range m.Actions {
-			if !actionIDRgx.MatchString(a.ID) {
-				return errors.New("Invalid action name. Must start with a letter or underscore and contains only letters, digits or underscores")
-			}
-			if a.Type == "client" {
-				continue
-			}
-			actionIds = append(actionIds, a.ID)
-			if a.Script != "" {
-				script := a.Script
-				if a.Disabled != nil {
-					switch a.Disabled.(type) {
-					case string:
-						disabled := a.Disabled.(string)
-						script = `if (` + disabled + `) {console.error("Action is disabled"); return "Action is disabled"};
-						` + script
-					case bool:
-						disabled := a.Disabled.(bool)
-						if disabled {
-							script = `console.error("Action is disabled"); return "Action is disabled"`
-						}
-					default:
-						return errors.New("Invalid action " + a.ID + ". Invalid Disabled property")
-					}
-				}
-				if a.Hidden != nil {
-					switch a.Hidden.(type) {
-					case string:
-						hidden := a.Hidden.(string)
-						script = `if (` + hidden + `) {console.error("Action is hidden"); return "Action is hidden"};
-						` + script
-					case bool:
-						hidden := a.Hidden.(bool)
-						if hidden {
-							script = `console.error("Action is hidden"); return "Action is hidden"`
-						}
-					default:
-						return errors.New("Invalid action " + a.ID + ". Invalid hidden property")
-					}
-				}
-			}
-			for k, v := range m.Actions[i].Props {
-				if v.Type == "" {
-					v.Type = PropString
-				}
-				m.Actions[i].Props[k] = v
-			}
-			if a.ConcurentCallsLimit > 0 {
-				id := m.Store + "actions" + a.ID
-				concurrentChannels[id] = make(chan struct{}, a.ConcurentCallsLimit)
-			}
-		}
-	}
-	sort.Strings(actionIds)
-	if m.StoreActions != nil && len(m.StoreActions) > 0 {
-		for _, a := range m.StoreActions {
-			if !actionIDRgx.MatchString(a.ID) {
-				return errors.New("Invalid action name. Must start with a letter or underscore and contains only letters, digits or underscores")
-			}
-			if len(actionIds) > 0 && array.IndexOfSortedStrings(actionIds, a.ID) != -1 {
-				return errors.New("Can't create store action with _id " + a.ID + " for store " + m.Store + " because action is present with the same _id")
-			}
-			if a.Script != "" {
-				script := a.Script
-				if a.Disabled != nil {
-					switch a.Disabled.(type) {
-					case string:
-						disabled := a.Disabled.(string)
-						script = `if (` + disabled + `) {console.error("Action is disabled"); return "Action is disabled"};
-						` + script
-					case bool:
-						disabled := a.Disabled.(bool)
-						if disabled {
-							script = `console.error("Action is disabled"); return "Action is disabled"`
-						}
-					default:
-						return errors.New("Invalid action " + a.ID + ". Invalid disabled property")
-					}
-				}
-				if a.Hidden != nil {
-					switch a.Hidden.(type) {
-					case string:
-						hidden := a.Hidden.(string)
-						script = `if (` + hidden + `) {console.error("Action is hidden"); return "Action is hidden"};
-						` + script
-					case bool:
-						hidden := a.Hidden.(bool)
-						if hidden {
-							script = `console.error("Action is hidden"); return "Action is hidden"`
-						}
-					default:
-						return errors.New("Invalid action " + a.ID + ". Invalid hidden property")
-					}
-				}
-				if a.ConcurentCallsLimit > 0 {
-					id := m.Store + "actions" + a.ID
-					concurrentChannels[id] = make(chan struct{}, a.ConcurentCallsLimit)
-				}
-			}
-		}
-	}
-	return nil
-}
-
-func (m *Store) prepareHooks(compile bool) (err error) {
-
-	return nil
-}
-
-func (m *Store) createTasks() error {
-	// for i, t := range m.Tasks {
-	// }
-	return nil
 }
 
 func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {

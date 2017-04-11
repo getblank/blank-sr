@@ -50,12 +50,21 @@ func JWTTTL() (time.Duration, error) {
 	return res, nil
 }
 
+// JWTExtraProps returns jwtExtraProps section from commonConfig
+func JWTExtraProps() []string {
+	confLocker.RLock()
+	defer confLocker.RUnlock()
+
+	return commonSettings.JWTExtraProps
+}
+
 type commonSettingsStruct struct {
 	UserActivation bool                   `json:"userActivation,omitempty"`
 	BaseURL        string                 `json:"baseUrl,omitempty"`
 	DefaultLocale  string                 `json:"defaultLocale,omitempty"`
 	I18n           map[string]interface{} `json:"i18n,omitempty"`
 	LessVars       map[string]interface{} `json:"lessVars,omitempty"`
+	JWTExtraProps  []string               `json:"jwtExtraProps,omitempty"` // props from user to put into JWT
 }
 
 type serverSettingsStruct struct {

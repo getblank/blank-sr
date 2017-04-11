@@ -10,17 +10,7 @@ script:
   - go test -v github.com/getblank/blank-sr/sync
 after_success:
   - go build -o blank-sr-linux-amd64 -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
-  - upx --best blank-sr-linux-amd64
-  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr-linux-amd64 -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/linux/blank-sr
-  - if [[ ${TRAVIS_TAG} ]]; then
-    curl --ftp-create-dirs --data-binary -k -T ./blank-sr-linux-amd64 -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/${TRAVIS_TAG}/blank-sr-linux-amd64;
-    fi
-
   - GOOS=darwin GOARCH=amd64 go build -o blank-sr-darwin-amd64 -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
-  - curl --ftp-create-dirs --data-binary -k -T ./blank-sr-darwin-amd64 -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/osx/blank-sr
-  - if [[ ${TRAVIS_TAG} ]]; then
-      curl --ftp-create-dirs --data-binary -k -T ./blank-sr-darwin-amd64 -u $FTP_USER:$FTP_PASSWORD ftp://releases.getblank.net/releases/blank-sr/${TRAVIS_TAG}/blank-sr-darwin-amd64;
-    fi
 
 deploy:
   provider: releases
