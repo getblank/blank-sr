@@ -54,6 +54,9 @@ func JWTTTL() (time.Duration, error) {
 func JWTExtraProps() []string {
 	confLocker.RLock()
 	defer confLocker.RUnlock()
+	if commonSettings == nil {
+		return nil
+	}
 
 	return commonSettings.JWTExtraProps
 }
