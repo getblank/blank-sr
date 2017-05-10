@@ -4,14 +4,13 @@ os:
 go:
   - 1.8.1
 script:
-  - sudo apt-get install -qq upx
   - go test -v github.com/getblank/blank-sr/sessionstore
   - go test -v github.com/getblank/blank-sr/registry
   - go test -v github.com/getblank/blank-sr/sync
 after_success:
   - go build -o blank-sr-linux-amd64 -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
   - GOOS=darwin GOARCH=amd64 go build -o blank-sr-darwin-amd64 -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
-  - GOOS=windows GOARCH=amd64 go build -o blank-sr-win32-amd64 -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
+  - GOOS=windows GOARCH=amd64 go build -o blank-sr-win32-amd64.exe -ldflags "-X main.buildTime=`date +%Y-%m-%d:%H:%M:%S` -X main.gitHash=`git rev-parse --short HEAD`"
 
 deploy:
   provider: releases
@@ -19,7 +18,7 @@ deploy:
   file:
     - blank-sr-linux-amd64
     - blank-sr-darwin-amd64
-    - blank-sr-win32-amd64
+    - blank-sr-win32-amd64.exe
   skip_cleanup: true
   on:
     tags: true
