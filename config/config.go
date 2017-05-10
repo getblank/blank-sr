@@ -127,6 +127,7 @@ var (
 	DB                   = bdb.DB{}
 )
 
+// Store definition
 type Store struct {
 	Type               string                 `json:"type"`                                  // Допустимые пока варианты: directory (простые справочники), process (справочники с состояниями и действиями над объектами), workspace (воркспейсы), inConfigSet (набор каких-то значений)
 	BaseStore          string                 `json:"baseStore,omitempty"`                   // Только для Type == 'proxy'. Содержит стору на которую производится проксирование.
@@ -163,7 +164,7 @@ type Store struct {
 	FullWidth          bool                   `json:"fullWidth,omitempty" ws:"yes"`          // Параметр отображения контента во всю ширину, когда не используется боковая панель.
 	DisablePartialLoad bool                   `json:"disablePartialLoad,omitempty" ws:"yes"` // TODO: Если true, то выдавать при запросе всех объектов, все поля сразу.
 	HTTPApi            bool                   `json:"httpApi,omitempty"`                     // Флаг формирования HTTP REST API для сторы
-	HTTPHooks          []HttpHook             `json:"httpHooks,omitempty"`                   // Http хуки (HTTP API).
+	HTTPHooks          []HTTPHook             `json:"httpHooks,omitempty"`                   // Http хуки (HTTP API).
 	NavLinkStyle       bdb.M                  `json:"navLinkStyle,omitempty" ws:"yes"`       // Стили кнопки в навигации
 	NavLinkActiveStyle bdb.M                  `json:"navLinkActiveStyle,omitempty" ws:"yes"` // Стили кнопки в навигации
 	NavLinkHoverStyle  bdb.M                  `json:"navLinkHoverStyle,omitempty" ws:"yes"`  // Стили кнопки в навигации
@@ -175,8 +176,10 @@ type Store struct {
 	Store              string                 `json:"store"`                                 // Имя сторы для хранения. Берётся из ключа мапы
 	Logging            bool                   `json:"logging,omitempty"`                     // Флаг указывающий на необходимость ведения журнала действий
 	HasVirtualProps    bool                   `json:"hasVirtualProps,omitempty"`             // Флаг указывающий наличие виртуальных полей в сторе
+	LoadComponent      string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
 }
 
+// Prop definition
 type Prop struct {
 	Name               string          `json:"name"`                                  // Название проперти
 	Label              string          `json:"label,omitempty" ws:"yes"`              // Вариации названий в браузере
@@ -238,6 +241,7 @@ type Prop struct {
 	Query              interface{}     `json:"query,omitempty"`                       // Запрос для монги
 }
 
+// Filter definition
 type Filter struct {
 	Label       string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
 	Display     string      `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
@@ -253,13 +257,15 @@ type Filter struct {
 	Query       interface{} `json:"query,omitempty"`                // Запрос для монги
 }
 
-type HttpHook struct {
+// HTTPHook definition
+type HTTPHook struct {
 	Uri                 string `json:"uri"`                           // URI, по которому будет доступен хук. Например, если uri=users, то хук будет http://server-address/hooks/users
 	Method              string `json:"method"`                        // HTTP method (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS)
 	Script              string `json:"script"`                        // Javascript code of hook
 	ConcurentCallsLimit int    `json:"concurentCallsLimit,omitempty"` // Max concurrent calls of http hook
 }
 
+// Access definition
 type Access struct {
 	Role        string      `json:"role"`        // Роль, для которой определяется доступ
 	Permissions string      `json:"permissions"` // Права на доступ ГРУППА|ВЛАДЕЛЕЦ (crud|rud в любом сочетании), если для группы стоит знак "-", то прав на стору нет вообще. Перед каждой буквой тоже может стоять "-".
@@ -297,7 +303,7 @@ type Action struct {
 	Props       map[string]Prop `json:"props" ws:"yes"`               // Form properties
 }
 
-// Содержит в себе исполняемые скрипты на JavaScript
+// Hooks contains JavaScript hooks
 type Hooks struct {
 	WillCreate string `json:"willCreate,omitempty"` // Вызывается перед сохранением нового объекта/сторы
 	DidCreate  string `json:"didCreate,omitempty"`  // Вызывается после сохранения нового объекта/сторы
@@ -309,6 +315,7 @@ type Hooks struct {
 	DidStart   string `json:"didStart,omitempty"`   // Вызывается после старта хранилища
 }
 
+// Label definition
 type Label struct {
 	Text       string `json:"text,omitempty" ws:"yes"`       // Текст лейблы
 	Icon       string `json:"icon,omitempty" ws:"yes"`       // Иконка слева от текста (только CSS класс)
@@ -318,22 +325,26 @@ type Label struct {
 	Hidden     string `json:"hidden,omitempty"`              // Hidden conditions, JavaScript expression
 }
 
+// State definition
 type State struct {
 	Label    string `json:"label" ws:"yes"`    // Будут ещё поля?
 	NavOrder int    `json:"navOrder" ws:"yes"` // Похоже что будут
 }
 
+// Value definition
 type Value struct {
 	Value interface{} `json:"value"` // Значение, которое будет присвоено полю
 	Label string      `json:"label"` // Лейбла, которая отображается в браузере, или будет переведена для отображения
 }
 
+// Task definition
 type Task struct {
 	AllowConcurrent bool   `json:"allowConcurrent,omitempty"`
 	Schedule        string `json:"schedule"`
 	Script          string `json:"script"`
 }
 
+// Widget definition
 type Widget struct {
 	ID          string        `json:"_id"`
 	Type        string        `json:"type,omitempty"`
