@@ -177,6 +177,7 @@ type Store struct {
 	Logging            bool                   `json:"logging,omitempty"`                     // Флаг указывающий на необходимость ведения журнала действий
 	HasVirtualProps    bool                   `json:"hasVirtualProps,omitempty"`             // Флаг указывающий наличие виртуальных полей в сторе
 	LoadComponent      string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
+	HideHeader         bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
 }
 
 // Prop definition
