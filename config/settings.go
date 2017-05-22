@@ -72,19 +72,25 @@ type commonSettingsStruct struct {
 }
 
 type serverSettingsStruct struct {
-	RegisterTokenExpiration           string   `json:"registerTokenExpiration,omitempty"`
-	PasswordResetTokenExpiration      string   `json:"passwordResetTokenExpiration,omitempty"`
-	ActivationEmailTemplate           string   `json:"activationEmailTemplate,omitempty"`
-	PasswordResetEmailTemplate        string   `json:"passwordResetEmailTemplate,omitempty"`
-	PasswordResetSuccessEmailTemplate string   `json:"passwordResetSuccessEmailTemplate,omitempty"`
-	RegistrationSuccessEmailTemplate  string   `json:"registrationSuccessEmailTemplate,omitempty"`
-	ActivationSuccessPage             string   `json:"activationSuccessPage,omitempty"`
-	ActivationErrorPage               string   `json:"activationErrorPage,omitempty"`
-	MaxLogSize                        int      `json:"maxLogSize,omitempty"`
-	Port                              string   `json:"port,omitempty"`
-	SSOOrigins                        []string `json:"ssoOrigins,omitempty"`
-	JWTTTL                            string   `json:"jwtTtl,omitempty"`
+	RegisterTokenExpiration           string        `json:"registerTokenExpiration,omitempty"`
+	PasswordResetTokenExpiration      string        `json:"passwordResetTokenExpiration,omitempty"`
+	ActivationEmailTemplate           string        `json:"activationEmailTemplate,omitempty"`
+	PasswordResetEmailTemplate        string        `json:"passwordResetEmailTemplate,omitempty"`
+	PasswordResetSuccessEmailTemplate string        `json:"passwordResetSuccessEmailTemplate,omitempty"`
+	RegistrationSuccessEmailTemplate  string        `json:"registrationSuccessEmailTemplate,omitempty"`
+	ActivationSuccessPage             string        `json:"activationSuccessPage,omitempty"`
+	ActivationErrorPage               string        `json:"activationErrorPage,omitempty"`
+	MaxLogSize                        int           `json:"maxLogSize,omitempty"`
+	Port                              string        `json:"port,omitempty"`
+	SSOOrigins                        []string      `json:"ssoOrigins,omitempty"`
+	JWTTTL                            string        `json:"jwtTtl,omitempty"`
+	Auth                              *authSettings `json:"auth,omitempty"`
 	jwtTTL                            *time.Duration
+}
+
+type authSettings struct {
+	Login          string `json:"login,omitempty"`
+	ChangePassword string `json:"changePassword,omitempty"`
 }
 
 func makeDefaultSettings() {
