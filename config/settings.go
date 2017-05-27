@@ -89,7 +89,8 @@ type serverSettingsStruct struct {
 }
 
 type authSettings struct {
-	Login          string `json:"login,omitempty"`
+	FindUser       string `json:"findUser,omitempty"`
+	CheckPassword  string `json:"checkPassword,omitempty"`
 	ChangePassword string `json:"changePassword,omitempty"`
 }
 
