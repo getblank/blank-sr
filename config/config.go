@@ -244,6 +244,7 @@ type Prop struct {
 
 // Filter definition
 type Filter struct {
+	Type        string      `json:"type,omitempty" ws:"yes"`        // Тип поля фильтра
 	Label       string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
 	Display     string      `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
 	Placeholder string      `json:"placeholder,omitempty" ws:"yes"` // Применимо для display:textInput
