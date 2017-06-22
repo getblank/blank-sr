@@ -48,6 +48,7 @@ var (
 	libZip              []byte
 	fsLocker            sync.RWMutex
 	errLibCreateError   = errors.New("Error saving uploaded file")
+	port                = "1234"
 )
 
 func main() {
@@ -165,7 +166,11 @@ func start() {
 	makeLibFS()
 	makeAssetsFS()
 
-	err := http.ListenAndServe(":1234", mux)
+	if srPort := os.Getenv("BLANK_SERVICE_REGISTRY_PORT"); len(srPort) > 0 {
+		port = srPort
+	}
+
+	err := http.ListenAndServe(":"+port, mux)
 	if err != nil {
 		panic("ListenAndServe: " + err.Error())
 	}
