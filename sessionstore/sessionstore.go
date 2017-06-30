@@ -63,9 +63,12 @@ func Init() {
 }
 
 // New created new user session.
-func New(user map[string]interface{}) *Session {
+func New(user map[string]interface{}, sessionID string) *Session {
 	userID := user["_id"]
-	sessionID := uuid.NewV4()
+	if len(sessionID) == 0 {
+		sessionID = uuid.NewV4()
+	}
+
 	now := time.Now()
 	jwtTTL, err := config.JWTTTL()
 	if err != nil {

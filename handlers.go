@@ -95,7 +95,16 @@ func newSessionHandler(c *wango.Conn, uri string, args ...interface{}) (interfac
 		return nil, ErrInvalidArguments
 	}
 
-	return sessionstore.New(user).AccessToken, nil
+	var sessionID string
+	if len(args) > 1 {
+		if arg, ok := args[1].(string); ok {
+			sessionID = arg
+		} else {
+			log.Warnf("[newSessionHandler] sessionID: '%v' is not a string", args[1])
+		}
+	}
+
+	return sessionstore.New(user, sessionID).AccessToken, nil
 }
 
 func checkSessionByAPIKeyHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
