@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"sort"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -237,10 +238,32 @@ ConfLoop:
 			}
 		}
 
-		config[store.Store] = store
-		if store.HTTPApi {
-			HTTPApiEnabledStores = append(HTTPApiEnabledStores, store)
+		if len(store.StoreLifeCycle.Migration) > 0 {
+			sort.Slice(store.StoreLifeCycle.Migration, func(i, j int) bool {
+				return store.StoreLifeCycle.Migration[i].Version < store.StoreLifeCycle.Migration[j].Version
+			})
+			prevVer := -99
+			for i := len(store.StoreLifeCycle.Migration) - 1; i >= 0; i-- {
+				v := store.StoreLifeCycle.Migration[i]
+				var badMigration bool
+				if len(v.Script) == 0 {
+					log.Warnf(`Store "%s" migration script for version %d is empty`, storeName, v.Version)
+					badMigration = true
+				}
+
+				if v.Version == prevVer {
+					log.Warnf(`Store "%s" migration script for version %d duplicated`, storeName, v.Version)
+					badMigration = true
+				}
+				prevVer = v.Version
+
+				if badMigration {
+					log.Warnf(`Store "%s" migration script for version %d will be ignored due issues described before`, storeName, v.Version)
+					store.StoreLifeCycle.Migration = append(store.StoreLifeCycle.Migration[:i], store.StoreLifeCycle.Migration[i+1:]...)
+				}
+			}
 		}
+		config[store.Store] = store
 	}
 
 	updated(config)

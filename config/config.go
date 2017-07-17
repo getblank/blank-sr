@@ -123,7 +123,6 @@ var (
 	confLocker = &sync.RWMutex{}
 	config     = map[string]Store{}
 
-	HTTPApiEnabledStores = []Store{}
 	DB                   = bdb.DB{}
 )
 
@@ -180,7 +179,6 @@ type Store struct {
 	LoadComponent      string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
 	HideHeader         bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
 	ShowFilters        bool                   `json:"showFilters,omitempty"`                 // Открывать фильтры сторы по-умолчанию
-	MigrationTasks     []*MigrationTask       `json:"migrationTasks,omitempty"`              // Скрипты миграции
 }
 
 // Prop definition
@@ -310,14 +308,15 @@ type Action struct {
 
 // Hooks contains JavaScript hooks
 type Hooks struct {
-	WillCreate string `json:"willCreate,omitempty"` // Вызывается перед сохранением нового объекта/сторы
-	DidCreate  string `json:"didCreate,omitempty"`  // Вызывается после сохранения нового объекта/сторы
-	WillSave   string `json:"willSave,omitempty"`   // Вызывается перед сохранением существующего объекта/сторы
-	DidSave    string `json:"didSave,omitempty"`    // Вызывается после сохранения существующего объекта/сторы
-	WillRemove string `json:"willRemove,omitempty"` // Вызывается перед удалением объекта/сторы
-	DidRemove  string `json:"didRemove,omitempty"`  // Вызывается после удаления объекта/сторы
-	DidRead    string `json:"didRead,omitempty"`    // Вызывается при запрашивании конкретного объекта из сторы. Для сторы не применимо
-	DidStart   string `json:"didStart,omitempty"`   // Вызывается после старта хранилища
+	WillCreate string           `json:"willCreate,omitempty"` // Вызывается перед сохранением нового объекта/сторы
+	DidCreate  string           `json:"didCreate,omitempty"`  // Вызывается после сохранения нового объекта/сторы
+	WillSave   string           `json:"willSave,omitempty"`   // Вызывается перед сохранением существующего объекта/сторы
+	DidSave    string           `json:"didSave,omitempty"`    // Вызывается после сохранения существующего объекта/сторы
+	WillRemove string           `json:"willRemove,omitempty"` // Вызывается перед удалением объекта/сторы
+	DidRemove  string           `json:"didRemove,omitempty"`  // Вызывается после удаления объекта/сторы
+	DidRead    string           `json:"didRead,omitempty"`    // Вызывается при запрашивании конкретного объекта из сторы. Для сторы не применимо
+	DidStart   string           `json:"didStart,omitempty"`   // Вызывается после старта хранилища
+	Migration  []*MigrationTask `json:"migration,omitempty"`  // Скрипты миграции
 }
 
 // Label definition
@@ -365,6 +364,7 @@ type Widget struct {
 	Columns     []interface{} `json:"columns,omitempty"`        // Columns description for widget
 }
 
+// MigrationTask describes scheme migration scripts
 type MigrationTask struct {
 	Version int    `json:"version"`
 	Script  string `json:"script"`
