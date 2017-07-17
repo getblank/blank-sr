@@ -129,6 +129,7 @@ var (
 
 // Store definition
 type Store struct {
+	Version            int                    `json:"version"`                               // Версия схемы для проведения миграций
 	Type               string                 `json:"type"`                                  // Допустимые пока варианты: directory (простые справочники), process (справочники с состояниями и действиями над объектами), workspace (воркспейсы), inConfigSet (набор каких-то значений)
 	BaseStore          string                 `json:"baseStore,omitempty"`                   // Только для Type == 'proxy'. Содержит стору на которую производится проксирование.
 	Access             []Access               `json:"access,omitempty"`                      // Разрешения для работы с объектом. Если не заполнено, то доступ разрешён всем
@@ -179,6 +180,7 @@ type Store struct {
 	LoadComponent      string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
 	HideHeader         bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
 	ShowFilters        bool                   `json:"showFilters,omitempty"`                 // Открывать фильтры сторы по-умолчанию
+	MigrationTasks     []*MigrationTask       `json:"migrationTasks,omitempty"`              // Скрипты миграции
 }
 
 // Prop definition
@@ -262,7 +264,7 @@ type Filter struct {
 
 // HTTPHook definition
 type HTTPHook struct {
-	Uri                 string `json:"uri"`                           // URI, по которому будет доступен хук. Например, если uri=users, то хук будет http://server-address/hooks/users
+	URI                 string `json:"uri"`                           // URI, по которому будет доступен хук. Например, если uri=users, то хук будет http://server-address/hooks/users
 	Method              string `json:"method"`                        // HTTP method (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS)
 	Script              string `json:"script"`                        // Javascript code of hook
 	ConcurentCallsLimit int    `json:"concurentCallsLimit,omitempty"` // Max concurrent calls of http hook
@@ -361,4 +363,9 @@ type Widget struct {
 	ClassName   string        `json:"className,omitempty"`      // CSS class, который требуется навесить на кнопку
 	Style       bdb.M         `json:"style,omitempty" ws:"yes"` // Дополнительные CSS виджета
 	Columns     []interface{} `json:"columns,omitempty"`        // Columns description for widget
+}
+
+type MigrationTask struct {
+	Version int    `json:"version"`
+	Script  string `json:"script"`
 }
