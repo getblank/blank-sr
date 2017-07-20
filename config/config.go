@@ -123,7 +123,7 @@ var (
 	confLocker = &sync.RWMutex{}
 	config     = map[string]Store{}
 
-	DB                   = bdb.DB{}
+	DB = bdb.DB{}
 )
 
 // Store definition
@@ -179,6 +179,7 @@ type Store struct {
 	LoadComponent      string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
 	HideHeader         bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
 	ShowFilters        bool                   `json:"showFilters,omitempty"`                 // Открывать фильтры сторы по-умолчанию
+	DataSource         string                 `json:"dataSource,omitempty"`                  // Файл с собственной библиотекой доступа к данным. Должен экспортироваться JS Class аналогичный $db
 }
 
 // Prop definition
