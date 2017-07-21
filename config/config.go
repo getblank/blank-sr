@@ -179,7 +179,7 @@ type Store struct {
 	LoadComponent      string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
 	HideHeader         bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
 	ShowFilters        bool                   `json:"showFilters,omitempty"`                 // Открывать фильтры сторы по-умолчанию
-	DataSource         string                 `json:"dataSource,omitempty"`                  // Файл с собственной библиотекой доступа к данным. Должен экспортироваться JS Class аналогичный $db
+	DataSource         DataSource             `json:"dataSource,omitempty"`                  // Custom data source description for store
 }
 
 // Prop definition
@@ -369,4 +369,10 @@ type Widget struct {
 type MigrationTask struct {
 	Version int    `json:"version"`
 	Script  string `json:"script"`
+}
+
+// DataSource is a description of custom data source for store
+type DataSource struct {
+	Type string `json:"type,omitempty"`   // Type of custom data source. Only "file" is supported now
+	File string `json:"string,omitempty"` // JS module to require for Type == "file"
 }
