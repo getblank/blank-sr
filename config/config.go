@@ -322,15 +322,16 @@ type Hooks struct {
 
 // Label definition
 type Label struct {
-	Text          string `json:"text,omitempty" ws:"yes"`          // Текст лейблы
-	Icon          string `json:"icon,omitempty" ws:"yes"`          // Иконка слева от текста (только CSS класс)
-	ShowInList    int    `json:"showInList,omitempty" ws:"yes"`    // Порядок отображения в списке. Если 0, не отображать
-	HideInForm    bool   `json:"hideInForm,omitempty" ws:"yes"`    // Не показывать на основой форме
-	Color         string `json:"color,omitempty" ws:"yes"`         // Цвет рамочки на форме и цвет текста в списке
-	TextColor     string `json:"textColor,omitempty" ws:"yes"`     // Цвет текста в чипсе
-	Hidden        string `json:"hidden,omitempty"`                 // Hidden conditions, JavaScript expression
-	Display       string `json:"display,omitempty" ws:"yes"`       // Type of label, can be "text" (default), "chip" or "react"
-	LoadComponent string `json:"loadComponent,omitempty" ws:"yes"` // React component, only for display === "react"
+	Text          string                 `json:"text,omitempty" ws:"yes"`          // Текст лейблы
+	Icon          string                 `json:"icon,omitempty" ws:"yes"`          // Иконка слева от текста (только CSS класс)
+	ShowInList    int                    `json:"showInList,omitempty" ws:"yes"`    // Порядок отображения в списке. Если 0, не отображать
+	HideInForm    bool                   `json:"hideInForm,omitempty" ws:"yes"`    // Не показывать на основой форме
+	Color         string                 `json:"color,omitempty" ws:"yes"`         // Цвет рамочки на форме и цвет текста в списке
+	TextColor     string                 `json:"textColor,omitempty" ws:"yes"`     // Цвет текста в чипсе
+	Hidden        string                 `json:"hidden,omitempty"`                 // Hidden conditions, JavaScript expression
+	Display       string                 `json:"display,omitempty" ws:"yes"`       // Type of label, can be "text" (default), "chip" or "react"
+	LoadComponent string                 `json:"loadComponent,omitempty" ws:"yes"` // React component, only for display === "react"
+	Style         map[string]interface{} `json:"style,omitempty"`                  // extra style for label
 }
 
 // State definition
