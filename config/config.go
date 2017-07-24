@@ -329,8 +329,8 @@ type Label struct {
 	Color         string `json:"color,omitempty" ws:"yes"`         // Цвет рамочки на форме и цвет текста в списке
 	TextColor     string `json:"textColor,omitempty" ws:"yes"`     // Цвет текста в чипсе
 	Hidden        string `json:"hidden,omitempty"`                 // Hidden conditions, JavaScript expression
-	Type          string `json:"type,omitempty" ws:"yes"`          // Type of label, can be "text" (default), "chip" or "react"
-	LoadComponent string `json:"loadComponent,omitempty" ws:"yes"` // React component, only for type === "react"
+	Display       string `json:"display,omitempty" ws:"yes"`       // Type of label, can be "text" (default), "chip" or "react"
+	LoadComponent string `json:"loadComponent,omitempty" ws:"yes"` // React component, only for display === "react"
 }
 
 // State definition
