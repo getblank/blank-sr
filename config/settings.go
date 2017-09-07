@@ -96,6 +96,7 @@ type authLifeCycle struct {
 	DidSignIn      string `json:"didSignIn,omitempty"`
 	WillSignOut    string `json:"willSignOut,omitempty"`
 	DidSignOut     string `json:"didSignOut,omitempty"`
+	CreateToken    string `json:"createToken,omitempty"`
 }
 
 func makeDefaultSettings() {
