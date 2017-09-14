@@ -332,6 +332,7 @@ type Label struct {
 	Display       string                 `json:"display,omitempty" ws:"yes"`       // Type of label, can be "text" (default), "chip" or "react"
 	LoadComponent string                 `json:"loadComponent,omitempty" ws:"yes"` // React component, only for display === "react"
 	Style         map[string]interface{} `json:"style,omitempty"`                  // extra style for label
+	NoSanitize    bool                   `json:"noSanitize,omitempty"`             // for safe html in template
 }
 
 // State definition
