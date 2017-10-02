@@ -128,171 +128,172 @@ var (
 
 // Store definition
 type Store struct {
-	Version            int                    `json:"version"`                               // Версия схемы для проведения миграций
-	Type               string                 `json:"type"`                                  // Допустимые пока варианты: directory (простые справочники), process (справочники с состояниями и действиями над объектами), workspace (воркспейсы), inConfigSet (набор каких-то значений)
-	BaseStore          string                 `json:"baseStore,omitempty"`                   // Только для Type == 'proxy'. Содержит стору на которую производится проксирование.
 	Access             []Access               `json:"access,omitempty"`                      // Разрешения для работы с объектом. Если не заполнено, то доступ разрешён всем
-	GroupAccess        string                 `json:"groupAccess"`                           // Разрешения для работы с объектом в виде вычисленной для конкретного юзера строки (crud)
-	OwnerAccess        string                 `json:"ownerAccess"`                           // Разрешения для работы с объектом в виде вычисленной для конкретного владельца строки (crud)
-	NavGroup           string                 `json:"navGroup,omitempty" ws:"yes"`           // Определяет расположения в меню. Если группа не задана, ссылка на эти объекты будет выведена в первом уровне навигации
-	I18n               map[string]interface{} `json:"i18n" ws:"yes"`                         // Вариации названий в браузере
-	HeaderTemplate     string                 `json:"headerTemplate,omitempty"`              // Шаблон {{}} для отображения заголовка выбранного элемента
-	HeaderProperty     string                 `json:"headerProperty,omitempty"`              // property для отображения заголовка выбранного элемента
-	Icon               string                 `json:"icon,omitempty"`                        // Иконка для отображения в меню и в центре уведомлений
-	Props              map[string]Prop        `json:"props" ws:"yes"`                        // Перечень свойств объекта
+	Actions            []Action               `json:"actions,omitempty"`                     // Перечень действий над объектом
+	BaseStore          string                 `json:"baseStore,omitempty"`                   // Только для Type == 'proxy'. Содержит стору на которую производится проксирование.
+	Config             map[string]Store       `json:"config,omitempty"`                      // Конфиг, переопределяющий некоторые параметры. Только для type:workspace
+	DataSource         *DataSource            `json:"dataSource,omitempty"`                  // Custom data source description for store
+	DisableAutoSelect  bool                   `json:"disableAutoSelect,omitempty" ws:"yes"`  // Только для display:listView
+	DisablePartialLoad bool                   `json:"disablePartialLoad,omitempty" ws:"yes"` // TODO: Если true, то выдавать при запросе всех объектов, все поля сразу.
+	Display            string                 `json:"display" ws:"yes"`                      // Вид отображения
+	Entries            map[string]interface{} `json:"entries,omitempty"`                     // Значения для type == 'map'
 	Filters            map[string]Filter      `json:"filters" ws:"yes"`                      // Перечень фильтров сторы
-	ObjectLifeCycle    Hooks                  `json:"objectLifeCycle,omitempty"`             // Хуки на события жизненного цикла объекта
-	StoreLifeCycle     Hooks                  `json:"storeLifeCycle,omitempty"`              // Хуки на события жизненного цикла сторы
 	FormGroups         []string               `json:"formGroups,omitempty" ws:"yes"`         // Порядок групп свойств на форме по-умолчанию
 	FormTabs           []interface{}          `json:"formTabs" ws:"yes"`                     // Описание и порядок страниц на форме
-	States             map[string]State       `json:"states,omitempty"`                      // Только для типа "process". Список возможных состояний
-	Actions            []Action               `json:"actions,omitempty"`                     // Перечень действий над объектом
-	StoreActions       []Action               `json:"storeActions,omitempty"`                // Перечень действий при поступлении внешних событий
-	Widgets            []Widget               `json:"widgets,omitempty"`                     // Виджеты, используются для display:dashboard и property.type:widget
-	Entries            map[string]interface{} `json:"entries,omitempty"`                     // Значения для type == 'map'
-	NavOrder           int                    `json:"navOrder" ws:"yes"`                     // Порядок размещения в навигации
-	Display            string                 `json:"display" ws:"yes"`                      // Вид отображения
-	HTML               string                 `json:"html" ws:"yes"`                         // Шаблон для display:html
-	Label              string                 `json:"label,omitempty"`                       // Заголовок сторы
-	NavLabel           string                 `json:"navLabel,omitempty"`                    // Название в навигации
-	Labels             []Label                `json:"labels,omitempty"`                      // Лейблы
-	TableColumns       []interface{}          `json:"tableColumns,omitempty" ws:"yes"`       // Только для display:dataTable
-	DisableAutoSelect  bool                   `json:"disableAutoSelect,omitempty" ws:"yes"`  // Только для display:listView
-	OrderBy            string                 `json:"orderBy,omitempty" ws:"yes"`            // Сортировка данных по умолчанию.
-	Config             map[string]Store       `json:"config,omitempty"`                      // Конфиг, переопределяющий некоторые параметры. Только для type:workspace
-	ListViewOnly       bool                   `json:"listViewOnly,omitempty" ws:"yes"`       // Параметр, определяющий отображение сторы.
 	FullWidth          bool                   `json:"fullWidth,omitempty" ws:"yes"`          // Параметр отображения контента во всю ширину, когда не используется боковая панель.
-	DisablePartialLoad bool                   `json:"disablePartialLoad,omitempty" ws:"yes"` // TODO: Если true, то выдавать при запросе всех объектов, все поля сразу.
+	GroupAccess        string                 `json:"groupAccess"`                           // Разрешения для работы с объектом в виде вычисленной для конкретного юзера строки (crud)
+	HasVirtualProps    bool                   `json:"hasVirtualProps,omitempty"`             // Флаг указывающий наличие виртуальных полей в сторе
+	HeaderProperty     string                 `json:"headerProperty,omitempty"`              // property для отображения заголовка выбранного элемента
+	HeaderTemplate     string                 `json:"headerTemplate,omitempty"`              // Шаблон {{}} для отображения заголовка выбранного элемента
+	HideHeader         bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
+	HTML               string                 `json:"html" ws:"yes"`                         // Шаблон для display:html
 	HTTPApi            bool                   `json:"httpApi,omitempty"`                     // Флаг формирования HTTP REST API для сторы
 	HTTPHooks          []HTTPHook             `json:"httpHooks,omitempty"`                   // Http хуки (HTTP API).
-	NavLinkStyle       bdb.M                  `json:"navLinkStyle,omitempty" ws:"yes"`       // Стили кнопки в навигации
+	I18n               map[string]interface{} `json:"i18n" ws:"yes"`                         // Вариации названий в браузере
+	Icon               string                 `json:"icon,omitempty"`                        // Иконка для отображения в меню и в центре уведомлений
+	Indexes            []interface{}          `json:"indexes,omitempty"`                     // MongoDB indexes
+	Label              string                 `json:"label,omitempty"`                       // Заголовок сторы
+	Labels             []Label                `json:"labels,omitempty"`                      // Лейблы
+	ListViewOnly       bool                   `json:"listViewOnly,omitempty" ws:"yes"`       // Параметр, определяющий отображение сторы.
+	LoadComponent      string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
+	Logging            bool                   `json:"logging,omitempty"`                     // Флаг указывающий на необходимость ведения журнала действий
+	NavGroup           string                 `json:"navGroup,omitempty" ws:"yes"`           // Определяет расположения в меню. Если группа не задана, ссылка на эти объекты будет выведена в первом уровне навигации
+	NavLabel           string                 `json:"navLabel,omitempty"`                    // Название в навигации
 	NavLinkActiveStyle bdb.M                  `json:"navLinkActiveStyle,omitempty" ws:"yes"` // Стили кнопки в навигации
 	NavLinkHoverStyle  bdb.M                  `json:"navLinkHoverStyle,omitempty" ws:"yes"`  // Стили кнопки в навигации
-	Tasks              []*Task                `json:"tasks,omitempty"`                       // Периодические задачи для сторы
+	NavLinkStyle       bdb.M                  `json:"navLinkStyle,omitempty" ws:"yes"`       // Стили кнопки в навигации
+	NavOrder           int                    `json:"navOrder" ws:"yes"`                     // Порядок размещения в навигации
+	ObjectLifeCycle    Hooks                  `json:"objectLifeCycle,omitempty"`             // Хуки на события жизненного цикла объекта
+	OrderBy            string                 `json:"orderBy,omitempty" ws:"yes"`            // Сортировка данных по умолчанию.
+	OwnerAccess        string                 `json:"ownerAccess"`                           // Разрешения для работы с объектом в виде вычисленной для конкретного владельца строки (crud)
 	PrepareItemsScript string                 `json:"prepareItemsScript,omitempty"`          // Скрипт для подготовки данных до передачи в рендер свойства html
+	Props              map[string]Prop        `json:"props" ws:"yes"`                        // Перечень свойств объекта
+	ShowFilters        bool                   `json:"showFilters,omitempty"`                 // Открывать фильтры сторы по-умолчанию
+	States             map[string]State       `json:"states,omitempty"`                      // Только для типа "process". Список возможных состояний
+	Store              string                 `json:"store"`                                 // Имя сторы для хранения. Берётся из ключа мапы
+	StoreActions       []Action               `json:"storeActions,omitempty"`                // Перечень действий при поступлении внешних событий
+	StoreLifeCycle     Hooks                  `json:"storeLifeCycle,omitempty"`              // Хуки на события жизненного цикла сторы
+	TableColumns       []interface{}          `json:"tableColumns,omitempty" ws:"yes"`       // Только для display:dataTable
+	Tasks              []*Task                `json:"tasks,omitempty"`                       // Периодические задачи для сторы
 	Template           string                 `json:"template,omitempty"`                    // Шаблон для передачи в свойство html
 	TemplateFile       string                 `json:"templateFile,omitempty"`                // Фвйл с шаблоном для передачи в свойство html
-	Indexes            []interface{}          `json:"indexes,omitempty"`                     // MongoDB indexes
-	Store              string                 `json:"store"`                                 // Имя сторы для хранения. Берётся из ключа мапы
-	Logging            bool                   `json:"logging,omitempty"`                     // Флаг указывающий на необходимость ведения журнала действий
-	HasVirtualProps    bool                   `json:"hasVirtualProps,omitempty"`             // Флаг указывающий наличие виртуальных полей в сторе
-	LoadComponent      string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
-	HideHeader         bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
-	ShowFilters        bool                   `json:"showFilters,omitempty"`                 // Открывать фильтры сторы по-умолчанию
-	DataSource         *DataSource            `json:"dataSource,omitempty"`                  // Custom data source description for store
+	Type               string                 `json:"type"`                                  // Допустимые пока варианты: directory (простые справочники), process (справочники с состояниями и действиями над объектами), workspace (воркспейсы), inConfigSet (набор каких-то значений)
+	Version            int                    `json:"version"`                               // Версия схемы для проведения миграций
+	Widgets            []Widget               `json:"widgets,omitempty"`                     // Виджеты, используются для display:dashboard и property.type:widget
 }
 
 // Prop definition
 type Prop struct {
-	Name               string          `json:"name"`                                  // Название проперти
-	Label              string          `json:"label,omitempty" ws:"yes"`              // Вариации названий в браузере
-	Type               string          `json:"type"`                                  // Допустимые варианты: int, float, bool, string, date, ref, virtual
-	OppositeProp       string          `json:"oppositeProp,omitempty"`                // Для type = ref, соответствующая поле в противоположной сторе
-	FormTab            string          `json:"formTab,omitempty" ws:"yes"`            // Определяет страницу на форме, в которой будет отрисовано поле
-	FormGroup          string          `json:"formGroup,omitempty" ws:"yes"`          // Определяет группу на форме, в которой будет отрисовано поле
-	FormOrder          int             `json:"formOrder" ws:"yes"`                    // Определяет порядок отрисовки на форме. Если поле в группе, определяет порядок отрисовки именно в этой группе.
-	Access             []Access        `json:"access,omitempty"`                      // Разрешения для работы с полем
-	GroupAccess        string          `json:"groupAccess"`                           // Разрешения для работы с полем в виде вычисленной для конкретного юзера строки (crud)
-	OwnerAccess        string          `json:"ownerAccess"`                           // Разрешения для работы с полем в виде вычисленной для конкретного владельца строки (crud)
-	Display            string          `json:"display" ws:"yes"`                      // text, textArea, datePicker, timePicker, dateTimePicker, masked, none
-	DisplayWidth       int             `json:"displayWidth,omitempty" ws:"yes"`       // Ширина инпута в процентах для вложенных объектов с шагом в 5
-	Style              bdb.M           `json:"style,omitempty" ws:"yes"`              // Внезапно: пока не определим нужный набор свойств отображения, прокину как я CSS
-	ClassName          string          `json:"сlassName,omitempty"`                   // CSS класс для контейнера на форме
-	LabelClassName     string          `json:"labelClassName,omitempty"`              // CSS класс для лейбла
-	HTML               string          `json:"html,omitempty" ws:"yes"`               // Html for display=html
-	HTMLFile           string          `json:"htmlFile,omitempty" ws:"yes"`           // Файл с шаблоном Html for display=html
-	SearchBy           []string        `json:"searchBy,omitempty"`                    // Поля для поиска для элемента searchBox // TODO: сделать валидацию
-	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`            // Шаблон выбранного элемента для searchBox
-	SortBy             string          `json:"sortBy,omitempty"`                      // Поля для сортировки, если пропа virtual // TODO: сделать валидацию
-	ReadOnly           bool            `json:"readOnly,omitempty"`                    // Поле только для чтения
-	Required           interface{}     `json:"required,omitempty" ws:"yes"`           // Поле является обязательным
-	Default            interface{}     `json:"default,omitempty" ws:"yes"`            // Значение по умолчанию
-	MinLength          int             `json:"minLength,omitempty" ws:"yes"`          // Применимо только для строк
-	MaxLength          int             `json:"maxLength,omitempty" ws:"yes"`          // Применимо только для строк
-	Min                interface{}     `json:"min,omitempty"`                         // Применимо только для числовых типов
-	Max                interface{}     `json:"max,omitempty"`                         // Применимо только для числовых типов
-	Pattern            interface{}     `json:"pattern,omitempty" ws:"yes"`            // Применимо только для строк
-	PatternError       string          `json:"patternError,omitempty" ws:"yes"`       // Применимо только для строк. Ошибка которая отобразится, если введенное значение не соответствует паттерну
-	Mask               interface{}     `json:"mask,omitempty" ws:"yes"`               // Применимо только для строк
 	Accept             string          `json:"accept,omitempty" ws:"yes"`             // Применимо только для файлов
+	Access             []Access        `json:"access,omitempty"`                      // Разрешения для работы с полем
+	Actions            interface{}     `json:"actions,omitempty" ws:"yes"`            // Action identifier or array of identifiers
 	AddLabel           string          `json:"addLabel,omitempty" ws:"yes"`           // Применимо только для ObjectList
-	Sortable           bool            `json:"sortable,omitempty" ws:"yes"`           // Применимо только для ObjectList, перетаскивание
-	TableColumns       []interface{}   `json:"tableColumns,omitempty" ws:"yes"`       // Применимо только для VirtualRefList
-	Placeholder        string          `json:"placeholder,omitempty" ws:"yes"`        // Применимо для строк и числовых типов
-	Load               string          `json:"load,omitempty"`                        // Функция на JS, применима к типу virtual
-	LoadComponent      string          `json:"loadComponent,omitempty"`               // Функция на JS для display==='react'
-	Store              string          `json:"store,omitempty"`                       // Имя сторы для поля типа ref
-	ForeignKey         string          `json:"foreignKey,omitempty"`                  // Имя пропы в референсной сторе для поля типа virtualRefList
-	PopulateIn         interface{}     `json:"populateIn,omitempty"`                  // Куда складывать популизованные данные. Если значения нет, то популяция не требуется
+	ClassName          string          `json:"сlassName,omitempty"`                   // CSS класс для контейнера на форме
 	Configurable       bool            `json:"configurable,omitempty"`                // Только для объекта _default. Если true, то админ может переопределить настроки поля
-	Hidden             interface{}     `json:"hidden,omitempty" ws:"yes"`             // Hidden conditions, JavaScript expression
+	Default            interface{}     `json:"default,omitempty" ws:"yes"`            // Значение по умолчанию
+	DisableCustomInput bool            `json:"disableCustomInput,omitempty" ws:"yes"` // Запрет ручного ввода данных для некоторых типов отображения
 	Disabled           interface{}     `json:"disabled,omitempty" ws:"yes"`           // Disabled conditions, JavaScript expression
 	DisableOrder       bool            `json:"disableOrder,omitempty" ws:"yes"`       // Запрет сортировки по полю
-	DisableCustomInput bool            `json:"disableCustomInput,omitempty" ws:"yes"` // Запрет ручного ввода данных для некоторых типов отображения
-	Tooltip            string          `json:"tooltip,omitempty" ws:"yes"`            // Тултип в формате markdown
-	Props              map[string]Prop `json:"props,omitempty" ws:"yes"`              // Перечень свойств вложенного объекта
-	Options            []interface{}   `json:"options,omitempty"`                     // Перечень для селектов и прочего  // TODO: валидация
-	NoSanitize         bool            `json:"noSanitize,omitempty"`                  // Флаг указывающий на то, что html безопасный в пропе.
 	DisableRefSync     bool            `json:"disableRefSync,omitempty"`              // Флаг, запрещающий обновление соответствующего ref поля в противоположной сторе
-	TableLink          bool            `json:"tableLink,omitempty" ws:"yes"`          // Флаг обозначающий, что эта пропертя в таблице будет ссылкой
-	Actions            interface{}     `json:"actions,omitempty" ws:"yes"`            // Action identifier or array of identifiers
-	Widgets            interface{}     `json:"widgets,omitempty" ws:"yes"`            // Widget identifier or array of identifiers
-	WidgetID           string          `json:"widgetId,omitempty" ws:"yes"`           // Widget identifier
-	Utc                bool            `json:"utc,omitempty" ws:"yes"`                // Работа с датами в utc - игнорирует локальное время. Только для типа date
-	Format             string          `json:"format,omitempty" ws:"yes"`             // Формат отображения. Только для типа date
+	Display            string          `json:"display" ws:"yes"`                      // text, textArea, datePicker, timePicker, dateTimePicker, masked, none
+	DisplayWidth       int             `json:"displayWidth,omitempty" ws:"yes"`       // Ширина инпута в процентах для вложенных объектов с шагом в 5
 	ExtraQuery         interface{}     `json:"extraQuery,omitempty"`                  // Доп Запрос для монги
+	ForeignKey         string          `json:"foreignKey,omitempty"`                  // Имя пропы в референсной сторе для поля типа virtualRefList
+	Format             string          `json:"format,omitempty" ws:"yes"`             // Формат отображения. Только для типа date
+	FormGroup          string          `json:"formGroup,omitempty" ws:"yes"`          // Определяет группу на форме, в которой будет отрисовано поле
+	FormOrder          int             `json:"formOrder" ws:"yes"`                    // Определяет порядок отрисовки на форме. Если поле в группе, определяет порядок отрисовки именно в этой группе.
+	FormTab            string          `json:"formTab,omitempty" ws:"yes"`            // Определяет страницу на форме, в которой будет отрисовано поле
+	GroupAccess        string          `json:"groupAccess"`                           // Разрешения для работы с полем в виде вычисленной для конкретного юзера строки (crud)
+	Hidden             interface{}     `json:"hidden,omitempty" ws:"yes"`             // Hidden conditions, JavaScript expression
+	HTML               string          `json:"html,omitempty" ws:"yes"`               // Html for display=html
+	HTMLFile           string          `json:"htmlFile,omitempty" ws:"yes"`           // Файл с шаблоном Html for display=html
+	Label              string          `json:"label,omitempty" ws:"yes"`              // Вариации названий в браузере
+	LabelClassName     string          `json:"labelClassName,omitempty"`              // CSS класс для лейбла
+	Load               string          `json:"load,omitempty"`                        // Функция на JS, применима к типу virtual
+	LoadComponent      string          `json:"loadComponent,omitempty"`               // Функция на JS для display==='react'
+	Mask               interface{}     `json:"mask,omitempty" ws:"yes"`               // Применимо только для строк
+	Max                interface{}     `json:"max,omitempty"`                         // Применимо только для числовых типов
+	MaxLength          int             `json:"maxLength,omitempty" ws:"yes"`          // Применимо только для строк
+	Min                interface{}     `json:"min,omitempty"`                         // Применимо только для числовых типов
+	MinLength          int             `json:"minLength,omitempty" ws:"yes"`          // Применимо только для строк
+	Name               string          `json:"name"`                                  // Название проперти
+	NoSanitize         bool            `json:"noSanitize,omitempty"`                  // Флаг указывающий на то, что html безопасный в пропе.
+	NoAutoTrim         bool            `json:"noAutoTrim"`                            // Только для type:string, не удалять автоматически пробелоподобные символы с начала и в конце строки
+	OppositeProp       string          `json:"oppositeProp,omitempty"`                // Для type = ref, соответствующая поле в противоположной сторе
+	Options            []interface{}   `json:"options,omitempty"`                     // Перечень для селектов и прочего  // TODO: валидация
+	OwnerAccess        string          `json:"ownerAccess"`                           // Разрешения для работы с полем в виде вычисленной для конкретного владельца строки (crud)
+	Pattern            interface{}     `json:"pattern,omitempty" ws:"yes"`            // Применимо только для строк
+	PatternError       string          `json:"patternError,omitempty" ws:"yes"`       // Применимо только для строк. Ошибка которая отобразится, если введенное значение не соответствует паттерну
+	Placeholder        string          `json:"placeholder,omitempty" ws:"yes"`        // Применимо для строк и числовых типов
+	PopulateIn         interface{}     `json:"populateIn,omitempty"`                  // Куда складывать популизованные данные. Если значения нет, то популяция не требуется
+	Props              map[string]Prop `json:"props,omitempty" ws:"yes"`              // Перечень свойств вложенного объекта
 	Query              interface{}     `json:"query,omitempty"`                       // Запрос для монги
+	ReadOnly           bool            `json:"readOnly,omitempty"`                    // Поле только для чтения
+	Required           interface{}     `json:"required,omitempty" ws:"yes"`           // Поле является обязательным
+	SearchBy           []string        `json:"searchBy,omitempty"`                    // Поля для поиска для элемента searchBox // TODO: сделать валидацию
+	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`            // Шаблон выбранного элемента для searchBox
+	Sortable           bool            `json:"sortable,omitempty" ws:"yes"`           // Применимо только для ObjectList, перетаскивание
+	SortBy             string          `json:"sortBy,omitempty"`                      // Поля для сортировки, если пропа virtual // TODO: сделать валидацию
+	Store              string          `json:"store,omitempty"`                       // Имя сторы для поля типа ref
+	Style              bdb.M           `json:"style,omitempty" ws:"yes"`              // Внезапно: пока не определим нужный набор свойств отображения, прокину как я CSS
+	TableColumns       []interface{}   `json:"tableColumns,omitempty" ws:"yes"`       // Применимо только для VirtualRefList
+	TableLink          bool            `json:"tableLink,omitempty" ws:"yes"`          // Флаг обозначающий, что эта пропертя в таблице будет ссылкой
+	Tooltip            string          `json:"tooltip,omitempty" ws:"yes"`            // Тултип в формате markdown
+	Type               string          `json:"type"`                                  // Допустимые варианты: int, float, bool, string, date, ref, virtual
+	Utc                bool            `json:"utc,omitempty" ws:"yes"`                // Работа с датами в utc - игнорирует локальное время. Только для типа date
+	WidgetID           string          `json:"widgetId,omitempty" ws:"yes"`           // Widget identifier
+	Widgets            interface{}     `json:"widgets,omitempty" ws:"yes"`            // Widget identifier or array of identifiers
 }
 
 // Filter definition
 type Filter struct {
-	Type        string      `json:"type,omitempty" ws:"yes"`        // Тип поля фильтра
-	Label       string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
 	Display     string      `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
-	Placeholder string      `json:"placeholder,omitempty" ws:"yes"` // Применимо для display:textInput
-	SearchBy    []string    `json:"searchBy,omitempty"`             // display:searchBox Поля для поиска для элемента searchBox // TODO: сделать валидацию
-	Store       string      `json:"store,omitempty"`                // display:searchBox Имя сторы
 	FilterBy    string      `json:"filterBy,omitempty"`             // display:searchBox Имя сторы для поля типа ref
-	Options     []Value     `json:"options,omitempty"`              // display:select Перечень для селектов и прочего  // TODO: валидация
+	FormOrder   int         `json:"formOrder,omitempty"`            // Порядок отображения на форме
+	Label       string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
 	Mask        string      `json:"mask,omitempty" ws:"yes"`        // display:masked Применимо только для строк
 	Multi       bool        `json:"multi" ws:"yes"`                 // display:searchBox Возможность выбора нескольких элементов
-	FormOrder   int         `json:"formOrder,omitempty"`            // Порядок отображения на форме
-	Style       bdb.M       `json:"style,omitempty" ws:"yes"`       // CSS
+	Options     []Value     `json:"options,omitempty"`              // display:select Перечень для селектов и прочего  // TODO: валидация
+	Placeholder string      `json:"placeholder,omitempty" ws:"yes"` // Применимо для display:textInput
 	Query       interface{} `json:"query,omitempty"`                // Запрос для монги
+	SearchBy    []string    `json:"searchBy,omitempty"`             // display:searchBox Поля для поиска для элемента searchBox // TODO: сделать валидацию
+	Store       string      `json:"store,omitempty"`                // display:searchBox Имя сторы
+	Style       bdb.M       `json:"style,omitempty" ws:"yes"`       // CSS
+	Type        string      `json:"type,omitempty" ws:"yes"`        // Тип поля фильтра
 }
 
 // HTTPHook definition
 type HTTPHook struct {
-	URI                 string `json:"uri"`                           // URI, по которому будет доступен хук. Например, если uri=users, то хук будет http://server-address/hooks/users
+	ConcurentCallsLimit int    `json:"concurentCallsLimit,omitempty"` // Max concurrent calls of http hook
 	Method              string `json:"method"`                        // HTTP method (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS)
 	Script              string `json:"script"`                        // Javascript code of hook
-	ConcurentCallsLimit int    `json:"concurentCallsLimit,omitempty"` // Max concurrent calls of http hook
+	URI                 string `json:"uri"`                           // URI, по которому будет доступен хук. Например, если uri=users, то хук будет http://server-address/hooks/users
 }
 
 // Access definition
 type Access struct {
-	Role        string      `json:"role"`        // Роль, для которой определяется доступ
-	Permissions string      `json:"permissions"` // Права на доступ ГРУППА|ВЛАДЕЛЕЦ (crud|rud в любом сочетании), если для группы стоит знак "-", то прав на стору нет вообще. Перед каждой буквой тоже может стоять "-".
 	Condition   interface{} `json:"condition"`
+	Permissions string      `json:"permissions"` // Права на доступ ГРУППА|ВЛАДЕЛЕЦ (crud|rud в любом сочетании), если для группы стоит знак "-", то прав на стору нет вообще. Перед каждой буквой тоже может стоять "-".
+	Role        string      `json:"role"`        // Роль, для которой определяется доступ
 }
 
 // Action – struct for JavaScript scenarios that can be performed by users
 type Action struct {
-	ID                    string      `json:"_id"`
 	ClassName             string      `json:"className,omitempty"`           // CSS class
-	ClientPreScript       string      `json:"clientPreScript,omitempty"`     // JavaScript scenario that will run in browser before request to server
 	ClientPostScript      string      `json:"clientPostScript,omitempty"`    // JavaScript scenario that will run in browser after server response
+	ClientPreScript       string      `json:"clientPreScript,omitempty"`     // JavaScript scenario that will run in browser before request to server
 	ConcurentCallsLimit   int         `json:"concurentCallsLimit,omitempty"` // Max concurrent calls of action
 	Disabled              interface{} `json:"disabled,omitempty"`            // Disabled conditions, JavaScript expression
 	DisableItemReadyCheck bool        `json:"disableItemReadyCheck"`         // Enables action on modified item
 	DynamicLabel          bool        `json:"dynamicLabel,omitempty"`        // If true, action lable renders on every item or user change
 	Hidden                interface{} `json:"hidden,omitempty"`              // Hidden conditions, JavaScript expression
 	HideInHeader          bool        `json:"hideInHeader"`                  // Hides action in item header
-	ShowInList            bool        `json:"showInList"`                    // Show action in items in list view
 	Icon                  string      `json:"icon" ws:"yes"`                 // Icon for label
-	Label                 string      `json:"label" ws:"yes"`                // Text for label, HandleBars template
-	Multi                 bool        `json:"multi"`                         // Enables action for multiple items !!!NOT IMPLEMENTED!!!
-	Script                string      `json:"script,omitempty"`              // Action JavaScript scenario
+	ID                    string      `json:"_id"`
+	Label                 string      `json:"label" ws:"yes"`   // Text for label, HandleBars template
+	Multi                 bool        `json:"multi"`            // Enables action for multiple items !!!NOT IMPLEMENTED!!!
+	Script                string      `json:"script,omitempty"` // Action JavaScript scenario
+	ShowInList            bool        `json:"showInList"`       // Show action in items in list view
 	Type                  string      `json:"type,omitempty"`
 
 	//Access
@@ -301,8 +302,8 @@ type Action struct {
 	OwnerAccess string   `json:"ownerAccess"`      // Calculated access, not used in config
 
 	//Actions with type=form
-	FormLabel   string          `json:"formLabel,omitempty" ws:"yes"` // Text form header, HandleBars template
 	CancelLabel string          `json:"cancelLabel,omitempty"`        // Text in form cancel button, HandleBars template
+	FormLabel   string          `json:"formLabel,omitempty" ws:"yes"` // Text form header, HandleBars template
 	OkLabel     string          `json:"okLabel,omitempty"`            // Text in form submit button, HandleBars template
 	Props       map[string]Prop `json:"props" ws:"yes"`               // Form properties
 }
