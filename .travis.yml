@@ -2,7 +2,7 @@ language: go
 os:
   - linux
 go:
-  - 1.8.1
+  - 1.9
 script:
   - go test -v github.com/getblank/blank-sr/sessionstore
   - go test -v github.com/getblank/blank-sr/registry
