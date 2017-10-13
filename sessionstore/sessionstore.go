@@ -42,6 +42,7 @@ type Session struct {
 	AccessToken string      `json:"access_token,omitempty"`
 	UserID      interface{} `json:"userId"`
 	Connections []*Conn     `json:"connections"`
+	CreatedAt   time.Time   `json:"createdAt"`
 	LastRequest time.Time   `json:"lastRequest"`
 	TTL         time.Time   `json:"ttl"`
 	V           int         `json:"__v"`
@@ -102,6 +103,7 @@ func New(user map[string]interface{}, sessionID string) *Session {
 		UserID:      userID,
 		Connections: []*Conn{},
 		TTL:         ttl,
+		CreatedAt:   time.Now(),
 	}
 	locker.Lock()
 	defer locker.Unlock()
@@ -319,13 +321,15 @@ func loadSessions() {
 			log.Error("Can't unmarshal session", _s, err.Error())
 			continue
 		}
+
 		if s.TTL.Before(now) {
 			err := db.Delete(bucket, s.APIKey)
 			if err != nil {
-				log.Error("Can't delete session when Init()", s, err.Error())
+				log.Errorf("Can't delete session %s when Init(), error: %v", s.APIKey, err.Error())
 			}
 			continue
 		}
+
 		s.Connections = []*Conn{}
 		s.Save()
 		sessions[s.APIKey] = &s
