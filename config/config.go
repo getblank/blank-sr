@@ -369,6 +369,7 @@ type Widget struct {
 	ClassName   string        `json:"className,omitempty"`      // CSS class, который требуется навесить на кнопку
 	Style       bdb.M         `json:"style,omitempty" ws:"yes"` // Дополнительные CSS виджета
 	Columns     []interface{} `json:"columns,omitempty"`        // Columns description for widget
+	HTML        string        `json:"html,omitempty"`           // html template for widget type: html
 }
 
 // MigrationTask describes scheme migration scripts
