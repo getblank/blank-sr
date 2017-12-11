@@ -357,20 +357,21 @@ type Task struct {
 
 // Widget definition
 type Widget struct {
-	ID              string        `json:"_id"`
-	Type            string        `json:"type,omitempty"`
-	Label           string        `json:"label" ws:"yes"`            // Лейбла в браузере
-	Load            string        `json:"load" ws:"yes"`             // Серверный скрипт подготовки данных
-	Render          string        `json:"render,omitempty"`          // Скрипт на JS для отрисовки
-	DidLoadData     string        `json:"didLoadData,omitempty"`     // Скрипт, выполняемый в браузере после загрузки данных
-	Access          []Access      `json:"access,omitempty"`          // Разрешения для работы с виджетом. Если не заполнено, то доступ разрешён всем
-	GroupAccess     string        `json:"groupAccess"`               // Разрешения для работы с виджетом в виде вычисленной для конкретного юзера строки (crud)
-	OwnerAccess     string        `json:"ownerAccess"`               // Разрешения для работы с виджетом в виде вычисленной для конкретного владельца строки (crud)
-	ClassName       string        `json:"className,omitempty"`       // CSS class, который требуется навесить на кнопку
-	Style           bdb.M         `json:"style,omitempty" ws:"yes"`  // Дополнительные CSS виджета
-	Columns         []interface{} `json:"columns,omitempty"`         // Columns description for widget
-	HTML            string        `json:"html,omitempty"`            // html template for widget type: html
-	HideInDashboard bool          `json:"hideInDashboard,omitempty"` // hide widget from dashboard
+	ID               string        `json:"_id"`
+	Type             string        `json:"type,omitempty"`
+	Label            string        `json:"label" ws:"yes"`             // Лейбла в браузере
+	Load             string        `json:"load" ws:"yes"`              // Серверный скрипт подготовки данных
+	Render           string        `json:"render,omitempty"`           // Скрипт на JS для отрисовки
+	DidLoadData      string        `json:"didLoadData,omitempty"`      // Скрипт, выполняемый в браузере после загрузки данных
+	ShouldReloadData string        `json:"shouldReloadData,omitempty"` // Функция, принимающая на вход $item и $previtem. Возвращает true, если нужно заново загрузить данные и false, если данные перегружать не нужно.
+	Access           []Access      `json:"access,omitempty"`           // Разрешения для работы с виджетом. Если не заполнено, то доступ разрешён всем
+	GroupAccess      string        `json:"groupAccess"`                // Разрешения для работы с виджетом в виде вычисленной для конкретного юзера строки (crud)
+	OwnerAccess      string        `json:"ownerAccess"`                // Разрешения для работы с виджетом в виде вычисленной для конкретного владельца строки (crud)
+	ClassName        string        `json:"className,omitempty"`        // CSS class, который требуется навесить на кнопку
+	Style            bdb.M         `json:"style,omitempty" ws:"yes"`   // Дополнительные CSS виджета
+	Columns          []interface{} `json:"columns,omitempty"`          // Columns description for widget
+	HTML             string        `json:"html,omitempty"`             // html template for widget type: html
+	HideInDashboard  bool          `json:"hideInDashboard,omitempty"`  // hide widget from dashboard
 }
 
 // MigrationTask describes scheme migration scripts
