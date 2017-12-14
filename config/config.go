@@ -146,6 +146,7 @@ type Store struct {
 	HeaderProperty     string                 `json:"headerProperty,omitempty"`              // property для отображения заголовка выбранного элемента
 	HeaderTemplate     string                 `json:"headerTemplate,omitempty"`              // Шаблон {{}} для отображения заголовка выбранного элемента
 	HideHeader         bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
+	HideQuickSearch    bool                   `json:"hideQuickSearch,omitempty"`             // Флаг запрета отображения быстрого поиска
 	HTML               string                 `json:"html" ws:"yes"`                         // Шаблон для display:html
 	HTTPApi            bool                   `json:"httpApi,omitempty"`                     // Флаг формирования HTTP REST API для сторы
 	HTTPHooks          []HTTPHook             `json:"httpHooks,omitempty"`                   // Http хуки (HTTP API).
