@@ -252,6 +252,7 @@ type Filter struct {
 	Display     string      `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
 	FilterBy    string      `json:"filterBy,omitempty"`             // display:searchBox Имя сторы для поля типа ref
 	FormOrder   int         `json:"formOrder,omitempty"`            // Порядок отображения на форме
+	Hidden      interface{} `json:"hidden,omitempty"`               // Hidden conditions, JavaScript expression
 	Label       string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
 	Mask        string      `json:"mask,omitempty" ws:"yes"`        // display:masked Применимо только для строк
 	Multi       bool        `json:"multi" ws:"yes"`                 // display:searchBox Возможность выбора нескольких элементов
