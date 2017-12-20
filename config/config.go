@@ -248,21 +248,21 @@ type Prop struct {
 
 // Filter definition
 type Filter struct {
-	Default       string      `json:"default,omitempty" ws:"yes"`     // Function for setting default filter value, if filter resets, web app will set value to returned of this function
-	Display       string      `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
-	FilterBy      string      `json:"filterBy,omitempty"`             // display:searchBox Имя сторы для поля типа ref
-	FormOrder     int         `json:"formOrder,omitempty"`            // Порядок отображения на форме
-	HideOnDisplay interface{} `json:"hideOnDisplay,omitempty"`        // Useful to hide some filters on selected display types, type can be String or Array<String>
-	Label         string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
-	Mask          string      `json:"mask,omitempty" ws:"yes"`        // display:masked Применимо только для строк
-	Multi         bool        `json:"multi" ws:"yes"`                 // display:searchBox Возможность выбора нескольких элементов
-	Options       []Value     `json:"options,omitempty"`              // display:select Перечень для селектов и прочего  // TODO: валидация
-	Placeholder   string      `json:"placeholder,omitempty" ws:"yes"` // Применимо для display:textInput
-	Query         interface{} `json:"query,omitempty"`                // Запрос для монги
-	SearchBy      []string    `json:"searchBy,omitempty"`             // display:searchBox Поля для поиска для элемента searchBox // TODO: сделать валидацию
-	Store         string      `json:"store,omitempty"`                // display:searchBox Имя сторы
-	Style         bdb.M       `json:"style,omitempty" ws:"yes"`       // CSS
-	Type          string      `json:"type,omitempty" ws:"yes"`        // Тип поля фильтра
+	Default            string      `json:"default,omitempty" ws:"yes"`     // Function for setting default filter value, if filter resets, web app will set value to returned of this function
+	Display            string      `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
+	FilterBy           string      `json:"filterBy,omitempty"`             // display:searchBox Имя сторы для поля типа ref
+	FormOrder          int         `json:"formOrder,omitempty"`            // Порядок отображения на форме
+	HideOnStoreDisplay interface{} `json:"hideOnStoreDisplay,omitempty"`   // Useful to hide some filters on selected display types, type can be String or Array<String>
+	Label              string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
+	Mask               string      `json:"mask,omitempty" ws:"yes"`        // display:masked Применимо только для строк
+	Multi              bool        `json:"multi" ws:"yes"`                 // display:searchBox Возможность выбора нескольких элементов
+	Options            []Value     `json:"options,omitempty"`              // display:select Перечень для селектов и прочего  // TODO: валидация
+	Placeholder        string      `json:"placeholder,omitempty" ws:"yes"` // Применимо для display:textInput
+	Query              interface{} `json:"query,omitempty"`                // Запрос для монги
+	SearchBy           []string    `json:"searchBy,omitempty"`             // display:searchBox Поля для поиска для элемента searchBox // TODO: сделать валидацию
+	Store              string      `json:"store,omitempty"`                // display:searchBox Имя сторы
+	Style              bdb.M       `json:"style,omitempty" ws:"yes"`       // CSS
+	Type               string      `json:"type,omitempty" ws:"yes"`        // Тип поля фильтра
 }
 
 // HTTPHook definition
