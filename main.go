@@ -363,6 +363,7 @@ func getAssetsHandler(rw http.ResponseWriter, request *http.Request) {
 		fsLocker.RUnlock()
 		return
 	}
+
 	b, err := vfs.ReadFile(assetsFS, strings.TrimPrefix(request.RequestURI, "/assets"))
 	fsLocker.RUnlock()
 	if err != nil {
@@ -370,6 +371,7 @@ func getAssetsHandler(rw http.ResponseWriter, request *http.Request) {
 		rw.Write([]byte(err.Error()))
 		return
 	}
+
 	rw.WriteHeader(http.StatusOK)
 	rw.Write(b)
 }
