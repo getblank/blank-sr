@@ -128,59 +128,60 @@ var (
 
 // Store definition
 type Store struct {
-	Access             []Access               `json:"access,omitempty"`                      // Разрешения для работы с объектом. Если не заполнено, то доступ разрешён всем
-	Actions            []Action               `json:"actions,omitempty"`                     // Перечень действий над объектом
-	BaseStore          string                 `json:"baseStore,omitempty"`                   // Только для Type == 'proxy'. Содержит стору на которую производится проксирование.
-	Config             map[string]Store       `json:"config,omitempty"`                      // Конфиг, переопределяющий некоторые параметры. Только для type:workspace
-	DataSource         *DataSource            `json:"dataSource,omitempty"`                  // Custom data source description for store
-	DisableAutoSelect  bool                   `json:"disableAutoSelect,omitempty" ws:"yes"`  // Только для display:listView
-	DisablePartialLoad bool                   `json:"disablePartialLoad,omitempty" ws:"yes"` // TODO: Если true, то выдавать при запросе всех объектов, все поля сразу.
-	Display            string                 `json:"display" ws:"yes"`                      // Вид отображения
-	Entries            map[string]interface{} `json:"entries,omitempty"`                     // Значения для type == 'map'
-	Filters            map[string]Filter      `json:"filters" ws:"yes"`                      // Перечень фильтров сторы
-	FormGroups         []string               `json:"formGroups,omitempty" ws:"yes"`         // Порядок групп свойств на форме по-умолчанию
-	FormTabs           []interface{}          `json:"formTabs" ws:"yes"`                     // Описание и порядок страниц на форме
-	FullWidth          bool                   `json:"fullWidth,omitempty" ws:"yes"`          // Параметр отображения контента во всю ширину, когда не используется боковая панель.
-	GroupAccess        string                 `json:"groupAccess"`                           // Разрешения для работы с объектом в виде вычисленной для конкретного юзера строки (crud)
-	HasVirtualProps    bool                   `json:"hasVirtualProps,omitempty"`             // Флаг указывающий наличие виртуальных полей в сторе
-	HeaderProperty     string                 `json:"headerProperty,omitempty"`              // property для отображения заголовка выбранного элемента
-	HeaderTemplate     string                 `json:"headerTemplate,omitempty"`              // Шаблон {{}} для отображения заголовка выбранного элемента
-	HideHeader         bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
-	HideQuickSearch    bool                   `json:"hideQuickSearch,omitempty"`             // Флаг запрета отображения быстрого поиска
-	HTML               string                 `json:"html" ws:"yes"`                         // Шаблон для display:html
-	HTTPApi            bool                   `json:"httpApi,omitempty"`                     // Флаг формирования HTTP REST API для сторы
-	HTTPHooks          []HTTPHook             `json:"httpHooks,omitempty"`                   // Http хуки (HTTP API).
-	I18n               map[string]interface{} `json:"i18n" ws:"yes"`                         // Вариации названий в браузере
-	Icon               string                 `json:"icon,omitempty"`                        // Иконка для отображения в меню и в центре уведомлений
-	Indexes            []interface{}          `json:"indexes,omitempty"`                     // MongoDB indexes
-	Label              string                 `json:"label,omitempty"`                       // Заголовок сторы
-	Labels             []Label                `json:"labels,omitempty"`                      // Лейблы
-	ListViewOnly       bool                   `json:"listViewOnly,omitempty" ws:"yes"`       // Параметр, определяющий отображение сторы.
-	LoadComponent      string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
-	Logging            bool                   `json:"logging,omitempty"`                     // Флаг указывающий на необходимость ведения журнала действий
-	NavGroup           string                 `json:"navGroup,omitempty" ws:"yes"`           // Определяет расположения в меню. Если группа не задана, ссылка на эти объекты будет выведена в первом уровне навигации
-	NavLabel           string                 `json:"navLabel,omitempty"`                    // Название в навигации
-	NavLinkActiveStyle bdb.M                  `json:"navLinkActiveStyle,omitempty" ws:"yes"` // Стили кнопки в навигации
-	NavLinkHoverStyle  bdb.M                  `json:"navLinkHoverStyle,omitempty" ws:"yes"`  // Стили кнопки в навигации
-	NavLinkStyle       bdb.M                  `json:"navLinkStyle,omitempty" ws:"yes"`       // Стили кнопки в навигации
-	NavOrder           int                    `json:"navOrder" ws:"yes"`                     // Порядок размещения в навигации
-	ObjectLifeCycle    Hooks                  `json:"objectLifeCycle,omitempty"`             // Хуки на события жизненного цикла объекта
-	OrderBy            string                 `json:"orderBy,omitempty" ws:"yes"`            // Сортировка данных по умолчанию.
-	OwnerAccess        string                 `json:"ownerAccess"`                           // Разрешения для работы с объектом в виде вычисленной для конкретного владельца строки (crud)
-	PrepareItemsScript string                 `json:"prepareItemsScript,omitempty"`          // Скрипт для подготовки данных до передачи в рендер свойства html
-	Props              map[string]Prop        `json:"props" ws:"yes"`                        // Перечень свойств объекта
-	ShowFilters        bool                   `json:"showFilters,omitempty"`                 // Открывать фильтры сторы по-умолчанию
-	States             map[string]State       `json:"states,omitempty"`                      // Только для типа "process". Список возможных состояний
-	Store              string                 `json:"store"`                                 // Имя сторы для хранения. Берётся из ключа мапы
-	StoreActions       []Action               `json:"storeActions,omitempty"`                // Перечень действий при поступлении внешних событий
-	StoreLifeCycle     Hooks                  `json:"storeLifeCycle,omitempty"`              // Хуки на события жизненного цикла сторы
-	TableColumns       []interface{}          `json:"tableColumns,omitempty" ws:"yes"`       // Только для display:dataTable
-	Tasks              []*Task                `json:"tasks,omitempty"`                       // Периодические задачи для сторы
-	Template           string                 `json:"template,omitempty"`                    // Шаблон для передачи в свойство html
-	TemplateFile       string                 `json:"templateFile,omitempty"`                // Фвйл с шаблоном для передачи в свойство html
-	Type               string                 `json:"type"`                                  // Допустимые пока варианты: directory (простые справочники), process (справочники с состояниями и действиями над объектами), workspace (воркспейсы), inConfigSet (набор каких-то значений)
-	Version            int                    `json:"version"`                               // Версия схемы для проведения миграций
-	Widgets            []Widget               `json:"widgets,omitempty"`                     // Виджеты, используются для display:dashboard и property.type:widget
+	Access              []Access               `json:"access,omitempty"`                      // Разрешения для работы с объектом. Если не заполнено, то доступ разрешён всем
+	Actions             []Action               `json:"actions,omitempty"`                     // Перечень действий над объектом
+	BaseStore           string                 `json:"baseStore,omitempty"`                   // Только для Type == 'proxy'. Содержит стору на которую производится проксирование.
+	Config              map[string]Store       `json:"config,omitempty"`                      // Конфиг, переопределяющий некоторые параметры. Только для type:workspace
+	DataSource          *DataSource            `json:"dataSource,omitempty"`                  // Custom data source description for store
+	DisableAutoSelect   bool                   `json:"disableAutoSelect,omitempty" ws:"yes"`  // Только для display:listView
+	DisablePartialLoad  bool                   `json:"disablePartialLoad,omitempty" ws:"yes"` // TODO: Если true, то выдавать при запросе всех объектов, все поля сразу.
+	Display             string                 `json:"display" ws:"yes"`                      // Вид отображения
+	EnableSavingFilters bool                   `json:"enableSavingFilters"`                   // Включить возможность сохранения набора фильтров
+	Entries             map[string]interface{} `json:"entries,omitempty"`                     // Значения для type == 'map'
+	Filters             map[string]Filter      `json:"filters" ws:"yes"`                      // Перечень фильтров сторы
+	FormGroups          []string               `json:"formGroups,omitempty" ws:"yes"`         // Порядок групп свойств на форме по-умолчанию
+	FormTabs            []interface{}          `json:"formTabs" ws:"yes"`                     // Описание и порядок страниц на форме
+	FullWidth           bool                   `json:"fullWidth,omitempty" ws:"yes"`          // Параметр отображения контента во всю ширину, когда не используется боковая панель.
+	GroupAccess         string                 `json:"groupAccess"`                           // Разрешения для работы с объектом в виде вычисленной для конкретного юзера строки (crud)
+	HasVirtualProps     bool                   `json:"hasVirtualProps,omitempty"`             // Флаг указывающий наличие виртуальных полей в сторе
+	HeaderProperty      string                 `json:"headerProperty,omitempty"`              // property для отображения заголовка выбранного элемента
+	HeaderTemplate      string                 `json:"headerTemplate,omitempty"`              // Шаблон {{}} для отображения заголовка выбранного элемента
+	HideHeader          bool                   `json:"hideHeader,omitempty"`                  // Флаг указывающий на запрет отображения заголовка сторы. Только для display:react и display:html
+	HideQuickSearch     bool                   `json:"hideQuickSearch,omitempty"`             // Флаг запрета отображения быстрого поиска
+	HTML                string                 `json:"html" ws:"yes"`                         // Шаблон для display:html
+	HTTPApi             bool                   `json:"httpApi,omitempty"`                     // Флаг формирования HTTP REST API для сторы
+	HTTPHooks           []HTTPHook             `json:"httpHooks,omitempty"`                   // Http хуки (HTTP API).
+	I18n                map[string]interface{} `json:"i18n" ws:"yes"`                         // Вариации названий в браузере
+	Icon                string                 `json:"icon,omitempty"`                        // Иконка для отображения в меню и в центре уведомлений
+	Indexes             []interface{}          `json:"indexes,omitempty"`                     // MongoDB indexes
+	Label               string                 `json:"label,omitempty"`                       // Заголовок сторы
+	Labels              []Label                `json:"labels,omitempty"`                      // Лейблы
+	ListViewOnly        bool                   `json:"listViewOnly,omitempty" ws:"yes"`       // Параметр, определяющий отображение сторы.
+	LoadComponent       string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
+	Logging             bool                   `json:"logging,omitempty"`                     // Флаг указывающий на необходимость ведения журнала действий
+	NavGroup            string                 `json:"navGroup,omitempty" ws:"yes"`           // Определяет расположения в меню. Если группа не задана, ссылка на эти объекты будет выведена в первом уровне навигации
+	NavLabel            string                 `json:"navLabel,omitempty"`                    // Название в навигации
+	NavLinkActiveStyle  bdb.M                  `json:"navLinkActiveStyle,omitempty" ws:"yes"` // Стили кнопки в навигации
+	NavLinkHoverStyle   bdb.M                  `json:"navLinkHoverStyle,omitempty" ws:"yes"`  // Стили кнопки в навигации
+	NavLinkStyle        bdb.M                  `json:"navLinkStyle,omitempty" ws:"yes"`       // Стили кнопки в навигации
+	NavOrder            int                    `json:"navOrder" ws:"yes"`                     // Порядок размещения в навигации
+	ObjectLifeCycle     Hooks                  `json:"objectLifeCycle,omitempty"`             // Хуки на события жизненного цикла объекта
+	OrderBy             string                 `json:"orderBy,omitempty" ws:"yes"`            // Сортировка данных по умолчанию.
+	OwnerAccess         string                 `json:"ownerAccess"`                           // Разрешения для работы с объектом в виде вычисленной для конкретного владельца строки (crud)
+	PrepareItemsScript  string                 `json:"prepareItemsScript,omitempty"`          // Скрипт для подготовки данных до передачи в рендер свойства html
+	Props               map[string]Prop        `json:"props" ws:"yes"`                        // Перечень свойств объекта
+	ShowFilters         bool                   `json:"showFilters,omitempty"`                 // Открывать фильтры сторы по-умолчанию
+	States              map[string]State       `json:"states,omitempty"`                      // Только для типа "process". Список возможных состояний
+	Store               string                 `json:"store"`                                 // Имя сторы для хранения. Берётся из ключа мапы
+	StoreActions        []Action               `json:"storeActions,omitempty"`                // Перечень действий при поступлении внешних событий
+	StoreLifeCycle      Hooks                  `json:"storeLifeCycle,omitempty"`              // Хуки на события жизненного цикла сторы
+	TableColumns        []interface{}          `json:"tableColumns,omitempty" ws:"yes"`       // Только для display:dataTable
+	Tasks               []*Task                `json:"tasks,omitempty"`                       // Периодические задачи для сторы
+	Template            string                 `json:"template,omitempty"`                    // Шаблон для передачи в свойство html
+	TemplateFile        string                 `json:"templateFile,omitempty"`                // Фвйл с шаблоном для передачи в свойство html
+	Type                string                 `json:"type"`                                  // Допустимые пока варианты: directory (простые справочники), process (справочники с состояниями и действиями над объектами), workspace (воркспейсы), inConfigSet (набор каких-то значений)
+	Version             int                    `json:"version"`                               // Версия схемы для проведения миграций
+	Widgets             []Widget               `json:"widgets,omitempty"`                     // Виджеты, используются для display:dashboard и property.type:widget
 }
 
 // Prop definition
