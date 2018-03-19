@@ -336,7 +336,7 @@ func publicKeyHandler(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 	rw.WriteHeader(http.StatusOK)
-	rw.Write(sessionstore.PublicKeyBytes)
+	rw.Write(sessionstore.PublicKeyBytes())
 }
 
 func assetsHandler(rw http.ResponseWriter, request *http.Request) {

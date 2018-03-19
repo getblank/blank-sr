@@ -27,12 +27,19 @@ var (
 	sessionDeleteHandlers = []func(*Session){}
 	db                    = bdb.DB{}
 
-	publicKey  *rsa.PublicKey
-	privateKey *rsa.PrivateKey
+	publicKey      *rsa.PublicKey
+	privateKey     *rsa.PrivateKey
+	publicKeyBytes []byte
+	rsaLocker      sync.RWMutex
 )
 
-// PublicKeyBytes holds PEM RSA Key
-var PublicKeyBytes []byte
+// PublicKeyBytes returns PEM RSA Key as []byte
+func PublicKeyBytes() []byte {
+	rsaLocker.RLock()
+	defer rsaLocker.RUnlock()
+
+	return publicKeyBytes
+}
 
 const keysDir = "keys"
 
@@ -76,6 +83,7 @@ func New(user map[string]interface{}, sessionID string) *Session {
 		log.WithError(err).Error("Can't get JWT TTL. Will setup 24 hours")
 		jwtTTL = time.Hour * 24
 	}
+
 	ttl := now.Add(jwtTTL)
 	claims := jwt.MapClaims{
 		"iss":       "Blank ltd",
@@ -105,10 +113,13 @@ func New(user map[string]interface{}, sessionID string) *Session {
 		TTL:         ttl,
 		CreatedAt:   time.Now(),
 	}
+
 	locker.Lock()
 	defer locker.Unlock()
+
 	sessions[s.APIKey] = s
 	sessionUpdated(s)
+
 	return s
 }
 
@@ -116,6 +127,7 @@ func New(user map[string]interface{}, sessionID string) *Session {
 func DeleteAllConnections() {
 	locker.Lock()
 	defer locker.Unlock()
+
 	for _, s := range sessions {
 		s.Connections = []*Conn{}
 		s.Save()
@@ -128,10 +140,12 @@ func GetAll() []*Session {
 	var i int
 	locker.RLock()
 	defer locker.RUnlock()
+
 	for _, s := range sessions {
 		result[i] = s
 		i++
 	}
+
 	return result
 }
 
@@ -151,8 +165,10 @@ func Delete(APIKey string) {
 	if err != nil {
 		log.Error("Can't delete session", APIKey, err.Error())
 	}
+
 	locker.Lock()
 	defer locker.Unlock()
+
 	s := sessions[APIKey]
 	delete(sessions, APIKey)
 	if s != nil {
@@ -164,6 +180,7 @@ func Delete(APIKey string) {
 func DeleteAllForUser(userID string) {
 	locker.RLock()
 	defer locker.RUnlock()
+
 	for _, s := range sessions {
 		if s.UserID == userID {
 			go s.Delete()
@@ -175,6 +192,7 @@ func DeleteAllForUser(userID string) {
 func (s *Session) AddSubscription(connID, uri string, extra interface{}) {
 	s.Lock()
 	defer s.Unlock()
+
 	var c *Conn
 	for _, _c := range s.Connections {
 		if _c.ConnID == connID {
@@ -182,12 +200,14 @@ func (s *Session) AddSubscription(connID, uri string, extra interface{}) {
 			break
 		}
 	}
+
 	if c == nil {
 		c = new(Conn)
 		c.ConnID = connID
 		c.Subscriptions = map[string]interface{}{}
 		s.Connections = append(s.Connections, c)
 	}
+
 	c.Subscriptions[uri] = extra
 	sessionUpdated(s)
 }
@@ -196,12 +216,14 @@ func (s *Session) AddSubscription(connID, uri string, extra interface{}) {
 func (s *Session) DeleteConnection(connID string) {
 	s.Lock()
 	defer s.Unlock()
+
 	for i, _c := range s.Connections {
 		if _c.ConnID == connID {
 			s.Connections = append(s.Connections[:i], s.Connections[i+1:]...)
 			break
 		}
 	}
+
 	sessionUpdated(s)
 }
 
@@ -209,6 +231,7 @@ func (s *Session) DeleteConnection(connID string) {
 func (s *Session) DeleteSubscription(connID, uri string) {
 	s.Lock()
 	defer s.Unlock()
+
 	var c *Conn
 	for _, _c := range s.Connections {
 		if _c.ConnID == connID {
@@ -216,9 +239,11 @@ func (s *Session) DeleteSubscription(connID, uri string) {
 			break
 		}
 	}
+
 	if c == nil {
 		return
 	}
+
 	delete(c.Subscriptions, uri)
 	sessionUpdated(s)
 }
@@ -229,8 +254,10 @@ func (s *Session) Delete() {
 	if err != nil {
 		log.Error("Can't delete session", s, err.Error())
 	}
+
 	locker.Lock()
 	defer locker.Unlock()
+
 	delete(sessions, s.APIKey)
 	sessionDeleted(s)
 }
@@ -266,6 +293,14 @@ func OnSessionDelete(handler func(*Session)) {
 	return
 }
 
+// PublicKey returns *rsa.PublicKey
+func PublicKey() *rsa.PublicKey {
+	rsaLocker.RLock()
+	defer rsaLocker.RUnlock()
+
+	return publicKey
+}
+
 func getByAPIKey(APIKey string) (s *Session, err error) {
 	locker.Lock()
 	defer locker.Unlock()
@@ -273,6 +308,7 @@ func getByAPIKey(APIKey string) (s *Session, err error) {
 	if !ok {
 		return s, berror.DbNotFound
 	}
+
 	return s, err
 }
 
@@ -288,6 +324,7 @@ func getByUserID(id interface{}) (s *Session, err error) {
 			return copySession(v), nil
 		}
 	}
+
 	return nil, berror.DbNotFound
 }
 
@@ -310,7 +347,10 @@ func loadSessions() {
 	_sessions, err := db.GetAll(bucket)
 	if err != nil && err != berror.DbNotFound {
 		log.Error("Can't read all sessions", err.Error())
+
+		return
 	}
+
 	now := time.Now()
 	locker.Lock()
 	defer locker.Unlock()
@@ -349,10 +389,13 @@ func sessionUpdated(s *Session, userUpdated ...bool) {
 	if userUpdated != nil {
 		b = userUpdated[0]
 	}
+
 	s.Save()
 	_s := copySession(s)
 	if !b {
+		// what is this????
 	}
+
 	s.V++
 
 	for _, handler := range sessionUpdateHandlers {
@@ -377,33 +420,42 @@ func copySession(s *Session) *Session {
 		TTL:         s.TTL,
 		V:           s.V,
 	}
+
 	for i := range _s.Connections {
 		c := &Conn{ConnID: s.Connections[i].ConnID}
 		c.Subscriptions = map[string]interface{}{}
 		for k, v := range s.Connections[i].Subscriptions {
 			c.Subscriptions[k] = v
 		}
+
 		_s.Connections[i] = c
 	}
+
 	return _s
 }
 
 func initRSAKeys() {
+	rsaLocker.Lock()
+	defer rsaLocker.Unlock()
+
 	if public, private, err := loadRSAKeys(); err == nil {
-		PublicKeyBytes = public
+		publicKeyBytes = public
 		var err error
 		publicKey, err = jwt.ParseRSAPublicKeyFromPEM(public)
 		if err != nil {
 			log.Fatal("Invalid public RSA key", err)
 			panic(err)
 		}
+
 		privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(private)
 		if err != nil {
 			log.Fatal("Invalid private RSA key", err)
 			panic(err)
 		}
+
 		return
 	}
+
 	stat, err := os.Stat(keysDir)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -418,6 +470,7 @@ func initRSAKeys() {
 			panic("keys dir is not a dir")
 		}
 	}
+
 	generateRSAKeys()
 }
 
@@ -444,6 +497,7 @@ func generateRSAKeys() {
 			Bytes: x509.MarshalPKCS1PrivateKey(k),
 		},
 	)
+
 	pemPublic := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PUBLIC KEY",
 		Bytes: pub,
@@ -452,15 +506,19 @@ func generateRSAKeys() {
 	err = ioutil.WriteFile(keysDir+"/jwt.pub", pemPublic, 0644)
 	if err != nil {
 		log.Fatal("Can't save public RSA key", err)
-		panic(err)
 
 	}
+
 	err = ioutil.WriteFile(keysDir+"/jwt.key", pemPrivate, 0644)
 	if err != nil {
 		log.Fatal("Can't save private RSA key", err)
-		panic(err)
-
 	}
 
-	PublicKeyBytes = pemPublic
+	publicKeyBytes = pemPublic
+
+	publicKey, err = jwt.ParseRSAPublicKeyFromPEM(publicKeyBytes)
+	if err != nil {
+		log.Fatal("Invalid public RSA key", err)
+		panic(err)
+	}
 }
