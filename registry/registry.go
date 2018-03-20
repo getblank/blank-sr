@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"fmt"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -14,6 +15,7 @@ var (
 	deleteHandlers = []func(Service){}
 )
 
+// Services types consts
 const (
 	TypeWorker    = "worker"
 	TypePBX       = "pbx"
@@ -39,17 +41,33 @@ type RegisterMessage struct {
 	Type string `json:"type"`
 }
 
+// FSAddress returns File Storage address if exists or empty string
+func FSAddress() string {
+	locker.RLock()
+	defer locker.RUnlock()
+
+	for k, v := range services {
+		if k == TypeFileStore {
+			if len(v) == 0 {
+				return ""
+			}
+
+			return fmt.Sprintf("%s:%s", v[0].Address, v[0].Port)
+		}
+	}
+
+	return ""
+}
+
 // GetAll returns all services from registry
 func GetAll() map[string][]Service {
 	locker.RLock()
 	defer locker.RUnlock()
 	all := map[string][]Service{}
-	for typ, _services := range services {
-		all[typ] = []Service{}
-		for _, srv := range _services {
-			all[typ] = append(all[typ], srv)
-		}
+	for k, v := range services {
+		all[k] = append([]Service{}, v...)
 	}
+
 	return all
 }
 
