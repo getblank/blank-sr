@@ -10,8 +10,8 @@ import (
 
 	"github.com/getblank/blank-sr/berror"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/boltdb/bolt"
+	log "github.com/sirupsen/logrus"
 )
 
 var (

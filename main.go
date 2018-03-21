@@ -14,13 +14,12 @@ import (
 	"strings"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/getblank/wango"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
 	"golang.org/x/tools/godoc/vfs"
 	"golang.org/x/tools/godoc/vfs/zipfs"
-	"gopkg.in/gemnasium/logrus-graylog-hook.v2"
 
 	"github.com/getblank/blank-sr/config"
 	"github.com/getblank/blank-sr/registry"
@@ -56,19 +55,6 @@ func main() {
 		log.SetLevel(log.DebugLevel)
 	}
 	log.SetFormatter(&log.JSONFormatter{})
-	if os.Getenv("GRAYLOG2_HOST") != "" {
-		host := os.Getenv("GRAYLOG2_HOST")
-		port := os.Getenv("GRAYLOG2_PORT")
-		if port == "" {
-			port = "12201"
-		}
-		source := os.Getenv("GRAYLOG2_SOURCE")
-		if source == "" {
-			source = "blank-sr"
-		}
-		hook := graylog.NewGraylogHook(host+":"+port, map[string]interface{}{"source-app": source})
-		log.AddHook(hook)
-	}
 
 	showVer := flag.Bool("v", false, "show version")
 	flag.Parse()

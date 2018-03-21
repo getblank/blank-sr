@@ -11,12 +11,12 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/getblank/blank-sr/bdb"
 	"github.com/getblank/blank-sr/berror"
 	"github.com/getblank/blank-sr/config"
 	"github.com/getblank/uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 var (

@@ -4,13 +4,13 @@ import (
 	"errors"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/getblank/blank-sr/config"
 	"github.com/getblank/blank-sr/localstorage"
 	"github.com/getblank/blank-sr/registry"
 	"github.com/getblank/blank-sr/sessionstore"
 	"github.com/getblank/blank-sr/sync"
 	"github.com/getblank/wango"
+	log "github.com/sirupsen/logrus"
 )
 
 func registryHandler(c *wango.Conn, uri string, args ...interface{}) (interface{}, error) {
