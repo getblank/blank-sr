@@ -3,8 +3,6 @@ os:
   - linux
 go:
   - 1.10
-install:
-  - go version # just to disable "go get"
 script:
   - go test -v github.com/getblank/blank-sr/sessionstore
   - go test -v github.com/getblank/blank-sr/registry
