@@ -264,6 +264,7 @@ type Filter struct {
 	Store              string      `json:"store,omitempty"`                // display:searchBox Имя сторы
 	Style              bdb.M       `json:"style,omitempty" ws:"yes"`       // CSS
 	Type               string      `json:"type,omitempty" ws:"yes"`        // Тип поля фильтра
+	UTC                bool        `json:"utc" ws:"yes"`                   // Флаг использования часовой зоны UTC при type: date
 }
 
 // HTTPHook definition
