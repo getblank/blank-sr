@@ -136,6 +136,7 @@ type Store struct {
 	DisableAutoSelect   bool                   `json:"disableAutoSelect,omitempty" ws:"yes"`  // Только для display:listView
 	DisablePartialLoad  bool                   `json:"disablePartialLoad,omitempty" ws:"yes"` // TODO: Если true, то выдавать при запросе всех объектов, все поля сразу.
 	Display             string                 `json:"display" ws:"yes"`                      // Вид отображения
+	EnableLiveSearch    bool                   `json:"enableLiveSearch"`                      // Включить "живой поиск" в фильтрах
 	EnableSavingFilters bool                   `json:"enableSavingFilters"`                   // Включить возможность сохранения набора фильтров
 	Entries             map[string]interface{} `json:"entries,omitempty"`                     // Значения для type == 'map'
 	Filters             map[string]Filter      `json:"filters" ws:"yes"`                      // Перечень фильтров сторы
