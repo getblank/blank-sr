@@ -159,6 +159,7 @@ type Store struct {
 	Labels              []Label                `json:"labels,omitempty"`                      // Лейблы
 	ListViewOnly        bool                   `json:"listViewOnly,omitempty" ws:"yes"`       // Параметр, определяющий отображение сторы.
 	LoadComponent       string                 `json:"loadComponent,omitempty"`               // Код компонента React для загрузки. Только для display:react.
+	LoadModule          string                 `json:"loadModule,omitempty"`                  // Имя модуля компонента React для загрузки. Только для display:react.
 	Logging             bool                   `json:"logging,omitempty"`                     // Флаг указывающий на необходимость ведения журнала действий
 	NavGroup            string                 `json:"navGroup,omitempty" ws:"yes"`           // Определяет расположения в меню. Если группа не задана, ссылка на эти объекты будет выведена в первом уровне навигации
 	NavLabel            string                 `json:"navLabel,omitempty"`                    // Название в навигации
@@ -214,6 +215,7 @@ type Prop struct {
 	LabelClassName     string          `json:"labelClassName,omitempty"`              // CSS класс для лейбла
 	Load               string          `json:"load,omitempty"`                        // Функция на JS, применима к типу virtual
 	LoadComponent      string          `json:"loadComponent,omitempty"`               // Функция на JS для display==='react'
+	LoadModule         string          `json:"loadModule,omitempty"`                  // Имя модуля компонента React для загрузки. Только для display:react.
 	Mask               interface{}     `json:"mask,omitempty" ws:"yes"`               // Применимо только для строк
 	Max                interface{}     `json:"max,omitempty"`                         // Применимо только для числовых типов
 	MaxLength          int             `json:"maxLength,omitempty" ws:"yes"`          // Применимо только для строк
@@ -338,6 +340,7 @@ type Label struct {
 	Hidden        string                 `json:"hidden,omitempty"`                 // Hidden conditions, JavaScript expression
 	Display       string                 `json:"display,omitempty" ws:"yes"`       // Type of label, can be "text" (default), "chip" or "react"
 	LoadComponent string                 `json:"loadComponent,omitempty" ws:"yes"` // React component, only for display === "react"
+	LoadModule    string                 `json:"loadModule,omitempty"`             // Имя модуля компонента React для загрузки. Только для display:react.
 	Style         map[string]interface{} `json:"style,omitempty"`                  // extra style for label
 	NoSanitize    bool                   `json:"noSanitize,omitempty"`             // for safe html in template
 }
@@ -374,6 +377,7 @@ type Widget struct {
 	Label            string        `json:"label" ws:"yes"`             // Лейбла в браузере
 	Load             string        `json:"load" ws:"yes"`              // Серверный скрипт подготовки данных
 	LoadComponent    string        `json:"loadComponent,omitempty"`    // React component to load for type:react
+	LoadModule       string        `json:"loadModule,omitempty"`       // Имя модуля компонента React для загрузки. Только для display:react.
 	OwnerAccess      string        `json:"ownerAccess"`                // Разрешения для работы с виджетом в виде вычисленной для конкретного владельца строки (crud)
 	Render           string        `json:"render,omitempty"`           // Скрипт на JS для отрисовки
 	ShouldReloadData string        `json:"shouldReloadData,omitempty"` // Функция, принимающая на вход $item и $previtem. Возвращает true, если нужно заново загрузить данные и false, если данные перегружать не нужно.
