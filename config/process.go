@@ -43,7 +43,10 @@ func ReloadConfig(conf map[string]Store) {
 
 	loadCommonSettings(conf)
 	loadServerSettings(conf)
-	validateConfig(conf)
+	confLocker.Lock()
+	config = Validate(conf)
+	confLocker.Unlock()
+	updated(config)
 }
 
 func OnUpdate(fn func(map[string]Store)) {
@@ -73,7 +76,10 @@ func readConfig(confFile string) {
 	}
 	loadCommonSettings(conf)
 	loadServerSettings(conf)
-	validateConfig(conf)
+	confLocker.Lock()
+	config = Validate(conf)
+	confLocker.Unlock()
+	updated(config)
 }
 
 func loadCommonSettings(conf map[string]Store) {
@@ -124,9 +130,9 @@ func loadServerSettings(conf map[string]Store) {
 	serverSettings.jwtTTL = nil
 }
 
-func validateConfig(conf map[string]Store) {
-	confLocker.Lock()
-	defer confLocker.Unlock()
+func Validate(conf map[string]Store) map[string]Store {
+	// confLocker.Lock()
+	// defer confLocker.Unlock()
 	_conf := map[string]Store{}
 	var err error
 
@@ -179,7 +185,7 @@ func validateConfig(conf map[string]Store) {
 		}
 	}
 
-	config = map[string]Store{}
+	config := map[string]Store{}
 ConfLoop:
 	for storeName := range _conf {
 		store := _conf[storeName]
@@ -266,7 +272,7 @@ ConfLoop:
 		config[store.Store] = store
 	}
 
-	updated(config)
+	return config
 }
 
 func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
@@ -276,6 +282,7 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 		if prop.Type == "" {
 			prop.Type = PropString
 		}
+
 		switch prop.Type {
 		case PropWidget, PropAction, PropFile, PropFileList, PropPassword:
 			continue
@@ -294,6 +301,7 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 					return errors.New("Invalid default int value in prop: '" + pName + "'")
 				}
 			}
+
 			_, _, ok := prop.checkMinMaxParams()
 			if !ok {
 				return errors.New("Wrong min-max params in prop: '" + pName + "'")
@@ -319,10 +327,12 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 					return errors.New("Invalid default float value in prop: '" + pName + "'")
 				}
 			}
+
 			_, _, ok := prop.checkMinMaxParams()
 			if !ok {
 				return errors.New("Wrong min-max params in prop: '" + pName + "'")
 			}
+
 			props[pName] = prop
 		case PropBool:
 			prop.clearStringParams()
@@ -338,6 +348,7 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 					return errors.New("Invalid default bool value in prop: '" + pName + "'")
 				}
 			}
+
 			props[pName] = prop
 		case PropString:
 			prop.clearNumberParams()
@@ -352,14 +363,17 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 					return errors.New("Invalid default string value in prop: '" + pName + "'")
 				}
 			}
+
 			if prop.MinLength < 0 || prop.MaxLength < 0 {
 				return errors.New("Wrong minLength or maxLength values in prop: '" + pName + "'")
 			}
+
 			if prop.MinLength != 0 && prop.MaxLength != 0 {
 				if prop.MinLength > prop.MaxLength {
 					return errors.New("minLength > maxLength in prop: '" + pName + "'")
 				}
 			}
+
 			props[pName] = prop
 		case PropDate:
 			prop.clearStringParams()
@@ -374,11 +388,11 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 					return errors.New("Invalid default date in prop: '" + pName + "'")
 				}
 			}
+
 			props[pName] = prop
 		case PropRef:
 			prop.clearStringParams()
 			prop.clearNumberParams()
-			prop.clearObjectParams()
 			if prop.Default != nil {
 				if d, ok := prop.Default.(map[string]interface{}); ok {
 					if d["$expression"] == nil {
@@ -388,15 +402,16 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 					return errors.New("Invalid default value for ref type in prop: '" + pName + "'")
 				}
 			}
+
 			prop.Default = nil
 			if prop.Store == "" {
 				return errors.New("Store not provided for ref type in prop: '" + pName + "'")
 			}
+
 			props[pName] = prop
 		case PropRefList:
 			prop.clearStringParams()
 			prop.clearNumberParams()
-			prop.clearObjectParams()
 			if prop.Default != nil {
 				if d, ok := prop.Default.(map[string]interface{}); ok {
 					if d["$expression"] == nil {
@@ -406,9 +421,11 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 					return errors.New("Invalid default value for refList type in prop: '" + pName + "'")
 				}
 			}
+
 			if prop.Store == "" {
 				return errors.New("Store not provided for refList type in prop: '" + pName + "'")
 			}
+
 			props[pName] = prop
 		case PropVirtual:
 			prop.clearStringParams()
@@ -421,6 +438,7 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			if !parseObjects {
 				return errors.New("Recursive objects not allowed '" + pName + "'")
 			}
+
 			prop.clearStringParams()
 			prop.clearRefParams()
 			prop.clearNumberParams()
@@ -429,11 +447,13 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			if err != nil {
 				return err
 			}
+
 			props[pName] = prop
 		case PropObjectList:
 			if !parseObjects {
 				return errors.New("Recursive objects not allowed '" + pName + "'")
 			}
+
 			prop.Pattern = ""
 			prop.Mask = ""
 			prop.clearRefParams()
@@ -442,6 +462,7 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			if err != nil {
 				return err
 			}
+
 			props[pName] = prop
 		case PropVirtualRefList:
 			prop.clearStringParams()
@@ -451,9 +472,11 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			if prop.Store == "" {
 				return errors.New("Store is not provided for virtualRefList type in prop: '" + pName + "'")
 			}
+
 			if prop.ForeignKey == "" && prop.Query == nil {
 				return errors.New("Foregn key or query is not provided for virtualRefList type in prop: '" + pName + "'")
 			}
+
 			props[pName] = prop
 		case PropComments:
 			prop.clearStringParams()

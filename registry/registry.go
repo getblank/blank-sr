@@ -98,6 +98,7 @@ func Register(typ, remoteAddr, port, connID, commonJS string) (interface{}, erro
 			port = PortTaskQueue
 		}
 	}
+
 	s := Service{
 		Type:     typ,
 		Address:  remoteAddr,
@@ -110,6 +111,7 @@ func Register(typ, remoteAddr, port, connID, commonJS string) (interface{}, erro
 	for _, h := range createHandlers {
 		h(s)
 	}
+
 	log.Infof(`Registered "%s" service at address: "%s" and port: "%s"`, typ, remoteAddr, port)
 
 	return nil, nil
