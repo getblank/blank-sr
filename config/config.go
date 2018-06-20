@@ -222,8 +222,8 @@ type Prop struct {
 	Min                interface{}     `json:"min,omitempty"`                         // Применимо только для числовых типов
 	MinLength          int             `json:"minLength,omitempty" ws:"yes"`          // Применимо только для строк
 	Name               string          `json:"name"`                                  // Название проперти
-	NoSanitize         bool            `json:"noSanitize,omitempty"`                  // Флаг указывающий на то, что html безопасный в пропе.
 	NoAutoTrim         bool            `json:"noAutoTrim"`                            // Только для type:string, не удалять автоматически пробелоподобные символы с начала и в конце строки
+	NoSanitize         bool            `json:"noSanitize,omitempty"`                  // Флаг указывающий на то, что html безопасный в пропе.
 	OppositeProp       string          `json:"oppositeProp,omitempty"`                // Для type = ref, соответствующая поле в противоположной сторе
 	Options            []interface{}   `json:"options,omitempty"`                     // Перечень для селектов и прочего  // TODO: валидация
 	OwnerAccess        string          `json:"ownerAccess"`                           // Разрешения для работы с полем в виде вычисленной для конкретного владельца строки (crud)
@@ -237,6 +237,7 @@ type Prop struct {
 	Required           interface{}     `json:"required,omitempty" ws:"yes"`           // Поле является обязательным
 	SearchBy           []string        `json:"searchBy,omitempty"`                    // Поля для поиска для элемента searchBox // TODO: сделать валидацию
 	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`            // Шаблон выбранного элемента для searchBox
+	ShowAddAction      bool            `json:"showAddAction,omitempty"`               // Only for types:ref|refList
 	Sortable           bool            `json:"sortable,omitempty" ws:"yes"`           // Применимо только для ObjectList, перетаскивание
 	SortBy             string          `json:"sortBy,omitempty"`                      // Поля для сортировки, если пропа virtual // TODO: сделать валидацию
 	Store              string          `json:"store,omitempty"`                       // Имя сторы для поля типа ref
