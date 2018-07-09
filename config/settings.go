@@ -62,13 +62,15 @@ func JWTExtraProps() []string {
 }
 
 type commonSettingsStruct struct {
-	UserActivation bool                   `json:"userActivation,omitempty"`
 	BaseURL        string                 `json:"baseUrl,omitempty"`
+	BuildTime      string                 `json:"buildTime"`
+	Commit         string                 `json:"commit"`
 	DefaultLocale  string                 `json:"defaultLocale,omitempty"`
 	I18n           map[string]interface{} `json:"i18n,omitempty"`
-	LessVars       map[string]interface{} `json:"lessVars,omitempty"`
 	JWTExtraProps  []string               `json:"jwtExtraProps,omitempty"` // props from user to put into JWT
-	URIPrefix      string                 `json:"uriPrefix"`               // useful when you are using reverse proxy and another appa with crossing uris
+	LessVars       map[string]interface{} `json:"lessVars,omitempty"`
+	URIPrefix      string                 `json:"uriPrefix"` // useful when you are using reverse proxy and another appa with crossing uris
+	UserActivation bool                   `json:"userActivation,omitempty"`
 }
 
 type serverSettingsStruct struct {

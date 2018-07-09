@@ -140,7 +140,7 @@ type Store struct {
 	EnableSavingFilters bool                   `json:"enableSavingFilters"`                   // Включить возможность сохранения набора фильтров
 	Entries             map[string]interface{} `json:"entries,omitempty"`                     // Значения для type == 'map'
 	Filters             map[string]Filter      `json:"filters" ws:"yes"`                      // Перечень фильтров сторы
-	FormGroups          []string               `json:"formGroups,omitempty" ws:"yes"`         // Порядок групп свойств на форме по-умолчанию
+	FormGroups          []interface{}          `json:"formGroups,omitempty" ws:"yes"`         // Порядок групп свойств на форме по-умолчанию
 	FormTabs            []interface{}          `json:"formTabs" ws:"yes"`                     // Описание и порядок страниц на форме
 	FullWidth           bool                   `json:"fullWidth,omitempty" ws:"yes"`          // Параметр отображения контента во всю ширину, когда не используется боковая панель.
 	GroupAccess         string                 `json:"groupAccess"`                           // Разрешения для работы с объектом в виде вычисленной для конкретного юзера строки (crud)
