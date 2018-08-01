@@ -128,6 +128,7 @@ var (
 
 // Store definition
 type Store struct {
+	ID                  string                 `json:"_id,omitempty"`                         // Для загрузки из MongoDB
 	Access              []Access               `json:"access,omitempty"`                      // Разрешения для работы с объектом. Если не заполнено, то доступ разрешён всем
 	Actions             []Action               `json:"actions,omitempty"`                     // Перечень действий над объектом
 	BaseStore           string                 `json:"baseStore,omitempty"`                   // Только для Type == 'proxy'. Содержит стору на которую производится проксирование.

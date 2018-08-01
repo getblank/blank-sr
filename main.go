@@ -71,6 +71,7 @@ func printVersion() {
 }
 
 func start() {
+	config.RegisterMongoCFGProvider()
 	config.Init("./config.json")
 	sessionstore.Init()
 

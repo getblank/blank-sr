@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"regexp"
 	"sort"
 	"time"
 
@@ -13,17 +12,33 @@ import (
 )
 
 var (
-	mustacheRgx    = regexp.MustCompile(`(?U)({{.+}})`)
-	handleBarseRgx = regexp.MustCompile(`{?{{\s*(\w*)\s?(\w*)?\s?.*}}`)
-	itemPropsRgx   = regexp.MustCompile(`\$item.([A-Za-z][A-Za-z0-9]*)`)
-	actionIDRgx    = regexp.MustCompile(`^[A-Za-z_]+[A-Za-z0-9_]*$`)
+	// mustacheRgx    = regexp.MustCompile(`(?U)({{.+}})`)
+	// handleBarseRgx = regexp.MustCompile(`{?{{\s*(\w*)\s?(\w*)?\s?.*}}`)
+	// itemPropsRgx   = regexp.MustCompile(`\$ites.([A-Za-z][A-Za-z0-9]*)`)
+	// actionIDRgx    = regexp.MustCompile(`^[A-Za-z_]+[A-Za-z0-9_]*$`)
 
 	storeUpdateHandlers = []func(map[string]Store){}
+	configProviders     = []ConfigProvider{}
 )
+
+// ConfigProvider is an interface describes config provider
+type ConfigProvider interface {
+	Name() string
+	Get() (map[string]Store, error)
+}
+
+// RegisterConfigProvider saves provided config provider to use it later.
+func RegisterConfigProvider(p ConfigProvider) {
+	confLocker.Lock()
+	defer confLocker.Unlock()
+
+	configProviders = append(configProviders, p)
+}
 
 func Init(confFile string) {
 	makeDefaultSettings()
 	readConfig(confFile)
+	updated(config)
 }
 
 func ReloadConfig(conf map[string]Store) {
@@ -41,6 +56,7 @@ func ReloadConfig(conf map[string]Store) {
 		}
 	}
 
+	loadFromProviders(conf)
 	loadCommonSettings(conf)
 	loadServerSettings(conf)
 	confLocker.Lock()
@@ -51,6 +67,30 @@ func ReloadConfig(conf map[string]Store) {
 
 func OnUpdate(fn func(map[string]Store)) {
 	storeUpdateHandlers = append(storeUpdateHandlers, fn)
+}
+
+func loadFromProviders(conf map[string]Store) {
+	confLocker.Lock()
+	defer confLocker.Unlock()
+
+	for _, p := range configProviders {
+		cfg, err := p.Get()
+		if err != nil {
+			log.Warn("Can't loag config from provider %q, error: %s", p.Name(), err)
+			continue
+		}
+
+		for storeName, storeDesc := range cfg {
+			if s, ok := conf[storeName]; ok {
+				s.mergeWith(storeDesc)
+
+				conf[storeName] = s
+				continue
+			}
+
+			conf[storeName] = storeDesc
+		}
+	}
 }
 
 func updated(config map[string]Store) {
@@ -74,12 +114,13 @@ func readConfig(confFile string) {
 		time.Sleep(time.Microsecond * 200)
 		os.Exit(1)
 	}
+
+	loadFromProviders(conf)
 	loadCommonSettings(conf)
 	loadServerSettings(conf)
 	confLocker.Lock()
 	config = Validate(conf)
 	confLocker.Unlock()
-	updated(config)
 }
 
 func loadCommonSettings(conf map[string]Store) {
@@ -275,7 +316,7 @@ ConfLoop:
 	return config
 }
 
-func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
+func (s *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 	for pName, prop := range props {
 		prop.Name = pName
 		// Processing Type
@@ -443,7 +484,7 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearRefParams()
 			prop.clearNumberParams()
 			//			prop.Default = nil
-			err := m.validateProps(prop.Props, false)
+			err := s.validateProps(prop.Props, false)
 			if err != nil {
 				return err
 			}
@@ -458,7 +499,7 @@ func (m *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.Mask = ""
 			prop.clearRefParams()
 			prop.clearNumberParams()
-			err := m.validateProps(prop.Props, false)
+			err := s.validateProps(prop.Props, false)
 			if err != nil {
 				return err
 			}
@@ -556,18 +597,18 @@ func (p *Prop) clearStringParams() {
 	p.Mask = ""
 }
 
-func (m *Store) LoadDefaultIntoProp(name string, p Prop) {
-	if m.Props == nil {
-		m.Props = map[string]Prop{}
+func (s *Store) LoadDefaultIntoProp(name string, p Prop) {
+	if s.Props == nil {
+		s.Props = map[string]Prop{}
 	}
 	if !p.Configurable {
-		m.Props[name] = p
+		s.Props[name] = p
 		return
 	}
 
-	prop, ok := m.Props[name]
+	prop, ok := s.Props[name]
 	if !ok {
-		m.Props[name] = p
+		s.Props[name] = p
 		return
 	}
 
@@ -642,28 +683,28 @@ func (m *Store) LoadDefaultIntoProp(name string, p Prop) {
 		p.OppositeProp = prop.OppositeProp
 	}
 
-	m.Props[name] = p
+	s.Props[name] = p
 }
 
-func (m *Store) mergeAccess(defaultStore *Store) {
-	if len(m.Access) == 0 && len(defaultStore.Access) > 0 {
+func (s *Store) mergeAccess(defaultStore *Store) {
+	if len(s.Access) == 0 && len(defaultStore.Access) > 0 {
 		for i := range defaultStore.Access {
-			m.Access = append(m.Access, defaultStore.Access[i])
+			s.Access = append(s.Access, defaultStore.Access[i])
 		}
 	}
 }
 
-func (m *Store) mergeFilters(defaultStore *Store) {
+func (s *Store) mergeFilters(defaultStore *Store) {
 	if len(defaultStore.Filters) == 0 {
 		return
 	}
-	if len(m.Filters) == 0 {
-		m.Filters = map[string]Filter{}
+	if len(s.Filters) == 0 {
+		s.Filters = map[string]Filter{}
 	}
 	for k, v := range defaultStore.Filters {
-		f, ok := m.Filters[k]
+		f, ok := s.Filters[k]
 		if !ok {
-			m.Filters[k] = v
+			s.Filters[k] = v
 			continue
 		}
 		if f.Label == "" {
@@ -693,6 +734,23 @@ func (m *Store) mergeFilters(defaultStore *Store) {
 		if !f.Multi {
 			f.Multi = v.Multi
 		}
-		m.Filters[k] = f
+		s.Filters[k] = f
+	}
+}
+
+func (s *Store) mergeWith(src Store) {
+	// Access
+	// Actions
+	if len(src.BaseStore) > 0 {
+		s.BaseStore = src.BaseStore
+	}
+	// Config
+	if src.DataSource != nil {
+		s.DataSource = src.DataSource
+	}
+
+	// TODO: fill all props
+	if len(src.Label) > 0 {
+		s.Label = src.Label
 	}
 }
