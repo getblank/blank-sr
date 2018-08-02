@@ -31,7 +31,7 @@ func (p *MongoCFGProvider) Get() (map[string]Store, error) {
 	}
 
 	defer session.Close()
-	c := session.DB(p.db).C(cfgCollection)
+	c := session.DB(p.db).C(collectionName())
 	bson.SetJSONTagFallback(true)
 	bson.SetRespectNilValues(true)
 
@@ -68,4 +68,12 @@ func RegisterMongoCFGProvider() {
 	url := fmt.Sprintf("mongodb://%s:%s", dbAddr, dbPort)
 	p := &MongoCFGProvider{url, dbName}
 	RegisterConfigProvider(p)
+}
+
+func collectionName() string {
+	if v := os.Getenv("BLANK_CUSTOM_STORES_COLLECTION"); len(v) > 0 {
+		return v
+	}
+
+	return cfgCollection
 }
