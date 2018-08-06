@@ -664,7 +664,7 @@ func (s *Store) LoadDefaultIntoProp(name string, p Prop) {
 	if prop.Store != "" {
 		p.Store = prop.Store
 	}
-	if prop.PopulateIn != "" {
+	if prop.PopulateIn != nil {
 		p.PopulateIn = prop.PopulateIn
 	}
 	if prop.Label != "" {
