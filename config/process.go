@@ -37,6 +37,10 @@ func RegisterConfigProvider(p ConfigProvider) {
 
 func Init(confFile string) {
 	makeDefaultSettings()
+	if v := os.Getenv("NODE_ENV"); v == "DEV" {
+		return
+	}
+
 	readConfig(confFile)
 	updated(config)
 }
