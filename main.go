@@ -35,7 +35,7 @@ const (
 var (
 	buildTime string
 	gitHash   string
-	version   = "0.1.31"
+	version   = "0.1.32"
 )
 
 var (
