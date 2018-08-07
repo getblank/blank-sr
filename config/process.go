@@ -37,10 +37,6 @@ func RegisterConfigProvider(p ConfigProvider) {
 
 func Init(confFile string) {
 	makeDefaultSettings()
-	if v := os.Getenv("NODE_ENV"); v == "DEV" {
-		return
-	}
-
 	readConfig(confFile)
 	updated(config)
 }
@@ -115,6 +111,10 @@ func readConfig(confFile string) {
 	err = json.Unmarshal(file, &conf)
 	if err != nil {
 		log.Error("Error when read objects config", err.Error())
+		if v := os.Getenv("NODE_ENV"); v == "DEV" {
+			return
+		}
+
 		time.Sleep(time.Microsecond * 200)
 		os.Exit(1)
 	}
