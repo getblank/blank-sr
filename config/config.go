@@ -53,11 +53,7 @@ const (
 	PropWidget         = "widget"
 	PropFile           = "file"
 	PropFileList       = "fileList"
-
-	TemplatePdf  = "pdf"
-	TemplateRtf  = "rtf"
-	TemplateHtml = "html"
-	TemplateTxt  = "txt"
+	PropUUID           = "uuid"
 
 	CreateAccess = "c"
 	ReadAccess   = "r"
