@@ -448,7 +448,6 @@ func (s *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 				}
 			}
 
-			prop.Default = nil
 			if prop.Store == "" {
 				return errors.New("Store not provided for ref type in prop: '" + pName + "'")
 			}
@@ -487,7 +486,6 @@ func (s *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			prop.clearStringParams()
 			prop.clearRefParams()
 			prop.clearNumberParams()
-			//			prop.Default = nil
 			err := s.validateProps(prop.Props, false)
 			if err != nil {
 				return err
