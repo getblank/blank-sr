@@ -395,7 +395,7 @@ func (s *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			}
 
 			props[pName] = prop
-		case PropString:
+		case PropString, PropUUID:
 			prop.clearNumberParams()
 			prop.clearRefParams()
 			prop.clearObjectParams()
