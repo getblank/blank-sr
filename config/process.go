@@ -205,6 +205,7 @@ func Validate(conf map[string]Store) map[string]Store {
 		case ObjNotification:
 			//			log.Info("Store is 'notification' type")
 		case ObjSingle:
+			o.Props["_id"] = Prop{Type: PropString, Display: "none"}
 			//			log.Info("Store is 'single' type")
 		case ObjFile:
 			// 		log.Info("Store is 'file' type")
