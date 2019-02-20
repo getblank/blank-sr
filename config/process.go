@@ -587,7 +587,6 @@ func (p *Prop) clearObjectParams() {
 
 func (p *Prop) clearRefParams() {
 	p.Store = ""
-	p.PopulateIn = ""
 	p.OppositeProp = ""
 	p.ExtraQuery = nil
 	p.Query = nil
