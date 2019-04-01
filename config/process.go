@@ -76,7 +76,7 @@ func loadFromProviders(conf map[string]Store) {
 	for _, p := range configProviders {
 		cfg, err := p.Get()
 		if err != nil {
-			log.Warn("Can't loag config from provider %q, error: %s", p.Name(), err)
+			log.Warnf("Can't load config from provider %q, error: %s", p.Name(), err)
 			continue
 		}
 

@@ -234,7 +234,7 @@ type Prop struct {
 	Required           interface{}     `json:"required,omitempty" ws:"yes"`           // Поле является обязательным
 	SearchBy           []string        `json:"searchBy,omitempty"`                    // Поля для поиска для элемента searchBox // TODO: сделать валидацию
 	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`            // Шаблон выбранного элемента для searchBox
-	ShowAddAction      bool            `json:"showAddAction,omitempty"`               // Only for types:ref|refList
+	ShowAddAction      interface{}     `json:"showAddAction,omitempty"`               // Only for types:ref|refList
 	Sortable           bool            `json:"sortable,omitempty" ws:"yes"`           // Применимо только для ObjectList, перетаскивание
 	SortBy             string          `json:"sortBy,omitempty"`                      // Поля для сортировки, если пропа virtual // TODO: сделать валидацию
 	Store              string          `json:"store,omitempty"`                       // Имя сторы для поля типа ref
