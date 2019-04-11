@@ -252,6 +252,7 @@ type Prop struct {
 type Filter struct {
 	Default            string      `json:"default,omitempty" ws:"yes"`     // Function for setting default filter value, if filter resets, web app will set value to returned of this function
 	Display            string      `json:"display" ws:"yes"`               // textInput, searchBox, select, masked
+	ExtraQuery         interface{} `json:"extraQuery,omitempty"`           // Доп Запрос для СУБД
 	FilterBy           string      `json:"filterBy,omitempty"`             // display:searchBox Имя сторы для поля типа ref
 	FormOrder          int         `json:"formOrder,omitempty"`            // Порядок отображения на форме
 	HideOnStoreDisplay interface{} `json:"hideOnStoreDisplay,omitempty"`   // Useful to hide some filters on selected display types, type can be String or Array<String>
