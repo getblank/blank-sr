@@ -208,6 +208,7 @@ type Prop struct {
 	Hidden             interface{}     `json:"hidden,omitempty" ws:"yes"`             // Hidden conditions, JavaScript expression
 	HTML               string          `json:"html,omitempty" ws:"yes"`               // Html for display=html
 	HTMLFile           string          `json:"htmlFile,omitempty" ws:"yes"`           // Файл с шаблоном Html for display=html
+	ItemsOnPage        int             `json:"itemsOnPage,omitempty" ws:"yes"`        // Only for virtual ref lists
 	Label              string          `json:"label,omitempty" ws:"yes"`              // Вариации названий в браузере
 	LabelClassName     string          `json:"labelClassName,omitempty"`              // CSS класс для лейбла
 	Load               string          `json:"load,omitempty"`                        // Функция на JS, применима к типу virtual
