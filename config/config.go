@@ -39,6 +39,7 @@ const (
 	PropBool           = "bool"
 	PropString         = "string"
 	PropDate           = "date"
+	PropDateOnly       = "dateOnly"
 	PropRef            = "ref"
 	PropRefList        = "refList"
 	PropVirtual        = "virtual"
@@ -124,7 +125,6 @@ var (
 
 // Store definition
 type Store struct {
-	ID                  string                 `json:"_id,omitempty"`                         // Для загрузки из MongoDB
 	Access              []Access               `json:"access,omitempty"`                      // Разрешения для работы с объектом. Если не заполнено, то доступ разрешён всем
 	Actions             []Action               `json:"actions,omitempty"`                     // Перечень действий над объектом
 	BaseStore           string                 `json:"baseStore,omitempty"`                   // Только для Type == 'proxy'. Содержит стору на которую производится проксирование.
@@ -151,7 +151,9 @@ type Store struct {
 	HTTPHooks           []HTTPHook             `json:"httpHooks,omitempty"`                   // Http хуки (HTTP API).
 	I18n                map[string]interface{} `json:"i18n" ws:"yes"`                         // Вариации названий в браузере
 	Icon                string                 `json:"icon,omitempty"`                        // Иконка для отображения в меню и в центре уведомлений
+	ID                  string                 `json:"_id,omitempty"`                         // Для загрузки из MongoDB
 	Indexes             []interface{}          `json:"indexes,omitempty"`                     // MongoDB indexes
+	ItemsOnPage         int                    `json:"itemsOnPage,omitempty" ws:"yes"`        // Для display:table
 	Label               string                 `json:"label,omitempty"`                       // Заголовок сторы
 	Labels              []Label                `json:"labels,omitempty"`                      // Лейблы
 	ListViewOnly        bool                   `json:"listViewOnly,omitempty" ws:"yes"`       // Параметр, определяющий отображение сторы.

@@ -421,7 +421,7 @@ func (s *Store) validateProps(props map[string]Prop, parseObjects bool) error {
 			}
 
 			props[pName] = prop
-		case PropDate:
+		case PropDate, PropDateOnly:
 			prop.clearStringParams()
 			prop.clearRefParams()
 			prop.clearObjectParams()
