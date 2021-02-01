@@ -259,6 +259,7 @@ type Filter struct {
 	FilterBy           string      `json:"filterBy,omitempty"`             // display:searchBox Имя сторы для поля типа ref
 	FormOrder          int         `json:"formOrder,omitempty"`            // Порядок отображения на форме
 	HideOnStoreDisplay interface{} `json:"hideOnStoreDisplay,omitempty"`   // Useful to hide some filters on selected display types, type can be String or Array<String>
+	Hidden             interface{} `json:"hidden,omitempty" ws:"yes"`      // Hidden conditions, JavaScript expression
 	Label              string      `json:"label,omitempty" ws:"yes"`       // Вариации названий в браузере
 	Mask               string      `json:"mask,omitempty" ws:"yes"`        // display:masked Применимо только для строк
 	Multi              bool        `json:"multi" ws:"yes"`                 // display:searchBox Возможность выбора нескольких элементов
