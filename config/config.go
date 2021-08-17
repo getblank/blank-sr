@@ -317,7 +317,7 @@ type Action struct {
 	FormLabel   string          `json:"formLabel,omitempty" ws:"yes"` // Text form header, HandleBars template
 	OkLabel     string          `json:"okLabel,omitempty"`            // Text in form submit button, HandleBars template
 	Props       map[string]Prop `json:"props" ws:"yes"`               // Form properties
-	Wide        bool            `json:"wide,omitempty"`               // Two columned form
+	Wide        interface{}     `json:"wide,omitempty"`               // Two columned form
 }
 
 // Hooks contains JavaScript hooks
