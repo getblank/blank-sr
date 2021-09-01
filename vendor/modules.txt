@@ -1,0 +1,47 @@
+# github.com/boltdb/bolt v1.3.0
+## explicit
+github.com/boltdb/bolt
+# github.com/dgrijalva/jwt-go v3.0.0+incompatible
+## explicit
+# github.com/franela/goblin v0.0.0-20170111051028-2fa789fd0c6b
+## explicit
+github.com/franela/goblin
+# github.com/getblank/uuid v0.0.0-20160519113122-af8bcd064446
+## explicit
+github.com/getblank/uuid
+# github.com/getblank/wango v0.0.0-20161019105944-d4225a993803
+## explicit
+github.com/getblank/wango
+# github.com/globalsign/mgo v0.0.0-20180615134936-113d3961e731
+## explicit
+github.com/globalsign/mgo
+github.com/globalsign/mgo/bson
+github.com/globalsign/mgo/internal/json
+github.com/globalsign/mgo/internal/sasl
+github.com/globalsign/mgo/internal/scram
+# github.com/golang-jwt/jwt v3.2.2+incompatible
+## explicit
+github.com/golang-jwt/jwt
+# github.com/jinzhu/copier v0.0.0-20170205151647-8bfca8a02a0c
+## explicit
+github.com/jinzhu/copier
+# github.com/pkg/errors v0.8.1-0.20170505043639-c605e284fe17
+## explicit
+github.com/pkg/errors
+# github.com/sirupsen/logrus v1.8.1
+## explicit
+github.com/sirupsen/logrus
+# golang.org/x/crypto v0.0.0-20170619204222-adbae1b6b6fb
+## explicit
+# golang.org/x/net v0.0.0-20170621082244-057a25b06247
+## explicit
+golang.org/x/net/websocket
+# golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e
+## explicit
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/tools v0.0.0-20170622020834-545ce0dcddd1
+## explicit
+golang.org/x/tools/godoc/vfs
+golang.org/x/tools/godoc/vfs/zipfs
