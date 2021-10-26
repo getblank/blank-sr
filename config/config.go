@@ -235,11 +235,11 @@ type Prop struct {
 	Query              interface{}     `json:"query,omitempty"`                       // Запрос для монги
 	ReadOnly           bool            `json:"readOnly,omitempty"`                    // Поле только для чтения
 	Required           interface{}     `json:"required,omitempty" ws:"yes"`           // Поле является обязательным
-	SearchBy           []string        `json:"searchBy,omitempty"`                    // Поля для поиска для элемента searchBox // TODO: сделать валидацию
+	SearchBy           []interface{}   `json:"searchBy,omitempty"`                    // Поля для поиска для элемента searchBox
 	SelectedTemplate   string          `json:"selectedTemplate,omitempty"`            // Шаблон выбранного элемента для searchBox
 	ShowAddAction      interface{}     `json:"showAddAction,omitempty"`               // Only for types:ref|refList
 	Sortable           bool            `json:"sortable,omitempty" ws:"yes"`           // Применимо только для ObjectList, перетаскивание
-	SortBy             string          `json:"sortBy,omitempty"`                      // Поля для сортировки, если пропа virtual // TODO: сделать валидацию
+	SortBy             string          `json:"sortBy,omitempty"`                      // Поля для сортировки, если пропа virtual
 	Store              string          `json:"store,omitempty"`                       // Имя сторы для поля типа ref
 	Style              bdb.M           `json:"style,omitempty" ws:"yes"`              // Внезапно: пока не определим нужный набор свойств отображения, прокину как я CSS
 	TableColumns       []interface{}   `json:"tableColumns,omitempty" ws:"yes"`       // Применимо только для VirtualRefList
